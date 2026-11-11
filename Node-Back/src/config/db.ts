@@ -1,7 +1,7 @@
-import mysql from 'mysql2/promise';
+import mysql from 'mysql2';
 import { env } from './env.js';
 
-export const db = mysql.createPool({
+const pool = mysql.createPool({
   host: env.MYSQL_HOST,
   port: env.MYSQL_PORT,
   user: env.MYSQL_USER,
@@ -12,5 +12,18 @@ export const db = mysql.createPool({
   connectTimeout: 5000,
   supportBigNumbers: true,
   bigNumberStrings: true,
+  namedPlaceholders: true,
+  dateStrings: true,
+  decimalNumbers: false,
+  multipleStatements: false,
   timezone: 'Z'
 });
+
+// Queue session initialization before the first statement on every new connection.
+pool.on('connection', connection => {
+  connection.query("SET time_zone = '+00:00'", err => {
+    if (err) connection.destroy();
+  });
+});
+
+export const db = pool.promise();
