@@ -1,21 +1,79 @@
-<script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount } from "vue";
+﻿<script setup lang="ts">
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { photo, salary, type Job } from "../entities/job";
 import { catalog } from "../entities/catalog";
 import SaveButton from "../features/SaveButton.vue";
-const props = defineProps<{ job: Job }>();
+import { useVacancyDetails, vacancySalary, vacancyFormats } from "../entities/vacancyDetails";
+const props = defineProps<{ job?: Job; vacancyId?: string }>();
+const details = useVacancyDetails(() => props.vacancyId);
+const { authenticated, vacancy, skills, loading, error, status, outboundBusy, outboundError, outboundUrl, canOutbound } = details;
+
 const emit = defineEmits<{ close: [] }>();
 const dialog = ref<HTMLDialogElement>(),
   mode = ref("plain");
 const previous = document.activeElement as HTMLElement | null;
+const isOpen = ref(false);
+let openingFrame = 0;
+let closeTimer: ReturnType<typeof setTimeout> | undefined;
+let closing = false;
+let finished = false;
+let savedOverflow = "";
+function finishClose() {
+  if (finished) return;
+  finished = true;
+  clearTimeout(closeTimer);
+  dialog.value?.close();
+  document.body.style.overflow = savedOverflow;
+  emit("close");
+}
+function close() {
+  if (closing) return;
+  closing = true;
+  details.cancel();
+  cancelAnimationFrame(openingFrame);
+  const panel = dialog.value?.querySelector<HTMLElement>(".sheet__panel");
+  const wasOpen = isOpen.value;
+  isOpen.value = false;
+  if (!wasOpen || !panel || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    finishClose();
+    return;
+  }
+  const style = getComputedStyle(panel);
+  const seconds = (value: string) => value.split(",").map(v => parseFloat(v) * (v.trim().endsWith("ms") ? 1 : 1000));
+  const durations = seconds(style.transitionDuration), delays = seconds(style.transitionDelay);
+  const duration = Math.max(...durations.map((d, i) => d + delays[i % delays.length]!));
+  closeTimer = setTimeout(finishClose, duration + 50);
+}
+function onTransitionEnd(event: TransitionEvent) {
+  if (closing && event.target === event.currentTarget && event.propertyName === "transform") finishClose();
+}
 onMounted(() => {
+  savedOverflow = document.body.style.overflow;
   dialog.value?.showModal();
   document.body.style.overflow = "hidden";
+  // Commit the closed pose before scheduling the opening transition.
+  dialog.value?.querySelector(".sheet__panel")?.getBoundingClientRect();
+  openingFrame = requestAnimationFrame(() => { if (!closing) isOpen.value = true; });
 });
 onBeforeUnmount(() => {
-  document.body.style.overflow = "";
-  previous?.focus();
+  cancelAnimationFrame(openingFrame);
+  clearTimeout(closeTimer);
+  dialog.value?.close();
+  document.body.style.overflow = savedOverflow;
+  if (previous?.isConnected) previous.focus();
 });
+const schedules: Record<string, string> = { five_two: '5/2', six_one: '6/1', shift: 'Сменный', flexible: 'Гибкий', other: 'Другой', unknown: 'Не указано' };
+const view = computed(() => {
+  if (props.job) return { source: props.job.source, title: props.job.title, company: props.job.company, city: props.job.city, salary: salary(props.job), format: props.job.format, experience: props.job.experience };
+  const v = vacancy.value;
+  if (!v) return { title: loading.value ? 'Загрузка вакансии…' : 'Вакансия', source: '', company: '', city: '', salary: '', format: '', experience: '' };
+  return { source: v.source_name, title: v.title, company: v.company_name || 'Компания не указана', city: v.city || 'Город не указан', salary: vacancySalary(v), format: vacancyFormats[v.work_format] || 'Не указано', experience: v.experience_months_min == null ? 'Не указано' : v.experience_months_min === 0 ? 'Без опыта' : `От ${v.experience_months_min} мес.` };
+});
+const originalSections = computed(() => vacancy.value ? [
+  { label: 'Описание', text: vacancy.value.description },
+  { label: 'Обязанности', text: vacancy.value.responsibilities },
+  { label: 'Требования', text: vacancy.value.requirements },
+].filter(s => s.text?.trim()) : []);
 const labels = {
   duties: "Что делать",
   requirements: "Что нужно",
@@ -26,40 +84,42 @@ const labels = {
   <dialog
     ref="dialog"
     class="sheet"
+    :class="{ 'is-open': isOpen }"
     aria-labelledby="sheet-title"
-    @cancel.prevent="emit('close')"
+    @cancel.prevent="close"
     @click="
       (e) => {
-        if (e.target === dialog) emit('close');
+        if (e.target === dialog) close();
       }
     "
   >
-    <div class="sheet__panel">
+    <div class="sheet__panel" @transitionend="onTransitionEnd">
       <div class="sheet__bar">
-        <span class="sheet__source">{{ job.source }}</span
-        ><button class="icon-btn" aria-label="Закрыть" @click="emit('close')">
+        <span class="sheet__source">{{ view?.source }}</span
+        ><button class="icon-btn" aria-label="Закрыть" @click="close">
           <svg class="icon"><use href="#i-close" /></svg>
         </button>
       </div>
       <div class="sheet__scroll">
-        <figure class="sheet__media"><img :src="photo(job)" alt="" /></figure>
+        <figure v-if="job" class="sheet__media"><img :src="photo(job)" alt="" /></figure>
         <div class="sheet__body">
-          <h2 id="sheet-title" class="sheet__title">{{ job.title }}</h2>
-          <p class="sheet__company">{{ job.company }} · {{ job.city }}</p>
-          <dl class="facts">
+          <h2 id="sheet-title" class="sheet__title">{{ view?.title }}</h2>
+          <p v-if="job || vacancy" class="sheet__company">{{ view?.company }} · {{ view?.city }}</p>
+          <dl v-if="job || vacancy" class="facts">
             <div>
               <dt>Зарплата</dt>
-              <dd>{{ salary(job) }}</dd>
+              <dd>{{ view?.salary }}</dd>
             </div>
             <div>
               <dt>Формат</dt>
-              <dd>{{ job.format }}</dd>
+              <dd>{{ view?.format }}</dd>
             </div>
             <div>
               <dt>Опыт</dt>
-              <dd>{{ job.experience }}</dd>
+              <dd>{{ view?.experience }}</dd>
             </div>
           </dl>
+          <template v-if="job">
           <div class="seg">
             <button
               v-for="m in ['plain', 'original']"
@@ -87,9 +147,21 @@ const labels = {
               </div>
             </div>
           </div>
+          </template>
+          <template v-else>            <div v-if="loading" class="sheet__loading" role="status" aria-label="Загрузка вакансии"><span></span><span></span><span></span></div>
+            <div v-else-if="error" class="state" role="alert">{{ error }} <a v-if="status === 401" href="#/account" @click="close">Войти</a><button v-else class="btn btn--ghost" @click="details.load()">Повторить</button></div>
+            <template v-else-if="vacancy">
+              <p v-if="vacancy.status === 'archived'" class="state">Вакансия в архиве. Переход к работодателю недоступен.</p>
+              <dl class="facts"><div><dt>График</dt><dd>{{ vacancy.schedule_text || schedules[vacancy.schedule_type || 'unknown'] || 'Не указано' }}</dd></div></dl>
+              <p class="sheet__disclaimer">Показан оригинальный текст работодателя. Упрощение ИИ пока недоступно.</p>
+              <div class="sheet__original"><section v-for="section in originalSections" :key="section.label"><h3>{{ section.label }}</h3><p>{{ section.text }}</p></section>
+                <section v-if="skills.length"><h3>Навыки</h3><ul><li v-for="skill in skills" :key="skill.id">{{ skill.name }}{{ skill.is_required === 1 ? ' · обязательный' : '' }}</li></ul></section>
+              </div>
+            </template></template>
         </div>
       </div>
       <div class="sheet__foot">
+        <template v-if="job">
         <a
           class="btn btn--accent"
           :href="
@@ -99,12 +171,28 @@ const labels = {
           "
           target="_blank"
           rel="noopener noreferrer"
-          >Открыть на {{ job.source }}</a
+          >Открыть на {{ view?.source }}</a
         ><SaveButton :job="job" />
         <p class="sheet__disclaimer">
           Демо-вакансия: ссылка открывает поиск похожих объявлений.
         </p>
+        </template>
+        <template v-else>          <button class="btn btn--accent" :disabled="!canOutbound || outboundBusy || loading || !!error" @click="details.outbound()">{{ outboundBusy ? 'Открываем…' : 'Открыть у работодателя' }}</button>
+          <SaveButton v-if="vacancy && !error" :vacancy="vacancy" />
+          <p v-if="outboundError" role="alert">{{ outboundError }} <a v-if="!authenticated" href="#/account" @click="close">Войти</a></p>
+          <p v-if="outboundUrl" role="status">Новая вкладка заблокирована или закрыта. <a :href="outboundUrl" target="_blank" rel="noopener noreferrer">Открыть вакансию</a></p>
+          <p class="sheet__disclaimer">Переход к работодателю не является откликом на вакансию.</p></template>
       </div>
     </div>
   </dialog>
 </template>
+
+<style scoped>
+.sheet__original section { margin-top: 24px; }
+.sheet__original h3 { margin-bottom: 8px; }
+.sheet__original p { white-space: pre-wrap; overflow-wrap: anywhere; }
+.sheet__loading { display: grid; gap: 16px; padding-block: 24px; }
+.sheet__loading span { height: 24px; border-radius: 4px; background: var(--line); }
+.sheet__loading span:last-child { width: 65%; }
+</style>
+

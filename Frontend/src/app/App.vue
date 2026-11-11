@@ -1,17 +1,24 @@
 <script setup lang="ts">
-import ApiPreview from "../pages/ApiPreview.vue";
+import { useFavorites } from "../entities/favorites";
+import { useSession } from "../entities/session";
+import ApiConnection from "../widgets/ApiConnection.vue";
 import { dataMode } from "../shared/api";
-import { computed, ref, watchEffect } from "vue";
+import { computed, provide, readonly, ref, watchEffect } from "vue";
+import BrandImage from "../shared/BrandImage.vue";
 import { useRoute } from "vue-router";
 import { useCatalog } from "../entities/store";
 import { read, write } from "../shared/storage";
 const store = useCatalog(),
   route = useRoute();
-const isGuestAuth = computed(() => dataMode !== "api" && route.path === "/account" && !store.user);
+const session = useSession();
+const favorites = useFavorites();
+if (dataMode === "api") void session.restore();
+const isGuestAuth = computed(() => route.path === "/account" && (dataMode === "api" ? !session.authenticated : !store.user));
 const media = matchMedia("(prefers-color-scheme: dark)");
 const dark = ref(
   read("starter.theme", media.matches ? "dark" : "light") === "dark",
 );
+provide('brand-dark', readonly(dark));
 function toggleTheme() {
   dark.value = !dark.value;
   write("starter.theme", dark.value ? "dark" : "light");
@@ -88,11 +95,10 @@ watchEffect(() => {
 
   <a class="skip" href="#main">Перейти к содержимому</a>
 
-  <header class="topbar" id="topbar">
+  <header class="topbar" id="topbar" :class="{ 'topbar--home-enter': route.path === '/' }">
     <div class="wrap topbar__inner">
       <a class="logo" href="#/" aria-label="Стартер — на главную"
-        >стартер<span class="logo__mark" aria-hidden="true"></span
-      ></a>
+        ><BrandImage width="2048" height="463" alt="СТАРТЕР" /></a>
       <nav class="nav" aria-label="Разделы">
         <a
           class="nav__link"
@@ -120,7 +126,7 @@ watchEffect(() => {
             class="nav__count"
             id="saved-count"
             aria-label="сохранено вакансий"
-            >{{ store.saved.length }}</span
+            >{{ dataMode === "api" ? favorites.ids.length : store.saved.length }}</span
           ></a
         >
         <a
@@ -128,8 +134,8 @@ watchEffect(() => {
           href="#/account"
           :aria-current="route.path === '/account' ? 'page' : undefined"
           ><svg class="icon" aria-hidden="true"><use href="#i-user" /></svg
-          ><span class="nav__label" id="account-label" data-short="Профиль"
-            >Войти</span
+          ><span class="nav__label" id="account-label" :class="{ 'nav__profile': dataMode === 'api' && session.authenticated }" :title="dataMode === 'api' ? session.profile?.displayName : undefined" :data-short="(dataMode === 'api' ? session.authenticated : !!store.user) ? 'Профиль' : 'Войти'"
+            >{{ dataMode === 'api' && session.authenticated ? session.profile?.displayName : (dataMode === 'api' ? session.authenticated : !!store.user) ? 'Профиль' : 'Войти' }}</span
           ></a
         >
       </nav>
@@ -152,19 +158,17 @@ watchEffect(() => {
   </header>
 
   <main id="main" tabindex="-1">
-    <ApiPreview v-if="dataMode === 'api'" /><RouterView
-      v-else
+    <ApiConnection v-if="dataMode === 'api' && route.path !== '/account'" /><RouterView
       v-slot="{ Component }"
       ><KeepAlive><component :is="Component" /></KeepAlive
     ></RouterView>
   </main>
-  <footer v-if="!isGuestAuth" class="footer">
+  <footer v-if="!isGuestAuth" class="footer" :class="{ 'footer--illustrated': route.path === '/' }">
     <div class="wrap">
       <div class="footer__top">
         <div class="footer__brand">
           <a class="logo" href="#/" aria-label="Стартер — на главную"
-            >стартер<span class="logo__mark" aria-hidden="true"></span
-          ></a>
+            ><BrandImage width="2048" height="463" alt="СТАРТЕР" /></a>
           <p>
             Вакансии с нескольких площадок в одном каталоге. Пересказываем
             объявления простыми словами и подсказываем, какая профессия
@@ -270,5 +274,14 @@ watchEffect(() => {
         </p>
       </div>
     </div>
+    <img v-if="route.path === '/'" class="footer__cat"
+      src="/images/branding/starter-footer-cat-compact-1024.webp"
+      srcset="/images/branding/starter-footer-cat-compact-768.webp 768w, /images/branding/starter-footer-cat-compact-1024.webp 1024w, /images/branding/starter-footer-cat-compact-1536.webp 1536w"
+      sizes="(max-width: 720px) 228px, 342px" width="1024" height="449"
+      alt="" aria-hidden="true" loading="lazy" />
   </footer>
 </template>
+
+<style scoped>
+@media (min-width: 721px) { .nav__profile { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } }
+</style>

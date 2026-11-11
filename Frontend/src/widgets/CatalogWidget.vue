@@ -1,10 +1,20 @@
-<script setup lang="ts">
-import { ref, watch } from "vue";
+﻿<script setup lang="ts">
+import { computed, ref, watch } from "vue";
+import CatalogEmptyState from "./CatalogEmptyState.vue";
 import { useCatalog } from "../entities/store";
 import { catalog } from "../entities/catalog";
+import { dataMode } from "../shared/api";
+import { useVacancyCatalog } from "../entities/vacancyCatalog";
+import ApiJobList from "./ApiJobList.vue";
+const remote = useVacancyCatalog();
+const isApi = dataMode === "api";
 import JobList from "./JobList.vue";
 const store = useCatalog(),
   limit = ref(6);
+const hasActiveFilters = computed(() => Boolean(
+  store.query.trim() || store.city.trim() || store.formats.length ||
+  store.sources.length || store.noExp || store.minSalary,
+));
 watch(
   () => [
     store.query,
@@ -25,7 +35,7 @@ watch(
       <div class="section-head">
         <h2>Каталог</h2>
         <p aria-live="polite">
-          {{ store.filtered.length }} вакансий · Демо (mock)
+          {{ isApi ? `Загружено: ${remote.items.length} · API` : `${store.filtered.length} вакансий · Демо (mock)` }}
         </p>
       </div>
       <div class="catalog__layout">
@@ -50,13 +60,14 @@ watch(
               ><input id="f-city" class="input" v-model="store.city" />
             </div>
             <fieldset class="field">
-              <legend class="field__label">Формат</legend>
+              <legend class="field__label">Формат</legend><p v-if="isApi">Можно выбрать один формат.</p>
               <label
                 class="check"
                 v-for="format in ['На месте', 'Гибрид', 'Удалённо']"
                 :key="format"
                 ><input
                   type="checkbox"
+                  :disabled="isApi && store.formats.length > 0 && !store.formats.includes(format)"
                   v-model="store.formats"
                   :value="format"
                 /><span>{{ format }}</span></label
@@ -81,13 +92,14 @@ watch(
               </select>
             </div>
             <fieldset class="field">
-              <legend class="field__label">Источник</legend>
+              <legend class="field__label">Источник</legend><p v-if="isApi">API пока не поддерживает фильтр источников.</p>
               <label
                 class="check"
                 v-for="(_, source) in catalog.sources"
                 :key="source"
                 ><input
                   type="checkbox"
+                  :disabled="isApi"
                   v-model="store.sources"
                   :value="source"
                 /><span>{{ source }}</span></label
@@ -100,19 +112,28 @@ watch(
         </details>
         <div class="results">
           <div class="results__bar">
-            <p class="results__hint">Компании вымышлены</p>
+            <p class="results__hint">{{ isApi ? "Порядок сервера: навыки, релевантность поиска, дата. Изменение сортировки недоступно." : "Компании вымышлены" }}</p>
             <label class="sort"
-              >Сортировка<select class="input select" v-model="store.sort">
+              >Сортировка<select class="input select" :disabled="isApi" v-model="store.sort">
                 <option value="date">Сначала новые</option>
                 <option value="salary">По зарплате</option>
                 <option value="fit">Сначала подходящие</option>
               </select></label
             >
           </div>
+          <template v-if="isApi">
+            <ApiJobList :jobs="remote.items" />
+            <p v-if="!remote.authenticated" class="state">Чтобы увидеть вакансии, <a href="#/account">войдите в аккаунт</a>.</p>
+            <template v-else>
+              <p v-if="remote.loading" class="state" role="status">Загружаем вакансии…</p>
+              <div v-else-if="remote.error" class="state" role="alert">{{ remote.error }} <button class="btn btn--ghost" @click="remote.load()">Повторить</button></div>
+              <CatalogEmptyState v-else-if="!remote.items.length" :filtered="hasActiveFilters" />
+              <button v-else-if="remote.hasMore" class="btn btn--ghost catalog__more" @click="remote.load()">Показать ещё</button>
+            </template>
+          </template>
+          <template v-else>
           <JobList :jobs="store.filtered.slice(0, limit)" />
-          <p v-if="!store.filtered.length" class="state">
-            Ничего не найдено. Попробуйте изменить фильтры.
-          </p>
+          <CatalogEmptyState v-if="!store.filtered.length" :filtered="hasActiveFilters" />
           <button
             v-if="limit < store.filtered.length"
             class="btn btn--ghost catalog__more"
@@ -120,8 +141,10 @@ watch(
           >
             Показать ещё
           </button>
+          </template>
         </div>
       </div>
     </div>
   </section>
 </template>
+

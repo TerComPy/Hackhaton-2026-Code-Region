@@ -1,5 +1,6 @@
-<script setup lang="ts">
-import { ref, onMounted } from "vue";
+﻿<script setup lang="ts">
+import { dataMode } from "../shared/api";
+import { ref, onMounted, onActivated, onDeactivated } from "vue";
 import { useCatalog } from "../entities/store";
 import { catalog } from "../entities/catalog";
 import { photo, salary, type Job } from "../entities/job";
@@ -7,6 +8,10 @@ import CatalogWidget from "../widgets/CatalogWidget.vue";
 import VacancySheet from "../widgets/VacancySheet.vue";
 import { Scene } from "../widgets/scene";
 const store = useCatalog();
+// KeepAlive activates only on route entry; theme/data updates do not replay entrances.
+const entering = ref(true);
+onActivated(() => { entering.value = true; });
+onDeactivated(() => { entering.value = false; });
 const selected = ref<Job | null>(null);
 const ringJobs = [1, 4, 3, 2, 6, 14, 7, 9, 11, 10].map((id) =>
   catalog.jobs.find((j) => j.id === id)!,
@@ -34,7 +39,7 @@ onMounted(() => {
 });
 </script>
 <template>
-  <div class="view" data-view="home">
+  <div class="view" data-view="home" :class="{ 'home-enter': entering }">
     <section class="hero" aria-labelledby="hero-title">
       <div class="wrap hero__grid">
         <div class="hero__copy">
@@ -123,7 +128,8 @@ onMounted(() => {
             </div>
           </div>
           <div class="ring-floor" aria-hidden="true"></div>
-          <p class="ring-hint">
+          <p v-if="dataMode === 'api'" class="ring-hint">???????????? ????????? ? ??????????? ????????</p>
+          <p v-if="dataMode === 'api'" class="ring-hint">Демонстрация профессий · вымышленные вакансии</p><p class="ring-hint">
             <span class="hint-desktop">Потяните, чтобы покрутить</span
             ><span class="hint-touch">Проведите, чтобы покрутить</span> ·
             нажмите на профессию, чтобы открыть вакансию
@@ -132,16 +138,16 @@ onMounted(() => {
       </div>
 
       <div class="wrap">
-        <dl class="sources" id="sources" aria-label="Источники вакансий">
+        <ul class="sources" id="sources" aria-label="Источники вакансий">
           <div v-for="(_, name) in catalog.sources" :key="name">
             <dt>{{ name }}</dt>
             <dd>Демо-каталог</dd>
           </div>
-        </dl>
+        </ul>
       </div>
     </section>
 
-    <section class="how invert" id="how" aria-labelledby="how-title">
+    <section class="how" id="how" aria-labelledby="how-title">
       <div class="how__track" id="how-track">
         <div class="how__sticky">
           <div class="wrap how__grid">
@@ -304,3 +310,4 @@ onMounted(() => {
   </div>
   <VacancySheet v-if="selected" :job="selected" @close="selected = null" />
 </template>
+

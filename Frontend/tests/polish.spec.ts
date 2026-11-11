@@ -6,7 +6,6 @@ for (const theme of ['light', 'dark']) {
   await page.addInitScript(t => localStorage.setItem('starter.theme', JSON.stringify(t)), theme);
   await page.goto('/#/account');
   await expect(page.locator('html')).toHaveAttribute('data-theme', theme);
-  await page.screenshot({ path: `test-results/polish/after-auth-${theme}-${info.project.name}.png` });
   await page.getByRole('button', {name:'Создать профиль', exact:true}).click();
   await expect(page.locator('.member')).toHaveCount(0);
   await page.locator('#auth-name').fill('Анна');
@@ -22,7 +21,6 @@ for (const theme of ['light', 'dark']) {
   await expect(page.locator('#auth-password')).toHaveAttribute('type','password');
   await page.getByRole('button', {name:'Вход',exact:true}).click();
   await expect(page.locator('#auth-name')).toBeHidden();
-  await page.screenshot({path:`test-results/polish/after-login-${theme}-${info.project.name}.png`});
   await page.getByRole('button',{name:'Регистрация',exact:true}).click();
   await expect(page.locator('#auth-name')).toHaveValue('Анна');
   await page.getByRole('button',{name:'Вход',exact:true}).click();
@@ -46,7 +44,6 @@ for (const theme of ['light', 'dark']) {
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
   await expect(sort).toHaveValue('salary');
-  await page.locator('.results__bar').screenshot({path:`test-results/polish/after-sort-${theme}-${info.project.name}.png`});
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(errors).toEqual([]);
  });

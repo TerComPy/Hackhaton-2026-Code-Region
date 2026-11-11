@@ -442,3 +442,7 @@ coverage/
 build/
 Release
 
+
+# Isolated local integration instance and backups (contain credentials)
+.local-mysql84/
+.local-backup/
