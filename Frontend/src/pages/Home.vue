@@ -45,7 +45,9 @@ onMounted(() => {
         <div class="hero__copy">
           <p class="eyebrow">Агрегатор вакансий</p>
           <h1 class="hero__title" id="hero-title">
-            Вакансии со&nbsp;всей сети —<span> без канцелярита.</span>
+            <span class="hero__line" style="--entrance-index: 0">Вакансии</span>
+            <span class="hero__line" style="--entrance-index: 1">со&nbsp;всей сети —</span>
+            <span class="hero__line hero__line--muted" style="--entrance-index: 2">без канцелярита.</span>
           </h1>
           <p class="hero__lead">
             Собираем предложения с «Работы России», hh.ru и SuperJob,
@@ -139,10 +141,11 @@ onMounted(() => {
 
       <div class="wrap">
         <ul class="sources" id="sources" aria-label="Источники вакансий">
-          <div v-for="(_, name) in catalog.sources" :key="name">
-            <dt>{{ name }}</dt>
-            <dd>Демо-каталог</dd>
-          </div>
+          <li
+            v-for="(_, name, index) in catalog.sources"
+            :key="name"
+            :style="{ '--entrance-index': index }"
+          >{{ name }}</li>
         </ul>
       </div>
     </section>
