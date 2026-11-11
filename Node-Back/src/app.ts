@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
-import pinoHttp from 'pino-http';
+import { pinoHttp } from 'pino-http';
 import { env } from './config/env.js';
 import { healthRouter } from './routes/health.js';
 import { authRouter } from './routes/auth.js';
@@ -23,3 +23,4 @@ app.use('/api/vacancies', vacanciesRouter);
 app.use('/api/favorites', favoritesRouter);
 app.use(notFound);
 app.use(errorHandler);
+

@@ -65,3 +65,5 @@ npm run build
   надстройка — предлагаемый вариант для синхронизации команд.
 - Файл package-lock.json появится после npm install — закоммить его;
   затем использовать npm ci в CI.
+
+Windows PowerShell: use `npm.cmd install` (or `npm.cmd install --cache .npm-cache` if the default cache is inaccessible), `npm.cmd run typecheck`, `npm.cmd run build`. Current stage verification and DB limitations: docs/qa/HANDOFF.md.

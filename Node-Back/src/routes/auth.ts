@@ -18,10 +18,10 @@ interface AccountRow extends RowDataPacket {
   profile_id: string;
 }
 const credentials = z.object({
-  email: z.email().max(255).transform(v => v.trim().toLowerCase()),
+  email: z.string().trim().pipe(z.email().max(255)).transform(v => v.toLowerCase()),
   password: z.string().min(8).max(128)
 });
-const registerSchema = credentials.extend({ displayName: z.string().trim().min(1).max(150) });
+const registerSchema = credentials.extend({ displayName: z.string().trim().min(1).max(150) }).strict();
 const secret = new TextEncoder().encode(env.JWT_SECRET);
 async function tokenFor(id: string) {
   return new SignJWT({})

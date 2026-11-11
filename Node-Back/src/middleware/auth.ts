@@ -9,6 +9,8 @@ export const requireAuth: RequestHandler = async (req, res, next) => {
   if (!match?.[1]) return next(new HttpError(401, 'Bearer token required', 'UNAUTHORIZED'));
   try {
     const { payload } = await jwtVerify(match[1], secret, {
+      algorithms: ['HS256'],
+      requiredClaims: ['sub', 'iss', 'aud', 'exp'],
       issuer: env.JWT_ISSUER,
       audience: env.JWT_AUDIENCE
     });
