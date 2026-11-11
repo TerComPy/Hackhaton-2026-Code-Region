@@ -102,7 +102,7 @@ watch(
           <div class="results__bar">
             <p class="results__hint">Компании вымышлены</p>
             <label class="sort"
-              >Сортировка<select class="select" v-model="store.sort">
+              >Сортировка<select class="input select" v-model="store.sort">
                 <option value="date">Сначала новые</option>
                 <option value="salary">По зарплате</option>
                 <option value="fit">Сначала подходящие</option>
