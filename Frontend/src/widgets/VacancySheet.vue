@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { ref, computed, reactive, onMounted, onBeforeUnmount } from "vue";
 import { photo, salary, type Job } from "../entities/job";
 import { catalog } from "../entities/catalog";
 import SaveButton from "../features/SaveButton.vue";
@@ -8,10 +8,10 @@ import { useVacancyDetails, vacancySalary, vacancyFormats } from "../entities/va
 const props = defineProps<{ job?: Job; vacancyId?: string }>();
 const details = useVacancyDetails(() => props.vacancyId);
 const { authenticated, vacancy, skills, loading, error, status, outboundBusy, outboundError, outboundUrl, canOutbound } = details;
-const ai = useAiSummary(
+const ai = reactive(useAiSummary(
   () => props.vacancyId,
   () => !!vacancy.value && vacancy.value.status === "active" && !loading.value && !error.value,
-);
+));
 
 const emit = defineEmits<{ close: [] }>();
 const dialog = ref<HTMLDialogElement>(),
