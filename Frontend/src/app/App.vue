@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import ApiPreview from "../pages/ApiPreview.vue";
 import { dataMode } from "../shared/api";
-import { ref, watchEffect } from "vue";
+import { computed, ref, watchEffect } from "vue";
 import { useRoute } from "vue-router";
 import { useCatalog } from "../entities/store";
 import { read, write } from "../shared/storage";
 const store = useCatalog(),
   route = useRoute();
+const isGuestAuth = computed(() => dataMode !== "api" && route.path === "/account" && !store.user);
 const media = matchMedia("(prefers-color-scheme: dark)");
 const dark = ref(
   read("starter.theme", media.matches ? "dark" : "light") === "dark",
@@ -123,7 +124,7 @@ watchEffect(() => {
           ></a
         >
         <a
-          class="nav__link"
+          class="nav__link nav__link--cta"
           href="#/account"
           :aria-current="route.path === '/account' ? 'page' : undefined"
           ><svg class="icon" aria-hidden="true"><use href="#i-user" /></svg
@@ -157,7 +158,7 @@ watchEffect(() => {
       ><KeepAlive><component :is="Component" /></KeepAlive
     ></RouterView>
   </main>
-  <footer class="footer">
+  <footer v-if="!isGuestAuth" class="footer">
     <div class="wrap">
       <div class="footer__top">
         <div class="footer__brand">

@@ -940,3 +940,36 @@ body.is-locked { overflow: hidden; }
   .sort .select { max-width: 100%; min-height: 48px; }
   .results__bar { flex-wrap: wrap; }
 }
+
+/* Guest auth fills the available desktop viewport; short/mobile screens may scroll. */
+@media (min-width: 721px) {
+  .nav__link--cta, .nav__link--cta[aria-current="page"] {
+    padding-inline: var(--s5);
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  .nav__link--cta:hover { background: color-mix(in srgb, var(--accent) 90%, var(--ink)); color: var(--on-accent); }
+  .nav__link--cta:active { background: color-mix(in srgb, var(--accent) 80%, var(--ink)); }
+  .nav__link--cta:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 4px; }
+  .nav__link--cta[aria-current="page"]::after { display: none; }
+  .account:has(.account__guest) {
+    min-height: calc(100dvh - var(--header));
+    padding-block: var(--s5);
+    display: grid;
+    align-items: center;
+  }
+  .account__guest {
+    width: 100%;
+    height: min(840px, calc(100dvh - var(--header) - 2 * var(--s5)));
+    min-height: min-content;
+    overflow: visible;
+  }
+  .account__intro { padding: var(--s5) var(--s6); align-self: center; }
+  .auth-brand { margin-bottom: var(--s5); }
+  .account__intro .page-title { font-size: clamp(28px, 2.5vw, 36px); }
+  .account__tabs, .auth { margin-top: var(--s4); }
+  .auth { gap: var(--s3); }
+  .opportunity { min-height: 0; border-radius: 0 var(--r-md) var(--r-md) 0; }
+  .opportunity__title { margin-top: var(--s5); }
+  .opportunity__map { flex: 1; min-height: 0; height: 0; margin-block: var(--s4); }
+}
