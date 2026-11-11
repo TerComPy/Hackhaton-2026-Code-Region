@@ -424,3 +424,21 @@ FodyWeavers.xsd
 # Official VS Code C# Dev Kit Extension exclusion
 #*.lscache
 
+
+node_modules/
+.env
+.env.local
+logs/
+*.log
+pids/
+*.pid
+*.seed
+*.pid.lock
+npm-debug.log
+lib-cov/
+coverage/
+.grunt
+.lock-wscript
+build/
+Release
+
