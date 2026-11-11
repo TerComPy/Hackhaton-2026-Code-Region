@@ -104,19 +104,22 @@ jobs:
     name: Frontend browser smoke tests (demo UI)
     runs-on: ubuntu-24.04
     timeout-minutes: 20
+
+    container:
+      image: mcr.microsoft.com/playwright/python:v1.56.0-noble
+
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-          cache-dependency-path: QA/requirements-e2e.txt
-      - run: python -m pip install -r QA/requirements-e2e.txt
-      - run: python -m playwright install --with-deps chromium
+
+      - name: Install Python QA dependencies
+        run: python -m pip install -r QA/requirements-e2e.txt
+
       - name: Run browser tests
         run: |
           mkdir -p QA/results
-          python -m pytest -q QA/e2e --junitxml=QA/results/frontend-junit.xml
+          python -m pytest -q QA/e2e \
+            --junitxml=QA/results/frontend-junit.xml
+
       - name: Upload browser QA report
         if: always()
         uses: actions/upload-artifact@v4
