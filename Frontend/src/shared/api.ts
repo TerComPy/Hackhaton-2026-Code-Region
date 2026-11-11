@@ -1,4 +1,19 @@
 // Contract: Node-Back/docs/api/openapi.yaml. IDs and DECIMAL remain strings.
+export interface AiSummary {
+  simpleTitle: string;
+  whatYouDo: string[];
+  requirements: string[];
+  conditions: string[];
+  beginnerFriendly: boolean;
+}
+export type AiSummaryStatus = "pending" | "processing" | "done" | "failed" | "unavailable";
+export interface AiSummaryResponse {
+  status: AiSummaryStatus;
+  display: "ai" | "original";
+  summary: AiSummary | null;
+  errorCode?: string;
+}
+
 export interface Account {
   id: string;
   profileId: string;
@@ -159,6 +174,10 @@ export function createApi(
       ),
     save: (v: string, config?: RequestOptions) => request<void>("/api/favorites/" + id(v), "PUT", undefined, config),
     remove: (v: string, config?: RequestOptions) => request<void>("/api/favorites/" + id(v), "DELETE", undefined, config),
+    aiSummary: (v: string, config?: RequestOptions) =>
+      request<AiSummaryResponse>("/api/vacancies/" + id(v) + "/summary", "GET", undefined, config),
+    enqueueAiSummary: (v: string, config?: RequestOptions) =>
+      request<AiSummaryResponse>("/api/vacancies/" + id(v) + "/summary", "POST", undefined, config),
     outbound: (v: string, config?: RequestOptions) =>
       request<{ originalUrl: string }>(
         "/api/vacancies/" + id(v) + "/outbound-click",

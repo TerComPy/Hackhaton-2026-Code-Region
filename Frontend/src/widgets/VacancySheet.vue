@@ -3,10 +3,15 @@ import { ref, computed, onMounted, onBeforeUnmount } from "vue";
 import { photo, salary, type Job } from "../entities/job";
 import { catalog } from "../entities/catalog";
 import SaveButton from "../features/SaveButton.vue";
+import { useAiSummary } from "../entities/aiSummary";
 import { useVacancyDetails, vacancySalary, vacancyFormats } from "../entities/vacancyDetails";
 const props = defineProps<{ job?: Job; vacancyId?: string }>();
 const details = useVacancyDetails(() => props.vacancyId);
 const { authenticated, vacancy, skills, loading, error, status, outboundBusy, outboundError, outboundUrl, canOutbound } = details;
+const ai = useAiSummary(
+  () => props.vacancyId,
+  () => !!vacancy.value && vacancy.value.status === "active" && !loading.value && !error.value,
+);
 
 const emit = defineEmits<{ close: [] }>();
 const dialog = ref<HTMLDialogElement>(),
@@ -30,6 +35,7 @@ function close() {
   if (closing) return;
   closing = true;
   details.cancel();
+  ai.cancel();
   cancelAnimationFrame(openingFrame);
   const panel = dialog.value?.querySelector<HTMLElement>(".sheet__panel");
   const wasOpen = isOpen.value;
@@ -153,9 +159,54 @@ const labels = {
             <template v-else-if="vacancy">
               <p v-if="vacancy.status === 'archived'" class="state">Вакансия в архиве. Переход к работодателю недоступен.</p>
               <dl class="facts"><div><dt>График</dt><dd>{{ vacancy.schedule_text || schedules[vacancy.schedule_type || 'unknown'] || 'Не указано' }}</dd></div></dl>
-              <p class="sheet__disclaimer">Показан оригинальный текст работодателя. Упрощение ИИ пока недоступно.</p>
-              <div class="sheet__original"><section v-for="section in originalSections" :key="section.label"><h3>{{ section.label }}</h3><p>{{ section.text }}</p></section>
-                <section v-if="skills.length"><h3>Навыки</h3><ul><li v-for="skill in skills" :key="skill.id">{{ skill.name }}{{ skill.is_required === 1 ? ' · обязательный' : '' }}</li></ul></section>
+              <div v-if="vacancy.status === 'active'" class="seg" role="group" aria-label="Режим описания вакансии">
+                <button type="button" class="seg__btn" data-mode="plain"
+                  :aria-pressed="ai.mode === 'plain'" @click="ai.showPlain()">Простыми словами</button>
+                <button type="button" class="seg__btn" data-mode="original"
+                  :aria-pressed="ai.mode === 'original'" @click="ai.showOriginal()">Как у работодателя</button>
+              </div>
+              <p v-if="vacancy.status === 'active' && (ai.polling || ai.loading)" class="sheet__ai-note" role="status" aria-live="polite">
+                {{ ai.polling ? 'ИИ готовит понятное описание. Оригинал доступен, пока идёт обработка.' : 'Проверяем наличие ИИ-пересказа…' }}
+              </p>
+              <div v-if="vacancy.status === 'active' && ai.error" class="sheet__ai-feedback" role="alert">
+                <p>{{ ai.error }}</p>
+                <button type="button" class="btn btn--ghost" @click="ai.retry()">Повторить</button>
+              </div>
+              <div class="flip sheet__api-flip" :data-mode="vacancy.status === 'active' ? ai.mode : 'original'" :data-ai-status="ai.status">
+                <div class="flip__inner">
+                  <div class="flip__face flip__plain" :inert="ai.mode !== 'plain'">
+                    <p class="flip__label"><span>Пересказ ИИ</span><span>Проверяйте по оригиналу</span></p>
+                    <template v-if="ai.summary">
+                      <h3 class="sheet__simple-title">{{ ai.summary.simpleTitle }}</h3>
+                      <section v-if="ai.summary.whatYouDo.length">
+                        <h3>Что делать</h3>
+                        <ul><li v-for="(line, i) in ai.summary.whatYouDo" :key="'d-' + i">{{ line }}</li></ul>
+                      </section>
+                      <section v-if="ai.summary.requirements.length">
+                        <h3>Что нужно</h3>
+                        <ul><li v-for="(line, i) in ai.summary.requirements" :key="'r-' + i">{{ line }}</li></ul>
+                      </section>
+                      <section v-if="ai.summary.conditions.length">
+                        <h3>Условия</h3>
+                        <ul><li v-for="(line, i) in ai.summary.conditions" :key="'c-' + i">{{ line }}</li></ul>
+                      </section>
+                      <p v-if="ai.summary.beginnerFriendly" class="sheet__beginner">В объявлении допускаются кандидаты без опыта</p>
+                    </template>
+                  </div>
+                  <div class="flip__face flip__original" :inert="vacancy.status === 'active' && ai.mode !== 'original'">
+                    <p class="flip__label"><span>Оригинальное объявление</span></p>
+                    <div class="sheet__original">
+                      <section v-for="section in originalSections" :key="section.label">
+                        <h3>{{ section.label }}</h3><p>{{ section.text }}</p>
+                      </section>
+                      <section v-if="skills.length">
+                        <h3>Навыки</h3><ul><li v-for="skill in skills" :key="skill.id">
+                          {{ skill.name }}{{ skill.is_required === 1 ? ' · обязательный' : '' }}
+                        </li></ul>
+                      </section>
+                    </div>
+                  </div>
+                </div>
               </div>
             </template></template>
         </div>
@@ -194,5 +245,11 @@ const labels = {
 .sheet__loading { display: grid; gap: 16px; padding-block: 24px; }
 .sheet__loading span { height: 24px; border-radius: 4px; background: var(--line); }
 .sheet__loading span:last-child { width: 65%; }
+.sheet__ai-note { margin-top: var(--s3); font-size: var(--t-sm); color: var(--ink-2); }
+.sheet__ai-feedback { margin-top: var(--s3); display: grid; gap: var(--s2); font-size: var(--t-sm); color: var(--ink-2); }
+.sheet__ai-feedback .btn { justify-self: start; min-height: 36px; }
+.sheet__simple-title { font-size: var(--t-lg); }
+.sheet__beginner { margin-top: var(--s5); color: var(--accent-ink); font-weight: 500; }
+.sheet__api-flip .flip__face { min-width: 0; overflow-wrap: anywhere; }
 </style>
 

@@ -3,7 +3,7 @@ on:
   pull_request:
     paths: ['Frontend/**', '.github/workflows/frontend.yml']
   push:
-    branches: [main, feat/vue-fsd-lite-v1]
+    branches: [main, 'feat/**']
     paths: ['Frontend/**', '.github/workflows/frontend.yml']
 jobs:
   frontend:
@@ -23,6 +23,7 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:smoke
+      - run: npm run test:ai-ui
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

@@ -63,7 +63,8 @@ test('real detail fields, skills, exact salary, outbound and focus',async ({page
   for(const text of ['Москва','1 234 567 890,12 ₽ / мес. до налогов','Гибрид','Без опыта','Два дня через два','Реальные обязанности','Реальные требования','Реальное описание']) await expect(dialog).toContainText(text);
   expect(active.skills.length).toBeGreaterThan(0);
   for(const skill of active.skills) await expect(dialog).toContainText(skill.name);
-  await expect(dialog.locator('.seg')).toHaveCount(0);
+  await expect(dialog.locator('.seg')).toBeVisible();
+  await expect(dialog.locator('.sheet__api-flip')).toHaveAttribute('data-mode','original');
   for(const width of [390,320]) {
     await page.setViewportSize({width,height:844});
     await expect(dialog.locator('.sheet__panel')).toHaveCSS('opacity','1');
