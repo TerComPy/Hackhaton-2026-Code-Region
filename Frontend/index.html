@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Вакансии с «Работы России», hh.ru и SuperJob в одном каталоге — с понятным пересказом и подбором профессии по рассказу о себе.">
+<meta name="theme-color" content="#F1EFEA">
+<title>Стартер — вакансии простым языком</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<script>
+  /* Тема выставляется до отрисовки, чтобы не мигала светлая версия. */
+  try { const raw = localStorage.getItem('starter.theme'); const t = raw?.startsWith('"') ? JSON.parse(raw) : raw; if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body><div id="app"></div><script type="module" src="/src/app/main.ts"></script></body></html>
