@@ -1,0 +1,164 @@
+[
+  {
+    "width": 375,
+    "mode": "register",
+    "state": "initial",
+    "viewport": 375,
+    "clientWidth": 375,
+    "scrollWidth": 375,
+    "elements": []
+  },
+  {
+    "width": 375,
+    "mode": "register",
+    "state": "required",
+    "viewport": 375,
+    "clientWidth": 375,
+    "scrollWidth": 375,
+    "elements": []
+  },
+  {
+    "width": 375,
+    "mode": "register",
+    "state": "error",
+    "viewport": 375,
+    "clientWidth": 375,
+    "scrollWidth": 375,
+    "elements": []
+  },
+  {
+    "width": 375,
+    "mode": "login",
+    "state": "initial",
+    "viewport": 375,
+    "clientWidth": 375,
+    "scrollWidth": 375,
+    "elements": []
+  },
+  {
+    "width": 375,
+    "mode": "login",
+    "state": "required",
+    "viewport": 375,
+    "clientWidth": 375,
+    "scrollWidth": 375,
+    "elements": []
+  },
+  {
+    "width": 375,
+    "mode": "login",
+    "state": "error",
+    "viewport": 375,
+    "clientWidth": 375,
+    "scrollWidth": 375,
+    "elements": []
+  },
+  {
+    "width": 390,
+    "mode": "register",
+    "state": "initial",
+    "viewport": 390,
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "elements": []
+  },
+  {
+    "width": 390,
+    "mode": "register",
+    "state": "required",
+    "viewport": 390,
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "elements": []
+  },
+  {
+    "width": 390,
+    "mode": "register",
+    "state": "error",
+    "viewport": 390,
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "elements": []
+  },
+  {
+    "width": 390,
+    "mode": "login",
+    "state": "initial",
+    "viewport": 390,
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "elements": []
+  },
+  {
+    "width": 390,
+    "mode": "login",
+    "state": "required",
+    "viewport": 390,
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "elements": []
+  },
+  {
+    "width": 390,
+    "mode": "login",
+    "state": "error",
+    "viewport": 390,
+    "clientWidth": 390,
+    "scrollWidth": 390,
+    "elements": []
+  },
+  {
+    "width": 320,
+    "mode": "register",
+    "state": "initial",
+    "viewport": 320,
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "elements": []
+  },
+  {
+    "width": 320,
+    "mode": "register",
+    "state": "required",
+    "viewport": 320,
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "elements": []
+  },
+  {
+    "width": 320,
+    "mode": "register",
+    "state": "error",
+    "viewport": 320,
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "elements": []
+  },
+  {
+    "width": 320,
+    "mode": "login",
+    "state": "initial",
+    "viewport": 320,
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "elements": []
+  },
+  {
+    "width": 320,
+    "mode": "login",
+    "state": "required",
+    "viewport": 320,
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "elements": []
+  },
+  {
+    "width": 320,
+    "mode": "login",
+    "state": "error",
+    "viewport": 320,
+    "clientWidth": 320,
+    "scrollWidth": 320,
+    "elements": []
+  }
+]

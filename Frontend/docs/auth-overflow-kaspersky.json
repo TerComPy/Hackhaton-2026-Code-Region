@@ -1,0 +1,602 @@
+{
+  "data": {
+    "viewport": 381,
+    "scrollWidth": 381,
+    "clientWidth": 375,
+    "elements": [
+      {
+        "tag": "NAV",
+        "class": "nav",
+        "rect": {
+          "x": 0,
+          "y": 760,
+          "width": 381,
+          "height": 65,
+          "top": 760,
+          "right": 381,
+          "bottom": 825,
+          "left": 0
+        },
+        "styles": {
+          "width": "381px",
+          "position": "fixed",
+          "boxSizing": "border-box",
+          "padding": "0px 8px"
+        }
+      },
+      {
+        "tag": "IFRAME",
+        "class": "",
+        "rect": {
+          "x": 3,
+          "y": 501,
+          "width": 378,
+          "height": 192,
+          "top": 501,
+          "right": 381,
+          "bottom": 693,
+          "left": 3
+        },
+        "styles": {
+          "width": "378px",
+          "position": "absolute",
+          "boxSizing": "content-box",
+          "padding": "0px"
+        }
+      }
+    ],
+    "frames": []
+  },
+  "frames": [
+    {
+      "url": "http://gc.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/pc/password_control_balloon.html?cssSrc=http%3A%2F%2Fgc.kis.v2.scr.kaspersky-labs.com%2FE3E8934C-235A-4B0E-825A-35A08381A191%2Fpc%2Ftooltip.css",
+      "elements": [
+        {
+          "tag": "DIV",
+          "class": "main-div",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 378,
+            "height": 192,
+            "top": 0,
+            "right": 378,
+            "bottom": 192,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "350px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "arrow-top arrow-top-color_custom",
+          "rect": {
+            "x": 65,
+            "y": 1,
+            "width": 28,
+            "height": 13,
+            "top": 1,
+            "right": 93,
+            "bottom": 14,
+            "left": 65
+          },
+          "css": "",
+          "position": "absolute",
+          "width": "0px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "arrow-left arrow-left-color_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "absolute",
+          "width": "0px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "popup popup-background_custom popup-border_custom",
+          "rect": {
+            "x": 14,
+            "y": 14,
+            "width": 350,
+            "height": 164,
+            "top": 14,
+            "right": 364,
+            "bottom": 178,
+            "left": 14
+          },
+          "css": "",
+          "position": "static",
+          "width": "342px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "popup-header",
+          "rect": {
+            "x": 18,
+            "y": 18,
+            "width": 342,
+            "height": 98,
+            "top": 18,
+            "right": 360,
+            "bottom": 116,
+            "left": 18
+          },
+          "css": "",
+          "position": "relative",
+          "width": "302px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "logo logo-Image_custom",
+          "rect": {
+            "x": 38,
+            "y": 33,
+            "width": 48,
+            "height": 48,
+            "top": 33,
+            "right": 86,
+            "bottom": 81,
+            "left": 38
+          },
+          "css": "",
+          "position": "static",
+          "width": "48px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "popup-title",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "P",
+          "class": "verdict-title",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "250px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "verdict",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "relative",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "P",
+          "class": "verdict_strong popup-body-password-strength popup-body-password-strength-foreground_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "P",
+          "class": "verdict_average popup-body-password-strength popup-body-password-strength-foreground_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "P",
+          "class": "verdict_weak popup-body-password-strength popup-body-password-strength-foreground_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "popup-title-empty",
+          "rect": {
+            "x": 38,
+            "y": 81,
+            "width": 253,
+            "height": 20,
+            "top": 81,
+            "right": 291,
+            "bottom": 101,
+            "left": 38
+          },
+          "css": "",
+          "position": "static",
+          "width": "253px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "P",
+          "class": "verdict-title",
+          "rect": {
+            "x": 41,
+            "y": 89,
+            "width": 250,
+            "height": 12,
+            "top": 89,
+            "right": 291,
+            "bottom": 101,
+            "left": 41
+          },
+          "css": "",
+          "position": "static",
+          "width": "250px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "popup-header__close-button close-button-Image_custom",
+          "rect": {
+            "x": 336,
+            "y": 18,
+            "width": 24,
+            "height": 24,
+            "top": 18,
+            "right": 360,
+            "bottom": 42,
+            "left": 336
+          },
+          "css": "",
+          "position": "absolute",
+          "width": "24px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "popup-header__hide-button hide-button-Image_custom",
+          "rect": {
+            "x": 302,
+            "y": 15,
+            "width": 38,
+            "height": 34,
+            "top": 15,
+            "right": 340,
+            "bottom": 49,
+            "left": 302
+          },
+          "css": "",
+          "position": "absolute",
+          "width": "24px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "popup-header__hide-menu hide-menu-border_custom hide-menu-background_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "absolute",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "popup-body popup-body-border_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "P",
+          "class": "password-recomendations",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "UL",
+          "class": "password-recomendations-list",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "LI",
+          "class": "reason-length reason-length-foreground_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "LI",
+          "class": "reason-keyboard reason-keyboard-foreground_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "LI",
+          "class": "reason-frequent-words reason-frequent-words-foreground_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "LI",
+          "class": "reason-alternation reason-alternation-foreground_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "static",
+          "width": "auto",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "popup-footer",
+          "rect": {
+            "x": 38,
+            "y": 116,
+            "width": 302,
+            "height": 38,
+            "top": 116,
+            "right": 340,
+            "bottom": 154,
+            "left": 38
+          },
+          "css": "",
+          "position": "static",
+          "width": "302px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "ps_area_buttons",
+          "rect": {
+            "x": 38,
+            "y": 116,
+            "width": 302,
+            "height": 38,
+            "top": 116,
+            "right": 340,
+            "bottom": 154,
+            "left": 38
+          },
+          "css": "",
+          "position": "static",
+          "width": "302px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "button button-foreground_custom",
+          "rect": {
+            "x": 38,
+            "y": 116,
+            "width": 302,
+            "height": 38,
+            "top": 116,
+            "right": 340,
+            "bottom": 154,
+            "left": 38
+          },
+          "css": "",
+          "position": "static",
+          "width": "288px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "SPAN",
+          "class": "",
+          "rect": {
+            "x": 45,
+            "y": 123,
+            "width": 288,
+            "height": 24,
+            "top": 123,
+            "right": 333,
+            "bottom": 147,
+            "left": 45
+          },
+          "css": "",
+          "position": "static",
+          "width": "288px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "arrow-right arrow-right-color_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "absolute",
+          "width": "0px",
+          "minWidth": "0px"
+        },
+        {
+          "tag": "DIV",
+          "class": "arrow-bottom arrow-bottom-color_custom",
+          "rect": {
+            "x": 0,
+            "y": 0,
+            "width": 0,
+            "height": 0,
+            "top": 0,
+            "right": 0,
+            "bottom": 0,
+            "left": 0
+          },
+          "css": "",
+          "position": "absolute",
+          "width": "0px",
+          "minWidth": "0px"
+        }
+      ]
+    }
+  ],
+  "after": {
+    "viewport": 375,
+    "clientWidth": 375,
+    "scrollWidth": 375
+  }
+}
