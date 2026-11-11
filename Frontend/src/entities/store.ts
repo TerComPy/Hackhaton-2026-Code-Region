@@ -31,6 +31,7 @@ export const useCatalog = defineStore("catalog", () => {
   const fits = (j: (typeof catalog.jobs)[number]) =>
     about.value.length >= 40 &&
     directions.value.some((d) => d.key === j.direction);
+  const age = (posted: string) => posted === "сегодня" ? 0 : posted === "вчера" ? 1 : Number.parseInt(posted, 10) || 0;
   const filtered = computed(() =>
     jobs.value
       .filter(
@@ -49,7 +50,7 @@ export const useCatalog = defineStore("catalog", () => {
           ? (b.salary?.[0] ?? 0) - (a.salary?.[0] ?? 0)
           : sort.value === "fit"
             ? Number(fits(b)) - Number(fits(a))
-            : 0,
+            : age(a.posted) - age(b.posted),
       ),
   );
   function toggle(id: number) {
