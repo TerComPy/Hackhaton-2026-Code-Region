@@ -1,0 +1,43 @@
+/* Account page owns its geometry; shared controls and profile tokens stay global. */
+.account { padding-block: var(--s8); }
+.account:has(.account__guest) { min-height: calc(100dvh - var(--header)); display: grid; align-items: center; padding-block: var(--s4); }
+.account__guest { width: 100%; max-width: 1160px; height: min(800px, calc(100dvh - var(--header) - 2 * var(--s4))); min-height: 656px; margin: auto; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
+.account__intro { display: grid; align-items: center; padding: var(--s5) var(--s6); min-width: 0; }
+.auth-content { width: 100%; max-width: 400px; margin-inline: auto; }
+.auth-brand { margin-bottom: var(--s4); }
+.auth-heading > .eyebrow { margin-bottom: var(--s2); color: var(--ink-3); }
+.auth-heading .page-title { height: 44px; font-size: clamp(28px, 2.5vw, 36px); line-height: 1.2; letter-spacing: -.04em; }
+.auth-subtitle { height: 44px; margin-top: var(--s2); color: var(--ink-2); font-size: var(--t-sm); line-height: 1.55; }
+.auth { margin-top: var(--s4); display: grid; gap: var(--s3); }
+.auth-name.is-inactive { visibility: hidden; }
+.auth .input { background: var(--bg); height: 48px; }
+.auth .input:focus { border-color: var(--accent-ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 12%, transparent); }
+.auth-password-hint { float: right; color: var(--ink-3); font-size: var(--t-xs); font-weight: 400; }
+.auth-feedback { height: 32px; }
+.auth-feedback .form-error { margin: 0; font-size: var(--t-xs); line-height: 1.4; }
+.auth-submit { width: 100%; justify-content: space-between; border-bottom: 2px solid color-mix(in srgb, var(--accent) 75%, var(--ink)); }
+.auth-submit:active { transform: translateY(1px); }
+.auth-switch { text-align: center; font-size: var(--t-sm); color: var(--ink-2); margin-top: var(--s2); }
+.auth-switch button { min-height: 40px; padding: 0 var(--s1); border: 0; background: transparent; color: var(--accent-ink); font-weight: 500; text-decoration: underline; text-underline-offset: 4px; }
+.auth-switch button:hover { color: var(--ink); }
+.auth__note { margin-top: var(--s2); font-size: 11px; line-height: 1.5; color: var(--ink-3); text-align: center; }
+.opportunity { display: grid; grid-template-rows: auto auto minmax(0, 1fr) auto; min-width: 0; min-height: 0; padding: var(--s6); background: var(--bg-raise); border-left: 1px solid var(--line); border-radius: 0 var(--r-md) var(--r-md) 0; }
+.opportunity__header { display: flex; justify-content: space-between; color: var(--ink-3); gap: var(--s3); }
+.opportunity__header .eyebrow { font-size: 10px; }
+.opportunity__copy { margin-top: var(--s7); }
+.opportunity__copy > .eyebrow { color: var(--accent-ink); font-size: 10px; }
+.opportunity__copy h2 { font-size: clamp(28px, 3vw, 40px); font-weight: 500; line-height: 1.1; letter-spacing: -.04em; margin-top: var(--s4); }
+.opportunity__copy > p:last-child { color: var(--ink-2); margin-top: var(--s4); font-size: var(--t-sm); }
+.opportunity__map { width: 100%; height: 100%; min-height: 0; color: var(--ink-2); }
+.opportunity__footer { border-top: 1px solid var(--line-strong); padding-top: var(--s4); display: flex; justify-content: space-between; align-items: center; color: var(--ink-3); }
+.opportunity__footer .eyebrow { font-size: 10px; }
+.opportunity__footer > span:last-child { font-size: 24px; }
+@media (max-width: 960px) and (min-width: 721px) { .account__intro, .opportunity { padding: var(--s5); } }
+@media (max-width: 720px) {
+  .account:has(.account__guest) { display: block; min-height: 0; padding-block: var(--s5); }
+  .account__guest { display: block; height: auto; min-height: 0; max-width: 440px; border: 0; background: transparent; }
+  .account__intro { padding: 0; }
+  .auth-heading .page-title { font-size: 30px; }
+  .opportunity { display: none; }
+  .auth-switch button { min-height: 48px; }
+}
