@@ -24,3 +24,6 @@ mysql2 uses UTC session initialization, dateStrings, exact DECIMAL strings,
 BIGINT strings, named placeholders and disabled multiple statements.
 History belongs to recommendation_runs; no parallel history tables are introduced.
 Refresh rotation and logout endpoints remain a separate stage.
+
+Validated on real MySQL 8.4.13: 17 tables, FK, precision and 10 UTC sessions.
+See ../qa/INTEGRATION_ACCEPTANCE.md. Canonical SQL files were not modified.

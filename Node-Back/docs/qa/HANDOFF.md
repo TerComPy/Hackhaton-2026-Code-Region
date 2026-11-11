@@ -18,11 +18,14 @@ reference operations, not migrations to execute wholesale.
 
 Developer checks: npm ci passed (0 audit vulnerabilities). Typecheck and build passed. `node scripts/smoke.mjs` checks HTTP behavior without MySQL.
 
-BLOCKER: Docker Engine is unavailable under both sandbox and host contexts.
-No MySQL/MariaDB service, executable or listener on 3306/33306 was found.
-Real MySQL registration/FK/catalog/favorites/click/isolation scenarios remain
-UNVERIFIED. This stage is not fully integration-verified. No working DB or volume
-was modified. Independent QA should run the scenarios below on isolated MySQL 8.4.
+Real MySQL acceptance completed on 2026-11-11: MySQL Community 8.4.13,
+Docker image mysql:8.4 (digest a81d043930e51745522bd5c430961cf8286f0a23f0a9a2a6e0108f7ea71b0902).
+118 assertions/HTTP checks passed against all 17 canonical tables and demo data.
+Details and reproducible commands: [INTEGRATION_ACCEPTANCE.md](INTEGRATION_ACCEPTANCE.md).
+Docker host requires execution outside the restricted sandbox. No existing databases
+or volumes were deleted. Test container and generated databases remain for review.
+The previous no-MySQL blocker is resolved. Importer SQL and independent Python QA
+suite remain outside this acceptance scope.
 
 Positive: register two users, assert UUID subjects and string profile IDs, one
 profile per user and FK to users; login with normalized email; verify Argon2id stored

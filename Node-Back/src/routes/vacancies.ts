@@ -109,7 +109,9 @@ vacanciesRouter.get('/:id', async (req, res) => {
     `SELECT sk.id, sk.name, vs.is_required FROM vacancy_skills vs
      JOIN skills sk ON sk.id = vs.skill_id WHERE vs.vacancy_id = ?
      ORDER BY vs.is_required DESC, sk.name`, [id]);
-  res.json({ vacancy: rows[0], skills });
+  // EXISTS is a BIGINT expression in mysql2 and arrives as a string. Keep the
+  // documented 0/1 flag numeric without converting any IDs or monetary values.
+  res.json({ vacancy: { ...rows[0], is_favorite: Number(rows[0].is_favorite) }, skills });
 });
 vacanciesRouter.post('/:id/outbound-click', async (req, res) => {
   const id = errorForId(req.params.id);

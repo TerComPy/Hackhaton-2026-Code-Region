@@ -36,3 +36,6 @@ this claim must be replaced through login. No refresh rotation or logout endpoin
 is implemented; there is no claim of logout revoking JWT.
 No importer, LLM calls or recommendation features are added in this stage.
 QA status and limitations: [handoff](docs/qa/HANDOFF.md).
+
+Developer real-MySQL acceptance: `npm run test:integration` after the isolated
+setup in [acceptance commands](docs/qa/INTEGRATION_ACCEPTANCE.md).

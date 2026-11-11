@@ -37,3 +37,13 @@ money and skill_match_percent are strings, SQL aggregate counts are strings, boo
 are 0/1, nullable UTC DATETIME values are MySQL strings. Filters salary are RUB/month;
 NULL experience is excluded by numeric experience filters. Exact profession filters
 are distinct from MySQL natural-language fulltext tokenization.
+
+## Developer acceptance evidence
+
+118 real MySQL 8.4.13 assertions/HTTP checks passed; see INTEGRATION_ACCEPTANCE.md.
+Card is_favorite must be numeric 0/1, while BIGINT IDs and aggregate counts remain
+strings. DATETIME strings may have optional fractional seconds depending on the
+mysql2 text/binary protocol. Include these observed types in independent pytest.
+The developer suite forces a real SQL permission failure on the profile INSERT,
+then asserts the users INSERT rolled back. It also checks concurrent email conflicts,
+10 pooled UTC sessions despite a +03:00 server default, and IDs above 2^53.

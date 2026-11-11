@@ -53,7 +53,7 @@ components:
         region_code: { type: string, nullable: true }
         status: { type: string, enum: [active, archived] }
         region_name: { type: string, nullable: true }
-        published_at: { type: string, nullable: true, description: 'UTC MySQL DATETIME string' }
+        published_at: { type: string, nullable: true, description: 'UTC MySQL DATETIME string; optional fractional seconds' }
         source_name: { type: string }
         salary_period: { type: string }
         salary_gross: { type: integer, nullable: true, enum: [0, 1] }
@@ -108,7 +108,7 @@ components:
         source_name: { type: string }
         salary_gross: { type: integer, nullable: true, enum: [0, 1] }
         experience_months_min: { type: integer, nullable: true }
-        is_favorite: { type: integer, enum: [0, 1] }
+        is_favorite: { type: integer, enum: [0, 1], description: 'Numeric flag normalized from mysql2 EXISTS; verified on MySQL 8.4' }
     Favorite:
       type: object
       properties:
