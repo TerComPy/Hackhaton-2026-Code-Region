@@ -159,9 +159,9 @@ export function mapTrudvsemVacancy(raw: unknown, index: number): MapResult {
   const expYears = expRaw === null || expRaw === undefined || expRaw === '' ? NaN : Number(expRaw);
   const experienceMonthsMin = Number.isInteger(expYears) && expYears >= 0 && expYears <= 60 ? expYears * 12 : null;
 
-  const shifts = (v.shift ?? []).map(s => cleanText(s)).filter((s): s is string => s !== null);
+  const shifts = (v.shift ?? []).map(s => text(s)).filter((s): s is string => s !== null);
   const employment = mapEmployment(v.employment);
-  const scheduleText = joinUnique([cleanText(v.schedule), text(v.scheduleTypeComment), ...shifts], '; ');
+  const scheduleText = joinUnique([text(v.schedule), text(v.scheduleTypeComment), ...shifts], '; ');
 
   const regionCodeRaw = v.region?.region_code === null || v.region?.region_code === undefined ? '' : String(v.region.region_code).trim();
   const regionCode = /^\d{13}$/.test(regionCodeRaw) ? regionCodeRaw : null;
@@ -175,7 +175,7 @@ export function mapTrudvsemVacancy(raw: unknown, index: number): MapResult {
 
   const codeProfessionRaw = v.code_profession === null || v.code_profession === undefined ? '' : String(v.code_profession).trim();
 
-  const companyName = cleanText(v.company?.name);
+  const companyName = text(v.company?.name);
   const companyUrl = httpsUrlOnHost(v.company?.url, 'trudvsem.ru');
 
   const candidate: NormalizedVacancy = {
@@ -190,7 +190,7 @@ export function mapTrudvsemVacancy(raw: unknown, index: number): MapResult {
     responsibilities,
     originalUrl,
     countryCode: 'RU',
-    regionName: v.region?.name ? truncate(cleanText(v.region.name) ?? '', 150) || null : null,
+    regionName: v.region?.name ? truncate(text(v.region.name) ?? '', 150) || null : null,
     city,
     addressText: addressText ? truncate(addressText.replace(/\n/g, ' '), 500) : null,
     workFormat: employment.workFormat,
@@ -207,13 +207,13 @@ export function mapTrudvsemVacancy(raw: unknown, index: number): MapResult {
     status: 'active',
     publishedAt: parseSourceTimestamp(v['creation-date'], SOURCE_UTC_OFFSET),
     sourceUpdatedAt: parseSourceTimestamp(v.date_modify, SOURCE_UTC_OFFSET),
-    typicalPosition: (() => { const t = cleanText(v.typicalPosition); return t ? truncate(t, 255) : null; })(),
+    typicalPosition: (() => { const t = text(v.typicalPosition); return t ? truncate(t, 255) : null; })(),
     codeProfession: /^[\x21-\x7E]{1,64}$/.test(codeProfessionRaw) ? codeProfessionRaw : null,
-    specialisation: (() => { const t = cleanText(v.category?.specialisation); return t ? truncate(t, 255) : null; })(),
+    specialisation: (() => { const t = text(v.category?.specialisation); return t ? truncate(t, 255) : null; })(),
     regionCode,
     latitude,
     longitude,
-    skills: normalizeSkills(v.skills ?? []),
+    skills: normalizeSkills((v.skills ?? []).map(skill => text(skill))),
     // The search response carries the card's whole skills array (possibly empty).
     skillsComplete: Array.isArray(v.skills)
   };
