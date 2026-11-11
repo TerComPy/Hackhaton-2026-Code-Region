@@ -98,8 +98,8 @@ test('footer uses the refreshed transparent mascot assets', async ({ page }) => 
   await page.goto('/#/');
   const mascot = page.locator('footer.footer--illustrated img.footer__cat');
   await mascot.scrollIntoViewIfNeeded();
-  await expect(mascot).toHaveAttribute('src', /starter-footer-cat-ball-800\\.webp\\?v=20261112-2/);
-  await expect(mascot).toHaveAttribute('srcset', /starter-footer-cat-ball-1440\\.webp\\?v=20261112-2/);
+  await expect(mascot).toHaveAttribute('src', /starter-footer-cat-ball-800\.webp\?v=20261112-2/);
+  await expect(mascot).toHaveAttribute('srcset', /starter-footer-cat-ball-1440\.webp\?v=20261112-2/);
   await expect.poll(() => mascot.evaluate((el: HTMLImageElement) => el.naturalWidth))
     .toBeGreaterThan(0);
 });
