@@ -127,6 +127,24 @@ components:
         original_url: { type: string }
         company_name: { type: string, nullable: true }
         saved_at: { type: string }
+    AiSummary:
+      type: object
+      additionalProperties: false
+      required: [simpleTitle, whatYouDo, requirements, conditions, beginnerFriendly]
+      properties:
+        simpleTitle: { type: string, maxLength: 180 }
+        whatYouDo: { type: array, items: { type: string }, maxItems: 8 }
+        requirements: { type: array, items: { type: string }, maxItems: 8 }
+        conditions: { type: array, items: { type: string }, maxItems: 8 }
+        beginnerFriendly: { type: boolean }
+    AiSummaryResponse:
+      type: object
+      required: [status, display, summary]
+      properties:
+        status: { type: string, enum: [pending, processing, done, failed, unavailable] }
+        display: { type: string, enum: [ai, original] }
+        summary: { nullable: true, allOf: [{ $ref: '#/components/schemas/AiSummary' }] }
+        errorCode: { type: string, description: Safe backend error code only }
 paths:
   /api/health:
     get:
@@ -343,3 +361,36 @@ paths:
         '400': { description: Invalid vacancy ID }
         '204': { description: Removed or already missing }
         '401': { description: No valid access token }
+  /api/vacancies/{id}/summary:
+    parameters:
+      - { in: path, name: id, required: true, schema: { type: string, pattern: '^[1-9][0-9]*$' } }
+    get:
+      summary: Read current-version cached AI summary or original text fallback status
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Current summary or status
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiSummaryResponse' }
+        '400': { description: Invalid vacancy ID }
+        '401': { description: Unauthorized }
+        '404': { description: Vacancy not found }
+    post:
+      summary: Idempotently enqueue AI simplification for an active vacancy
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Existing cached summary
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiSummaryResponse' }
+        '202':
+          description: Enqueued or processing
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AiSummaryResponse' }
+        '400': { description: Invalid vacancy ID }
+        '401': { description: Unauthorized }
+        '404': { description: No active vacancy for this ID }
+        '503': { description: AI provider not configured }
