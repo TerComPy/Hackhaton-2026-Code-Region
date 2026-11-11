@@ -1,0 +1,127 @@
+name: STARTER CI
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: starter-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  node-quality:
+    name: Node typecheck, build and importer unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: Node-Back
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Node-Back/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+      - run: npm run test:import
+
+  mysql-api:
+    name: MySQL 8.4, importer and independent API tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mysql:
+        image: mysql:8.4.13
+        env:
+          MYSQL_ROOT_PASSWORD: ci_isolated_test_only
+        ports:
+          - 33316:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -pci_isolated_test_only --silent"
+          --health-interval=5s
+          --health-timeout=3s
+          --health-retries=30
+    env:
+      RUN_ISOLATED_MYSQL_TESTS: 'yes'
+      CANONICAL_DB_DIR: ${{ github.workspace }}/canonical-db
+      TEST_MYSQL_HOST: '127.0.0.1'
+      TEST_MYSQL_PORT: '33316'
+      TEST_MYSQL_USER: root
+      TEST_MYSQL_PASSWORD: ci_isolated_test_only
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: Node-Back/package-lock.json
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: QA/requirements-api.txt
+      - name: Pin canonical SQL repository
+        run: |
+          git clone https://github.com/manhattanattack/hackaton-sql-scheme.git "$CANONICAL_DB_DIR"
+          git -C "$CANONICAL_DB_DIR" checkout 4ce04c4870c43a65fe1f0265f0c75d3f4265c603
+          test "$(git -C "$CANONICAL_DB_DIR" rev-parse HEAD)" = "4ce04c4870c43a65fe1f0265f0c75d3f4265c603"
+          test -z "$(git -C "$CANONICAL_DB_DIR" status --porcelain)"
+      - name: Install and build backend
+        working-directory: Node-Back
+        run: |
+          npm ci
+          npm run typecheck
+          npm run build
+      - name: Backend integration (real MySQL)
+        working-directory: Node-Back
+        run: npm run test:integration
+      - name: Importer integration (mock source and real MySQL)
+        working-directory: Node-Back
+        run: npm run test:import:integration
+      - name: Install independent Python QA dependencies
+        run: python -m pip install -r QA/requirements-api.txt
+      - name: Independent black-box API tests
+        run: |
+          mkdir -p QA/results
+          python -m pytest -q QA/api --junitxml=QA/results/api-junit.xml
+      - name: Upload Python QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: starter-api-junit
+          path: QA/results/api-junit.xml
+          if-no-files-found: ignore
+          retention-days: 7
+
+  frontend-e2e:
+    name: Frontend browser smoke tests (demo UI)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: QA/requirements-e2e.txt
+      - run: python -m pip install -r QA/requirements-e2e.txt
+      - run: python -m playwright install --with-deps chromium
+      - name: Run browser tests
+        run: |
+          mkdir -p QA/results
+          python -m pytest -q QA/e2e --junitxml=QA/results/frontend-junit.xml
+      - name: Upload browser QA report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: starter-frontend-junit
+          path: QA/results/frontend-junit.xml
+          if-no-files-found: ignore
+          retention-days: 7
