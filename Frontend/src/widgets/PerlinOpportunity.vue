@@ -332,10 +332,6 @@ onBeforeUnmount(dispose);
     <canvas ref="canvas" class="perlin-opportunity__canvas" aria-hidden="true" />
     <div class="perlin-opportunity__shade" aria-hidden="true" />
     <div class="perlin-opportunity__copy">
-      <div class="perlin-opportunity__index">
-        <span>СТАРТЕР / КАРТА ВОЗМОЖНОСТЕЙ</span>
-        <span>01 — 03</span>
-      </div>
       <div class="perlin-opportunity__headline">
         <p class="perlin-opportunity__eyebrow">От навыка к профессии</p>
         <h2>Ваш опыт.<br />Новые направления.</h2>
@@ -343,10 +339,6 @@ onBeforeUnmount(dispose);
           Свяжите то, что умеете,<br />с тем, чем хочется заниматься.
         </p>
       </div>
-    </div>
-    <div class="perlin-opportunity__footer" aria-hidden="true">
-      <span>СЕРЫЙ → <b>ОРАНЖЕВЫЙ</b></span>
-      <span>ДВИЖЕНИЕ = ВОЛНА ↗</span>
     </div>
   </aside>
 </template>
@@ -387,22 +379,10 @@ onBeforeUnmount(dispose);
 .perlin-opportunity__copy {
   position: relative;
   z-index: 1;
-  height: 100%;
   padding: clamp(18px, 2vw, 32px);
   pointer-events: none;
 }
-.perlin-opportunity__index,
-.perlin-opportunity__footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-  gap: 12px;
-  color: var(--ink-3);
-  font: 500 10px/1.4 var(--mono, ui-monospace, monospace);
-  letter-spacing: 0.065em;
-}
 .perlin-opportunity__headline {
-  margin-top: clamp(30px, 6vh, 70px);
   max-width: 470px;
 }
 .perlin-opportunity__eyebrow {
@@ -424,19 +404,7 @@ onBeforeUnmount(dispose);
   font-size: clamp(12px, 1vw, 14px);
   line-height: 1.55;
 }
-.perlin-opportunity__footer {
-  position: absolute;
-  z-index: 1;
-  left: clamp(18px, 2vw, 32px);
-  right: clamp(18px, 2vw, 32px);
-  bottom: clamp(16px, 2vw, 28px);
-  padding-top: 14px;
-  border-top: 1px solid var(--line-strong);
-  pointer-events: none;
-}
-.perlin-opportunity__footer b { color: var(--accent-ink); font-weight: 500; }
 @media (max-height: 790px) and (min-width: 721px) {
-  .perlin-opportunity__headline { margin-top: 20px; }
   .perlin-opportunity__headline h2 { font-size: clamp(25px, 2.5vw, 33px); }
 }
 @media (max-width: 720px) {

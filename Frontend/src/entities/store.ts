@@ -1,13 +1,14 @@
 import { defineStore } from "pinia";
 import { ref, computed, watch } from "vue";
+import { dataMode } from "../shared/api";
 import { catalog } from "./catalog";
 import { read, write } from "../shared/storage";
 export const useCatalog = defineStore("catalog", () => {
-  const jobs = ref(catalog.jobs);
-  const saved = ref<number[]>(read("starter.saved", []));
-  const about = ref(read("starter.about", ""));
+  const jobs = ref(dataMode === "mock" ? catalog.jobs : []);
+  const saved = ref<number[]>(dataMode === "mock" ? read("starter.saved", []) : []);
+  const about = ref(dataMode === "mock" ? read("starter.about", "") : "");
   const user = ref<{ name: string; email: string } | null>(
-    read("starter.vue.user", null),
+    dataMode === "mock" ? read("starter.vue.user", null) : null,
   );
   const query = ref(""),
     city = ref(""),
@@ -54,6 +55,7 @@ export const useCatalog = defineStore("catalog", () => {
       ),
   );
   function toggle(id: number) {
+    if (dataMode === "api") return;
     saved.value = saved.value.includes(id)
       ? saved.value.filter((x) => x !== id)
       : [...saved.value, id];
@@ -66,9 +68,11 @@ export const useCatalog = defineStore("catalog", () => {
     noExp.value = false;
     minSalary.value = 0;
   }
-  watch(saved, (v) => write("starter.saved", v), { deep: true });
-  watch(about, (v) => write("starter.about", v));
-  watch(user, (v) => write("starter.vue.user", v));
+  if (dataMode === "mock") {
+    watch(saved, (v) => write("starter.saved", v), { deep: true });
+    watch(about, (v) => write("starter.about", v));
+    watch(user, (v) => write("starter.vue.user", v));
+  }
   return {
     jobs,
     saved,

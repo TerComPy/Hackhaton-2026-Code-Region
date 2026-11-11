@@ -89,7 +89,7 @@ for (const theme of ['light', 'dark']) {
     before = await draws(); await page.clock.runFor(1000); expect(await draws()).toBe(before);
     await page.evaluate(() => { delete (document as any).hidden; document.dispatchEvent(new Event('visibilitychange')); });
     await page.clock.runFor(100); expect(await draws()).toBeGreaterThan(before);
-    await page.screenshot({ path: `docs/auth-perlin/${theme}-${info.project.name}.png` });
+    await page.screenshot({ path: info.outputPath(`${theme}-${info.project.name}.png`) });
     await page.goto('/#/saved');
     before = await draws(); await page.clock.runFor(500); expect(await draws()).toBe(before);
     expect(await page.evaluate(() => ({ listeners: (window as any).perlinQA.listeners, observers: (window as any).perlinQA.observers }))).toEqual({ listeners: 0, observers: 0 });

@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
-import { createApi, type Vacancy, type VacancyCard } from "../shared/api";
-const token = ref(""),
-  items = ref<Vacancy[]>([]),
+import { type Vacancy, type VacancyCard } from "../shared/api";
+import { useSession } from "../entities/session";
+const items = ref<Vacancy[]>([]),
   selected = ref<VacancyCard>(),
   error = ref(""),
   query = ref(""),
   loading = ref(false);
-const api = createApi(undefined, () => token.value || undefined);
+const api = useSession().api;
 async function load() {
   loading.value = true;
   error.value = "";
@@ -37,17 +37,12 @@ onMounted(load);
       следующим PR. Mock-данные не используются.
     </p>
     <form @submit.prevent="load">
-      <label class="field"
-        >Bearer token<input
-          class="input"
-          type="password"
-          v-model="token"
-          autocomplete="off" /></label
-      ><label class="field">Поиск<input class="input" v-model="query" /></label
+      <label class="field">Поиск<input class="input" v-model="query" /></label
       ><button class="btn btn--accent">Загрузить</button>
     </form>
     <p v-if="loading" role="status">Загрузка…</p>
-    <p role="alert">{{ error }}</p>
+    <p v-if="error" role="alert">{{ error }}</p>
+    <p v-if="!loading && !error && !items.length" role="status">Вакансии не найдены.</p>
     <ul class="jobs">
       <li class="job" v-for="job in items" :key="job.id">
         <div class="job__body">

@@ -10,7 +10,8 @@
 .account__guest { width: 100%; max-width: 1160px; height: 100%; max-height: 800px; min-height: 0; margin: auto; display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: var(--r-md); background: var(--surface); }
 .account__intro { display: grid; align-items: start; padding: var(--s5) var(--s6); min-width: 0; min-height: 0; }
 .auth-content { width: 100%; max-width: 400px; margin-inline: auto; }
-.auth-brand { margin-bottom: var(--s4); }
+.auth-brand { display: flex; justify-content: center; margin: 24px 0; }
+.auth-brand img { display: block; width: auto; height: 28px; max-width: 100%; object-fit: contain; }
 .auth-heading > .eyebrow { margin-bottom: var(--s2); color: var(--ink-3); }
 .auth-heading .page-title { font-size: clamp(28px, 2.5vw, 36px); line-height: 1.2; letter-spacing: -.04em; }
 .auth-subtitle { margin-top: var(--s2); color: var(--ink-2); font-size: var(--t-sm); line-height: 1.55; }
@@ -28,7 +29,6 @@
 .auth__note { margin-top: var(--s2); font-size: 11px; line-height: 1.5; color: var(--ink-3); text-align: center; }
 @media (min-width: 721px) and (max-height: 800px) {
   .account__intro { padding: 20px 28px; }
-  .auth-brand { margin-bottom: 12px; }
   .auth-heading > .eyebrow { margin-bottom: 4px; }
   .auth-heading .page-title { font-size: 30px; }
   .auth-subtitle { margin-top: 6px; }
@@ -38,7 +38,6 @@
 }
 @media (min-width: 721px) and (max-height: 700px) {
   .account__intro { padding-block: 12px; }
-  .auth-brand { margin-bottom: 8px; font-size: 26px; }
   .auth-heading .page-title { font-size: 28px; }
   .auth-subtitle { font-size: 13px; }
   .auth { gap: 8px; margin-top: 10px; }

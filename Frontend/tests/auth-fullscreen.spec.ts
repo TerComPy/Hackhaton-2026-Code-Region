@@ -1,6 +1,8 @@
 import { test, expect } from '@playwright/test';
+import { dismissExternalPasswordBalloon } from './support/kaspersky';
 for (const theme of ['light', 'dark']) {
   test(`auth viewport and form spacing ${theme}`, async ({ page }, info) => {
+    const settleExternalUI = await dismissExternalPasswordBalloon(page);
     await page.addInitScript(t => localStorage.setItem('starter.theme', JSON.stringify(t)), theme);
     await page.goto('/#/account');
     await expect(page.locator('#auth-name')).toBeVisible();
@@ -9,6 +11,7 @@ for (const theme of ['light', 'dark']) {
     const initial = await boxes();
     const desktop = !info.project.name.startsWith('mobile');
     async function check() {
+      await settleExternalUI();
       const m = await page.evaluate(() => {
         const root = document.scrollingElement!;
         const box = (s: string) => document.querySelector(s)!.getBoundingClientRect();
@@ -20,6 +23,13 @@ for (const theme of ['light', 'dark']) {
           scrollY: root.scrollHeight - root.clientHeight, scrollX: root.scrollWidth - root.clientWidth,
           bottom: card.bottom, top: card.top, noteBottom: note.bottom, gap: first.top - subtitle.bottom };
       });
+      if (m.scrollX !== 0) {
+        const overflow = await page.evaluate(() => [...document.querySelectorAll('body *')].filter(e => {
+          const r = e.getBoundingClientRect(); return r.width > 0 && (r.right > document.documentElement.clientWidth || r.left < 0);
+        }).map(e => { const style = getComputedStyle(e); return { tag: e.tagName, id: e.id, class: String(e.className), rect: e.getBoundingClientRect().toJSON(), styles: { width: style.width, minWidth: style.minWidth, display: style.display, padding: style.padding, boxSizing: style.boxSizing, overflowX: style.overflowX } }; }));
+        console.log('AUTH_OVERFLOW', JSON.stringify(overflow));
+        await info.attach('overflow.json', { body: JSON.stringify(overflow, null, 2), contentType: 'application/json' });
+      }
       expect(m.scrollX).toBe(0);
       expect(m.gap).toBeGreaterThanOrEqual(8);
       expect(m.gap).toBeLessThanOrEqual(20);
@@ -32,13 +42,13 @@ for (const theme of ['light', 'dark']) {
       return m;
     }
     for (const mode of ['register', 'login']) {
-      if (mode === 'login') await page.locator('.auth-switch button').click();
+      if (mode === 'login') { await page.locator('#auth-password').blur(); await settleExternalUI(); await page.locator('.auth-switch button').click(); }
       if (desktop) expect(await boxes()).toEqual(initial);
       await expect(page.locator('#auth-name')).toHaveCount(mode === 'login' ? 0 : 1);
       const m = await check();
       if (theme === 'light' && info.project.name === 'desktop-laptop') {
         console.log(mode, m);
-        await page.screenshot({ path: `docs/auth-fix/${mode}-1366x768.png` });
+        await page.screenshot({ path: info.outputPath(`${mode}-1366x768.png`) });
       }
       // Native required-field validation, then the application error path.
       await page.locator('.auth-submit').click();
