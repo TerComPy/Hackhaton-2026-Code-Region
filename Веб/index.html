@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Вакансии с «Работы России», hh.ru и SuperJob в одном каталоге — с понятным пересказом и подбором профессии по рассказу о себе.">
+<meta name="theme-color" content="#F1EFEA">
+<title>Стартер — вакансии простым языком</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://images.unsplash.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="styles.css">
+<script>
+  /* Тема выставляется до отрисовки, чтобы не мигала светлая версия. */
+  try { const t = localStorage.getItem('starter.theme'); if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t; } catch (e) {}
+</script>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6.5 3.5h11v17L12 16.5l-5.5 4z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M7 17 17 7M8 7h9v9"/></symbol>
+    <symbol id="i-right" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M4.6 4.6 6 6M18 18l1.4 1.4M2.5 12h2M19.5 12h2M4.6 19.4 6 18M18 6l1.4-1.4"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h10"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M6 18l2.5-2.5M15.5 8.5 18 6"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+    <symbol id="i-eye-off" viewBox="0 0 24 24"><path d="M10 5.7A9.6 9.6 0 0 1 12 5.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.7 3.4M6.6 6.9C3.9 8.6 2.5 12 2.5 12S6 18.5 12 18.5c1.8 0 3.3-.6 4.6-1.4M4 4l16 16M9.9 9.9a3 3 0 0 0 4.2 4.2"/></symbol>
+    <symbol id="i-sliders" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#main">Перейти к содержимому</a>
+
+<header class="topbar" id="topbar">
+  <div class="wrap topbar__inner">
+    <a class="logo" href="#/" aria-label="Стартер — на главную">стартер<span class="logo__mark" aria-hidden="true"></span></a>
+    <nav class="nav" aria-label="Разделы">
+      <a class="nav__link" href="#/" data-route="home"><svg class="icon" aria-hidden="true"><use href="#i-grid"/></svg><span>Вакансии</span></a>
+      <a class="nav__link" href="#/match" data-route="match"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg><span class="nav__label" data-short="Подбор">Подбор профессии</span></a>
+      <a class="nav__link" href="#/saved" data-route="saved"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg><span>Избранное</span><span class="nav__count" id="saved-count" aria-label="сохранено вакансий">0</span></a>
+      <a class="nav__link" href="#/account" data-route="account"><svg class="icon" aria-hidden="true"><use href="#i-user"/></svg><span class="nav__label" id="account-label" data-short="Профиль">Войти</span></a>
+    </nav>
+    <button class="icon-btn" id="theme-toggle" type="button" aria-label="Тёмная тема" aria-pressed="false">
+      <svg class="icon icon--sun" aria-hidden="true"><use href="#i-sun"/></svg>
+      <svg class="icon icon--moon" aria-hidden="true"><use href="#i-moon"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main" tabindex="-1">
+
+  <!-- ============ ГЛАВНАЯ ============ -->
+  <div class="view" data-view="home">
+
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="wrap hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow">Агрегатор вакансий</p>
+          <h1 class="hero__title" id="hero-title">Вакансии со&nbsp;всей сети —<span> без канцелярита.</span></h1>
+          <p class="hero__lead">Собираем предложения с «Работы России», hh.ru и SuperJob, пересказываем их простыми словами и подсказываем, какая профессия подойдёт именно вам.</p>
+
+          <form class="search" id="hero-search" role="search" aria-label="Поиск вакансий">
+            <label class="search__field">
+              <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+              <span class="sr-only">Профессия, навык или компания</span>
+              <input name="q" type="search" autocomplete="off" placeholder="Профессия, навык или компания">
+            </label>
+            <label class="search__field search__field--city">
+              <svg class="icon" aria-hidden="true"><use href="#i-pin"/></svg>
+              <span class="sr-only">Город</span>
+              <input name="city" type="search" autocomplete="address-level2" placeholder="Город">
+            </label>
+            <button class="btn btn--accent search__submit" type="submit">Найти</button>
+          </form>
+
+          <p class="hero__alt">Ещё не решили, кем хотите работать? <a class="link-arrow" href="#/match">Расскажите о себе<svg class="icon" aria-hidden="true"><use href="#i-right"/></svg></a></p>
+        </div>
+
+        <div class="hero__stage" id="ring-stage">
+          <div class="ring-viewport">
+            <div class="ring" id="ring" role="group" aria-label="Профессии из каталога"></div>
+          </div>
+          <div class="ring-floor" aria-hidden="true"></div>
+          <p class="ring-hint"><span class="hint-desktop">Потяните, чтобы покрутить</span><span class="hint-touch">Проведите, чтобы покрутить</span> · нажмите на профессию, чтобы открыть вакансию</p>
+        </div>
+      </div>
+
+      <div class="wrap">
+        <dl class="sources" id="sources" aria-label="Источники вакансий"></dl>
+      </div>
+    </section>
+
+    <section class="how invert" id="how" aria-labelledby="how-title">
+      <div class="how__track" id="how-track">
+        <div class="how__sticky">
+          <div class="wrap how__grid">
+            <div class="how__text">
+              <p class="eyebrow" id="how-title">Как это работает</p>
+              <ol class="steps" id="steps">
+                <li class="step is-active">
+                  <button class="step__btn" type="button" data-step="0"><span class="step__num">01</span><span class="step__title">Собираем и убираем дубли</span></button>
+                  <div class="step__body"><p>Одна и та же вакансия часто висит на трёх площадках под разными названиями. Мы приводим объявления к одному формату и склеиваем повторы.</p></div>
+                </li>
+                <li class="step">
+                  <button class="step__btn" type="button" data-step="1"><span class="step__num">02</span><span class="step__title">Пересказываем по‑человечески</span></button>
+                  <div class="step__body"><p>ИИ переводит «клиентоориентированность» и «SLA» на обычный язык. Зарплату, график и адрес не трогаем — они остаются как в оригинале.</p></div>
+                </li>
+                <li class="step">
+                  <button class="step__btn" type="button" data-step="2"><span class="step__num">03</span><span class="step__title">Объясняем, почему подходит</span></button>
+                  <div class="step__body"><p>Сравниваем вакансию с вашим рассказом о себе и показываем, на какие именно ваши слова опирался подбор.</p></div>
+                </li>
+              </ol>
+              <div class="how__progress" aria-hidden="true"><span id="how-bar"></span></div>
+            </div>
+
+            <div class="how__scene" aria-hidden="true">
+              <div class="scene" id="scene">
+                <div class="src-card" data-i="0">
+                  <span class="src-card__source">hh.ru</span>
+                  <strong>Оператор call-центра (удалённо)</strong>
+                  <span>от 40 000 ₽ · Новосибирск</span>
+                </div>
+                <div class="src-card" data-i="1">
+                  <span class="src-card__source">SuperJob</span>
+                  <strong>ОПЕРАТОР КОЛЛ-ЦЕНТРА / ДОМА</strong>
+                  <span>40 000 — 55 000 руб.</span>
+                </div>
+                <div class="src-card" data-i="2">
+                  <span class="src-card__source">Работа России</span>
+                  <strong>Специалист контактного центра</strong>
+                  <span>з/п по договорённости</span>
+                </div>
+
+                <div class="doc" id="doc">
+                  <div class="doc__face doc__front">
+                    <div class="doc__head"><span class="doc__label">Текст работодателя</span><span class="doc__merge">3 объявления → 1</span></div>
+                    <p class="doc__title">Оператор контакт-центра</p>
+                    <p class="doc__pay">40 000 – 55 000 ₽ · удалённо</p>
+                    <p class="doc__h">Обязанности</p>
+                    <p>Консультирование абонентов в рамках утверждённых <mark>скриптов</mark>, фиксация обращений в <mark>CRM-системе</mark>, соблюдение <mark>SLA</mark>.</p>
+                    <p class="doc__h">Требования</p>
+                    <p>Грамотная речь, <mark>стрессоустойчивость</mark>, <mark>клиентоориентированность</mark>, уверенный пользователь ПК.</p>
+                  </div>
+                  <div class="doc__face doc__back">
+                    <div class="doc__head"><span class="doc__label doc__label--ai">Пересказ ИИ</span></div>
+                    <p class="doc__title">Оператор контакт-центра</p>
+                    <p class="doc__pay">40 000 – 55 000 ₽ · удалённо <span class="doc__same">как в оригинале</span></p>
+                    <p class="doc__h">Что делать</p>
+                    <p>Отвечать на звонки клиентов провайдера и помогать решить вопрос по готовым подсказкам. Записывать каждое обращение в программу.</p>
+                    <p class="doc__h">Что нужно</p>
+                    <p>Говорить понятно, не теряться, если человек недоволен, уверенно пользоваться компьютером. Опыт не нужен.</p>
+                  </div>
+                </div>
+
+                <div class="fit-note" id="fit-note">
+                  <span class="fit-note__label">Подходит вам</span>
+                  <p>Вы написали «люблю общаться с людьми» и «хочу работать из дома» — здесь нужно и то и другое.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="catalog" id="catalog" aria-labelledby="catalog-title">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="catalog-title">Каталог</h2>
+          <p class="section-head__meta" id="result-count" aria-live="polite"></p>
+        </div>
+
+        <div class="catalog__layout">
+          <details class="filters" id="filters">
+            <summary class="filters__toggle"><svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>Фильтры<span class="filters__badge" id="filters-badge" hidden></span></summary>
+            <form class="filters__form" id="filters-form">
+              <div class="field">
+                <label class="field__label" for="f-q">Поиск</label>
+                <input class="input" id="f-q" name="q" type="search" autocomplete="off" placeholder="Например, бариста">
+              </div>
+              <div class="field">
+                <label class="field__label" for="f-city">Город</label>
+                <input class="input" id="f-city" name="city" type="search" autocomplete="off" placeholder="Любой">
+              </div>
+              <fieldset class="field">
+                <legend class="field__label">Формат</legend>
+                <label class="check"><input type="checkbox" name="format" value="На месте"><span>На месте</span></label>
+                <label class="check"><input type="checkbox" name="format" value="Гибрид"><span>Гибрид</span></label>
+                <label class="check"><input type="checkbox" name="format" value="Удалённо"><span>Удалённо</span></label>
+              </fieldset>
+              <fieldset class="field">
+                <legend class="field__label">Опыт</legend>
+                <label class="check"><input type="checkbox" name="noexp" value="1"><span>Можно без опыта</span></label>
+              </fieldset>
+              <div class="field">
+                <label class="field__label" for="f-salary">Зарплата от</label>
+                <select class="input select" id="f-salary" name="salary">
+                  <option value="0">Любая</option>
+                  <option value="50000">50 000 ₽</option>
+                  <option value="70000">70 000 ₽</option>
+                  <option value="90000">90 000 ₽</option>
+                  <option value="120000">120 000 ₽</option>
+                </select>
+              </div>
+              <fieldset class="field">
+                <legend class="field__label">Источник</legend>
+                <div id="f-sources"></div>
+              </fieldset>
+              <button class="btn btn--ghost btn--block" type="reset" id="f-reset">Сбросить фильтры</button>
+            </form>
+          </details>
+
+          <div class="results">
+            <div class="results__bar">
+              <p class="results__hint" id="results-hint"></p>
+              <label class="sort"><span>Сортировка</span>
+                <select class="select select--bare" id="sort">
+                  <option value="date">Сначала новые</option>
+                  <option value="salary">По зарплате</option>
+                  <option value="fit">Сначала подходящие</option>
+                </select>
+              </label>
+            </div>
+            <ul class="jobs" id="job-list" aria-busy="true"></ul>
+            <div class="state" id="catalog-state" hidden></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="invite" aria-labelledby="invite-title">
+      <div class="wrap invite__grid">
+        <figure class="invite__media" id="invite-media">
+          <img src="https://images.unsplash.com/photo-1758876016923-c4e2f72983bd?auto=format&fit=crop&w=1100&q=72" alt="Человек пишет в блокноте за рабочим столом" loading="lazy" width="1100" height="1300">
+        </figure>
+        <div class="invite__copy">
+          <p class="eyebrow">Подбор профессии</p>
+          <h2 id="invite-title">Не обязательно знать, кем вы хотите работать</h2>
+          <p>Напишите пару абзацев о себе — учёба, увлечения, что получается лучше всего. Мы предложим три направления, объясним каждое вашими же словами и покажем вакансии, с которых можно начать.</p>
+          <a class="btn btn--accent" href="#/match">Подобрать профессию</a>
+          <p class="invite__note">Резюме не нужно. Текст хранится только в вашем браузере.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ ПОДБОР ============ -->
+  <div class="view" data-view="match" hidden>
+    <section class="match wrap" aria-labelledby="match-title">
+      <div class="match__intro">
+        <p class="eyebrow">Подбор профессии</p>
+        <h1 class="page-title" id="match-title">Расскажите о себе своими словами</h1>
+        <p class="lead">Что нравится, что получается, где учились, как хотите работать. Пишите как другу — резюме не нужно.</p>
+
+        <form class="match__form" id="match-form" novalidate>
+          <label class="field__label" for="about">О себе</label>
+          <textarea class="textarea" id="about" name="about" rows="8" maxlength="1500" aria-describedby="about-meta match-error" placeholder="Например: учусь на втором курсе колледжа, люблю рисовать и разбираться в приложениях, по вечерам подрабатываю…"></textarea>
+          <div class="match__meta" id="about-meta"><span id="about-count">0 / 1500</span><span>Хранится только в этом браузере</span></div>
+          <div class="examples">
+            <span class="examples__label">Примеры:</span>
+            <div class="examples__list" id="examples"></div>
+          </div>
+          <p class="form-error" id="match-error" role="alert"></p>
+          <button class="btn btn--accent" type="submit" id="match-submit">Подобрать профессии</button>
+        </form>
+      </div>
+
+      <div class="match__result" id="match-result" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <!-- ============ ПРОФИЛЬ ============ -->
+  <div class="view" data-view="account" hidden>
+    <section class="account wrap" aria-labelledby="account-title">
+
+      <div class="account__guest" id="account-guest">
+        <div class="account__intro">
+          <p class="eyebrow">Профиль</p>
+          <h1 class="page-title" id="account-title" tabindex="-1">Сохраните подборку и&nbsp;избранное</h1>
+          <p class="lead">Профиль собирает в одном месте рассказ о себе, подобранные направления и сохранённые вакансии.</p>
+
+          <div class="seg account__tabs" role="group" aria-label="Что сделать">
+            <button type="button" class="seg__btn" data-auth="register" aria-pressed="true">Регистрация</button>
+            <button type="button" class="seg__btn" data-auth="login" aria-pressed="false">Вход</button>
+          </div>
+
+          <form class="auth" id="auth-form" novalidate>
+            <div class="auth__collapse" id="auth-name-wrap">
+              <div class="field">
+                <label class="field__label" for="auth-name">Имя</label>
+                <input class="input input--lg" id="auth-name" name="name" autocomplete="name" maxlength="80" aria-describedby="auth-name-error">
+                <p class="field__error" id="auth-name-error"></p>
+              </div>
+            </div>
+            <div class="field">
+              <label class="field__label" for="auth-email">Email</label>
+              <input class="input input--lg" id="auth-email" name="email" type="email" inputmode="email" autocomplete="email" maxlength="254" spellcheck="false" aria-describedby="auth-email-error">
+              <p class="field__error" id="auth-email-error"></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="auth-password">Пароль</label>
+              <div class="input-wrap">
+                <input class="input input--lg" id="auth-password" name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" aria-describedby="auth-password-hint auth-password-error">
+                <button class="input-wrap__btn" type="button" id="auth-reveal" aria-label="Показать пароль" aria-pressed="false">
+                  <svg class="icon icon--eye" aria-hidden="true"><use href="#i-eye"/></svg>
+                  <svg class="icon icon--eye-off" aria-hidden="true"><use href="#i-eye-off"/></svg>
+                </button>
+              </div>
+              <p class="field__hint" id="auth-password-hint">Не меньше 10 символов</p>
+              <p class="field__error" id="auth-password-error"></p>
+            </div>
+            <p class="form-error" id="auth-status" role="alert"></p>
+            <button class="btn btn--accent" type="submit" id="auth-submit">Создать профиль</button>
+            <p class="auth__note">Демо-версия: имя и email хранятся только в этом браузере, пароль никуда не отправляется и не сохраняется.</p>
+          </form>
+        </div>
+
+        <aside class="account__aside" aria-label="Что даёт профиль">
+          <figure class="account__media">
+            <img src="https://images.unsplash.com/photo-1758873268705-bb756c95f26a?auto=format&fit=crop&w=1100&h=760&q=72" alt="Коллеги обсуждают задачу за рабочим столом" loading="lazy" width="1100" height="760">
+          </figure>
+          <ol class="perks">
+            <li><span><b>Подборка не потеряется.</b> Рассказ о себе и три направления останутся в профиле — к ним можно вернуться и дополнить.</span></li>
+            <li><span><b>Избранное под рукой.</b> Сохранённые вакансии собраны в одном списке со ссылками на исходные площадки.</span></li>
+            <li><span><b>Каталог подстраивается.</b> Подходящие вам вакансии отмечены, их можно поднять наверх сортировкой.</span></li>
+          </ol>
+        </aside>
+      </div>
+
+      <div class="member" id="account-member" hidden>
+        <div class="member__head">
+          <span class="avatar" id="member-avatar" aria-hidden="true"></span>
+          <div class="member__who">
+            <p class="eyebrow" id="member-since"></p>
+            <h1 class="page-title" id="member-name" tabindex="-1"></h1>
+            <p class="member__email" id="member-email"></p>
+          </div>
+          <button class="btn btn--ghost" type="button" id="logout">Выйти</button>
+        </div>
+        <dl class="member__stats" id="member-stats"></dl>
+        <p class="auth__note">Демо-профиль хранится в этом браузере. Для настоящих аккаунтов понадобится сервер авторизации.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ ИЗБРАННОЕ ============ -->
+  <div class="view" data-view="saved" hidden>
+    <section class="saved wrap" aria-labelledby="saved-title">
+      <div class="section-head section-head--page">
+        <h1 class="page-title" id="saved-title">Избранное</h1>
+        <p class="section-head__meta" id="saved-meta"></p>
+      </div>
+      <ul class="jobs" id="saved-list"></ul>
+      <div class="state" id="saved-state" hidden></div>
+    </section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <span class="logo logo--small" aria-hidden="true">стартер<span class="logo__mark"></span></span>
+    <p>Прототип агрегатора. Вакансии в каталоге демонстрационные, компании вымышлены. Кнопка отклика ведёт на исходную площадку — сервис не принимает и не пересылает отклики.</p>
+    <p>Фотографии — <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a></p>
+  </div>
+</footer>
+
+<!-- ============ КАРТОЧКА ВАКАНСИИ ============ -->
+<dialog class="sheet" id="sheet" aria-labelledby="sheet-title">
+  <div class="sheet__panel">
+    <div class="sheet__bar">
+      <span class="sheet__source" id="sheet-source"></span>
+      <button class="icon-btn" type="button" id="sheet-close" aria-label="Закрыть"><svg class="icon" aria-hidden="true"><use href="#i-close"/></svg></button>
+    </div>
+    <div class="sheet__scroll">
+      <figure class="sheet__media"><img id="sheet-img" alt=""></figure>
+      <div class="sheet__body">
+        <h2 class="sheet__title" id="sheet-title"></h2>
+        <p class="sheet__company" id="sheet-company"></p>
+        <dl class="facts" id="sheet-facts"></dl>
+
+        <div class="seg" role="group" aria-label="Версия описания">
+          <button type="button" class="seg__btn" data-mode="plain" aria-pressed="true">Простыми словами</button>
+          <button type="button" class="seg__btn" data-mode="original" aria-pressed="false">Как у работодателя</button>
+        </div>
+
+        <div class="flip" id="sheet-flip" data-mode="plain">
+          <div class="flip__inner">
+            <div class="flip__face flip__plain" id="sheet-plain"></div>
+            <div class="flip__face flip__original" id="sheet-original" inert></div>
+          </div>
+        </div>
+
+        <section class="sheet__fit" id="sheet-fit" aria-label="Подходит ли вам"></section>
+      </div>
+    </div>
+    <div class="sheet__foot">
+      <a class="btn btn--accent" id="sheet-link" target="_blank" rel="noopener noreferrer"></a>
+      <button class="icon-btn icon-btn--lg save" type="button" id="sheet-save" aria-pressed="false" aria-label="Сохранить в избранное"><svg class="icon" aria-hidden="true"><use href="#i-bookmark"/></svg></button>
+      <p class="sheet__disclaimer">Отклик отправляется на сайте источника. Это демо-вакансия: ссылка открывает поиск похожих объявлений.</p>
+    </div>
+  </div>
+</dialog>
+
+<script src="data.js" defer></script>
+<script src="scene.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>

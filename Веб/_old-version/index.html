@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#edf1ff">
+<title>СТАРТЕР — запусти свою карьеру</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="landscape" aria-hidden="true"></div><div class="mist" aria-hidden="true"></div>
+<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="rocket" viewBox="0 0 80 80"><g fill="none" stroke="currentColor" stroke-width="7" stroke-linecap="round"><path d="M40 12v14m0 28v14M12 40h14m28 0h14M20 20l10 10m20 20 10 10M20 60l10-10m20-20 10-10"/></g><circle cx="40" cy="40" r="7" fill="currentColor"/></symbol>
+<symbol id="jobs" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12a22 22 0 0 0 18 0m-9 0v3"/></symbol>
+<symbol id="spark" viewBox="0 0 24 24"><path d="M12 2l2.6 7.4L22 12l-7.4 2.6L12 22l-2.6-7.4L2 12l7.4-2.6z"/></symbol>
+<symbol id="bookmark" viewBox="0 0 24 24"><path d="M6 5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16l-6-4-6 4z"/></symbol>
+<symbol id="person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21v-2a4 4 0 0 1 4-4h8a4 4 0 0 1 4 4v2"/></symbol>
+<symbol id="search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+<symbol id="close" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18"/></symbol>
+</defs>
+</svg>
+<div class="shell">
+<aside>
+<a class="brand" href="#vacancies"><svg viewBox="0 0 80 80" aria-hidden="true"><use href="#rocket"/></svg>СТАРТЕР</a>
+<nav aria-label="Основная навигация">
+<button data-view="vacancies"><svg class="icon" aria-hidden="true"><use href="#jobs"/></svg>Вакансии</button>
+<button data-view="matches"><svg class="icon" aria-hidden="true"><use href="#spark"/></svg>Подбор</button>
+<button data-view="saved"><svg class="icon" aria-hidden="true"><use href="#bookmark"/></svg>Избранное</button>
+<button data-view="profile"><svg class="icon" aria-hidden="true"><use href="#person"/></svg>Профиль</button>
+</nav>
+</aside>
+<main>
+<div class="theme-bar"><span class="page-context">Твоя следующая глава</span><div class="theme-choice"><span>Тема</span><select id="theme"><option value="system">Как на устройстве</option><option value="light">Светлая</option><option value="dark">Тёмная</option></select></div></div>
+<a class="brand mobile-brand" href="#vacancies"><svg viewBox="0 0 80 80" aria-hidden="true"><use href="#rocket"/></svg>СТАРТЕР</a>
+<section id="hero" class="hero glass">
+<div class="hero-copy"><h1>запусти свою карьеру</h1><p>Найди вакансии, которые подходят твоим навыкам.</p></div>
+
+</section>
+<p class="notice">Демонстрационный каталог · Подбор по правилам · Подключение API и ИИ запланировано</p>
+<section id="list">
+<details class="filter-panel glass" open><summary>Фильтры вакансий</summary>
+<div class="extra-filters">
+<label>Город<input id="city-filter" type="search" placeholder="Любой город"></label>
+<label>Зарплата от, ₽<input id="salary-filter" type="number" min="0" step="10000" placeholder="Любая"></label>
+<label class="check-filter"><input id="entry-filter" type="checkbox">Начало карьеры</label>
+<a href="#preferences">Навыки и интересы →</a>
+<button id="reset-filters" type="button" class="text-button">Сбросить фильтры</button>
+</div></details>
+<div class="controls">
+<label class="search"><svg class="icon" aria-hidden="true"><use href="#search"/></svg><input id="query" type="search" placeholder="Должность, компания или навык" aria-label="Поиск вакансий"></label>
+<select id="format" aria-label="Формат работы"><option value="">Любой формат</option><option>Удалённо</option><option>Гибрид</option><option>Офис</option></select>
+<select id="sort" aria-label="Сортировка"><option value="default">По умолчанию</option><option value="match">По совпадению</option><option value="salary">По зарплате</option></select>
+</div>
+<div class="heading"><h2 id="list-title"></h2><span id="count" aria-live="polite"></span></div>
+<p id="match-note" class="notice" hidden>Демо-подбор учитывает навыки и ключевые слова из рассказа о себе. <a href="#preferences">Настроить подбор</a></p>
+<p class="status muted" id="storage-status" role="status"></p>
+<p id="preferences-link"><a class="text-button" href="#preferences">Настроить навыки и интересы →</a></p>
+<div id="directions" class="directions" hidden></div>
+<div id="cards" class="grid"></div>
+<div id="empty" class="panel glass" hidden></div>
+</section>
+<section id="preferences-view" hidden>
+<div class="heading"><h2>Настройки подбора</h2></div>
+<form class="profile panel glass" id="profile-form">
+<label>Желаемая должность<input name="role" maxlength="100" placeholder="Например, Frontend-разработчик"></label>
+<label>Навыки через запятую<textarea name="skills" maxlength="400" placeholder="Например, C#, Blazor, HTML"></textarea></label>
+<label>Опыт, образование, интересы и предпочтения<textarea name="about" maxlength="900" placeholder="Например, люблю работать с числами, учусь на экономиста и хочу работать удалённо"></textarea></label>
+<button class="primary" type="submit">Обновить подбор</button>
+<p class="status muted" id="status" role="status"></p>
+</form>
+</section>
+
+<section id="account-view" hidden>
+<div class="heading"><h2>Личный профиль</h2></div>
+<div id="account-guest" class="panel glass">
+<h3>Начнём знакомство</h3><p class="muted">Демо-регистрация: имя и email сохраняются в этом браузере. Пароль используется только для демонстрации формы. Вход по email открывает локальный профиль.</p>
+<div class="auth-tabs"><button type="button" id="register-tab" aria-pressed="true">Регистрация</button><button type="button" id="login-tab" aria-pressed="false">Вход</button></div>
+<form id="account-form" class="profile">
+<label id="name-label">Имя<input name="name" autocomplete="name" maxlength="80" required></label>
+<label>Email<input name="email" type="email" autocomplete="email" maxlength="254" required></label>
+<label>Пароль<input name="password" type="password" autocomplete="new-password" minlength="10" maxlength="128" required><small class="muted">Не менее 10 символов</small></label>
+<button class="primary" id="account-submit">Создать аккаунт</button>
+<p id="account-status" role="status"></p>
+</form></div>
+<div id="account-member" class="panel glass" hidden>
+<div class="avatar" aria-hidden="true">☺</div><h3 id="member-name"></h3><p id="member-email" class="muted"></p>
+<p>Твои навыки и интересы можно изменить в настройках подбора.</p>
+<a class="primary" href="#preferences">Настроить подбор</a>
+<button id="logout" class="text-button">Выйти из аккаунта</button>
+</div>
+</section>
+</main>
+</div>
+<dialog id="details" class="glass" aria-labelledby="detail-title">
+<div class="dialog-head"><h2 id="detail-title"></h2><form method="dialog" style="margin-left:auto"><button class="close" aria-label="Закрыть"><svg class="icon" aria-hidden="true"><use href="#close"/></svg></button></form></div>
+<p id="detail-meta" class="meta"></p>
+<p id="detail-salary" class="salary"></p>
+<button type="button" id="simplify" class="text-button" aria-pressed="false">Объяснить проще</button>
+<p id="detail-description" class="details-text"></p>
+<div id="detail-skills" class="tags"></div>
+<p id="detail-match" class="notice"></p>
+<a id="detail-link" class="primary" target="_blank" rel="noopener noreferrer">На сайт работодателя ↗</a>
+<p class="muted">Демо-вакансия. Ссылка ведёт на карьерный сайт компании.</p>
+</dialog>
+<script src="app.js"></script>
+</body>
+</html>
