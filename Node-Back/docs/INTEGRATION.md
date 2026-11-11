@@ -1,7 +1,25 @@
-# Claude importer integration contract
+# Trudvsem integration
 
-Import `db` from src/config/db.ts, `env` from src/config/env.ts and `logger` from src/lib/logger.ts. Do not import server.ts or app.ts in a standalone CLI. Run from Node-Back so dotenv finds .env. The CLI entrypoint owns db.end() in finally; reusable importer functions must never close the shared pool. Release borrowed connections in finally and roll back failed transactions. Use parameterized SQL and preserve BIGINT strings.
+Integration base: origin/main ff35dd7 (owner merged PR #2), including Claude merge bcb56bc.
+Canonical DB: manhattanattack/hackaton-sql-scheme@4ce04c4870c43a65fe1f0265f0c75d3f4265c603.
 
-Claude supplies its CLI entrypoint and required configuration fields. Codex then adds import:trudvsem as `tsx <agreed-entrypoint>`; no placeholder command is installed. New environment fields must be validated centrally. Log counts, source IDs and durations; never log credentials, tokens, raw request bodies or connection strings. Throw errors from reusable modules; CLI catches at the boundary, logs a sanitized summary and sets exitCode=1. HTTP errors use HttpError and the existing middleware. No importer implementation is included here.
+`npm run import:trudvsem -- <options>` runs the existing standalone CLI.
+`npm run test:import` runs 58 tests: all original 57 plus one privacy regression.
+`npm run test:import:integration` runs the real MySQL + mock HTTP + authorized
+Express check after `npm run build`. See import/INTEGRATION_ACCEPTANCE.md for setup.
 
-SQL adapter remains pending DBA approval. Existing business tables and Identity scripts must not be changed or executed by the importer. Integrate via PR; no merge without agreement.
+CLI lazily imports the shared db from src/config/db.ts; dry-run/probe need no DB.
+Reusable repository borrows and releases UTC connections, never closes the pool.
+Only CLI owns db.end(). Its local stderr logger is retained so stdout stays a single
+JSON report; injected shared pino logger remains supported. No new env keys are
+required for normal CLI operation; import arguments are validated by Zod.
+BIGINT and DECIMAL remain exact strings on reads. Date strings work with stale
+snapshot checks. Optional canonical fields and MySQL 8.4 row-alias upserts work.
+
+Verified: fixture insert/repeat/update/stale skip, real SQL rollback, canonical FK,
+all imported cards/catalog, per-user favorites/click ownership. Contact cleanup
+now covers all source text labels and skills as well as description/requirements.
+No canonical SQL edits, new HTTP endpoints, importer rewrite, import_runs,
+multipage synchronization, cursor, LLM or recommendation features were added.
+Live offset probe failed (timeout/network error); up to 100 live records were not
+imported. Mock probe verifies page semantics only for the scripted mock.

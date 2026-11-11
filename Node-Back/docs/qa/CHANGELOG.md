@@ -1,28 +1,35 @@
-# Backend changelog for Python QA
+# API changes ? DB alignment
 
-## 0.2.0 — адаптация под обновлённую командную БД (proposal)
-- Источник: `manhattanattack/hackaton-sql-scheme@efe6b9d` (2026-11-11).
-- Убрана пробная `users(id BIGINT)`; Node auth использует `auth_users(id UUID string)`.
-- Регистрация создаёт профиль `user_profiles` в одной транзакции.
-- `/api/auth/me` возвращает внешний UUID + числовой profileId.
-- Добавлены `/api/profile` GET/PATCH, `/api/vacancies` GET / GET :id,
-  `/api/favorites` GET/PUT/DELETE, `/api/vacancies/:id/outbound-click` POST.
-- Каталог поддерживает новые workFormat/scheduleType/contractType.
-- Новый контракт требует Python QA регрессию всех маршрутов.
-- НЕ реализованы загрузчик источников, ИИ-подбор/история запросов и refresh-токены.
-- Пока не согласовано с DB engineer: auth_users вместо upstream AspNetUsers.
+- Canonical users replaces the removed local authorization adapter.
+- JWT now requires token_version and checks active status/current version per request.
+  Existing JWTs require login again. Role is read from the database.
+- Email is limited to 254 characters; duplicate normalized email returns 409.
+- Added regionCode, typicalPosition, codeProfession and specialisation exact filters.
+  regionCode honors includeRemote like other location filters.
+- Lists/cards/favorites expose the four corresponding snake_case DB fields.
+- DECIMAL values remain strings; dates are UTC MySQL strings, not ISO timestamps.
+- Active catalog, archived cards/favorites, idempotent favorites and owner isolation retained.
+- Refresh rotation/logout remain unimplemented.
 
-## Stage 1 verification ? 2026-11-11
+## PR #2 real MySQL acceptance (2026-11-11)
 
-- Fixed pino-http ESM import; npm install (workspace cache), typecheck and build pass. package-lock.json added. Argon2id hash/verify passes.
-- Registration rejects unknown fields (including role) with 400 VALIDATION_ERROR. Email is trimmed before validation and lowercased. Password 8?128 characters; displayName trimmed, 1?150 characters.
-- JWT verification requires sub, iss, aud, exp and HS256. Lifetime: 3600 seconds.
-- HTTP smoke: health 200; ready 503 (no DB); me without/invalid Bearer 401 UNAUTHORIZED; catalog without Bearer 401; register with role 400.
-- Docker Engine unavailable; localhost:3306 refuses connections. Registration success/duplicate, login success/failure, authenticated me, SQL grants, FK and rollback on real MySQL remain UNVERIFIED. Do not treat stage as accepted.
-- QA: use a dedicated empty DB and unique emails; register returns 201 {user:{id,profileId,email,displayName,role},accessToken,tokenType,expiresIn}; duplicate email including case variants returns 409 EMAIL_EXISTS; login returns same shape with 200 or 401 INVALID_CREDENTIALS; me returns 200 {user} or 401 UNAUTHORIZED. Never expose password_hash. Check atomic account/profile creation and role=user.
-- DB setup: compose up -d mysql; wait for health; apply pinned upstream 01_schema.sql, then local 01_auth_users.sql, then 02_link_profile.sql, optionally upstream 08_prompt_schema.sql and 03_seed.sql. Never run Identity scripts. Use database vacancy_aggregator: adapter SQL hardcodes this name. Compose grants starter access to that database only; inspect SHOW GRANTS and actual upstream database name before applying. Existing volumes are not reinitialized; never remove them for this task.
-- Upstream baseline could not be downloaded in this session, so compatibility is based on existing handoff only. DBA must confirm UUID string auth_users, unchanged BIGINT profile ID and business relationships, matching auth_subject collation and FK ON DELETE RESTRICT. Adapter remains pending DBA approval. No upstream schema or user data changed. Python suite belongs to QA.
+- Fixed vacancy card is_favorite: mysql2 EXISTS expression was a BIGINT string,
+  contradicting OpenAPI. Explicitly normalize this flag to numeric 0/1 only.
+- Confirmed aggregate counters/percent are strings and DECIMAL stays exact.
+- Added reproducible isolated real-MySQL developer suite: 118 checks passed.
+- Previous Docker/MySQL verification blocker resolved; canonical SQL unchanged.
 
-## Task 1A
+## Task 3: importer + canonical backend integration
 
-Rechecked npm ci, typecheck, build and Argon2id successfully in feat/core-auth worktree. HTTP smoke: health 200, ready 503 with unavailable MySQL, me/catalog without Bearer 401. Real-DB auth, FK, grants and rollback tests remain blocked by missing Docker Engine. Test shutdown with active requests and repeated signals; deadline is 10 seconds, MySQL connect timeout 5 seconds. Shared logger and CLI integration contract: docs/INTEGRATION.md. No importer or Python suite added.
+Owner merged PR #2; integration base is main ff35dd7 with Claude bcb56bc.
+Commands: npm run import:trudvsem / test:import / test:import:integration.
+58 importer tests, 48 real-MySQL importer/API checks, 118 backend regression checks
+passed. See [acceptance](../import/INTEGRATION_ACCEPTANCE.md) for exact isolated
+setup, test fixtures, retained databases and live API limitation. HTTP contract
+unchanged; all imported cards and catalog use Bearer, ownership from profile only.
+Privacy regression: source contacts in schedule, shift/company/position/region/category
+labels and skills now pass through existing scrubContacts. Check an injected email,
+phone and known contact name in these fields, plus DB and API output. Existing
+fixture contacts are excluded. Never equate absence of known canaries with a full
+arbitrary-prose PII guarantee. Live API timed out/failed; live 100-record import
+remains unverified. Independent pytest suite remains owned by Python QA.

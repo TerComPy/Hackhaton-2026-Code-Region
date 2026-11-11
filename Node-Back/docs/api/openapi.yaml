@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
   title: STARTER API
-  version: 0.2.0
-  description: "Node.js адаптация; auth_users пока ожидает согласования инженером БД."
+  version: 0.3.0
+  description: "Canonical MySQL revision 4ce04c4. Protected routes check active users and JWT token_version. No refresh/logout endpoints."
 servers:
   - url: http://localhost:3000
 components:
@@ -25,7 +25,7 @@ components:
       properties:
         id: { type: string, format: uuid }
         profileId: { type: string, description: 'BIGINT profile ID sent as decimal string' }
-        email: { type: string, format: email }
+        email: { type: string, format: email, maxLength: 254 }
         displayName: { type: string }
         role: { type: string, enum: [user, admin] }
     AuthResponse:
@@ -47,6 +47,19 @@ components:
       type: object
       properties:
         id: { type: string, description: 'BIGINT serialized as string' }
+        typical_position: { type: string, nullable: true }
+        code_profession: { type: string, nullable: true }
+        specialisation: { type: string, nullable: true }
+        region_code: { type: string, nullable: true }
+        status: { type: string, enum: [active, archived] }
+        region_name: { type: string, nullable: true }
+        published_at: { type: string, nullable: true, description: 'UTC MySQL DATETIME string; optional fractional seconds' }
+        source_name: { type: string }
+        salary_period: { type: string }
+        salary_gross: { type: integer, nullable: true, enum: [0, 1] }
+        matched_skills: { type: string, description: 'MySQL SUM string' }
+        listed_skills: { type: string, description: 'MySQL BIGINT count string' }
+        missing_required_skills: { type: string, description: 'MySQL SUM string' }
         title: { type: string }
         company_name: { type: string, nullable: true }
         city: { type: string, nullable: true }
@@ -58,7 +71,62 @@ components:
         salary_max: { type: string, nullable: true }
         currency: { type: string, nullable: true }
         original_url: { type: string, format: uri }
-        skill_match_percent: { type: integer, nullable: true }
+        skill_match_percent: { type: string, nullable: true }
+    VacancyCard:
+      type: object
+      description: 'Explicit public fields; no raw payload, contacts, account or AI data'
+      properties:
+        id: { type: string }
+        source_id: { type: string }
+        external_id: { type: string }
+        company_id: { type: string, nullable: true }
+        title: { type: string }
+        typical_position: { type: string, nullable: true }
+        code_profession: { type: string, nullable: true }
+        specialisation: { type: string, nullable: true }
+        region_code: { type: string, nullable: true }
+        description: { type: string }
+        requirements: { type: string, nullable: true }
+        responsibilities: { type: string, nullable: true }
+        original_url: { type: string }
+        country_code: { type: string, nullable: true }
+        region_name: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        address_text: { type: string, nullable: true }
+        work_format: { type: string, nullable: true }
+        employment_type: { type: string, nullable: true }
+        schedule_text: { type: string, nullable: true }
+        schedule_type: { type: string, nullable: true }
+        contract_type: { type: string, nullable: true }
+        salary_min: { type: string, nullable: true }
+        salary_max: { type: string, nullable: true }
+        currency: { type: string, nullable: true }
+        salary_period: { type: string, nullable: true }
+        status: { type: string }
+        published_at: { type: string, nullable: true }
+        company_name: { type: string, nullable: true }
+        source_name: { type: string }
+        salary_gross: { type: integer, nullable: true, enum: [0, 1] }
+        experience_months_min: { type: integer, nullable: true }
+        is_favorite: { type: integer, enum: [0, 1], description: 'Numeric flag normalized from mysql2 EXISTS; verified on MySQL 8.4' }
+    Favorite:
+      type: object
+      properties:
+        id: { type: string }
+        title: { type: string }
+        typical_position: { type: string, nullable: true }
+        code_profession: { type: string, nullable: true }
+        specialisation: { type: string, nullable: true }
+        region_code: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        salary_min: { type: string, nullable: true }
+        salary_max: { type: string, nullable: true }
+        currency: { type: string, nullable: true }
+        salary_period: { type: string }
+        status: { type: string }
+        original_url: { type: string }
+        company_name: { type: string, nullable: true }
+        saved_at: { type: string }
 paths:
   /api/health:
     get:
@@ -84,7 +152,7 @@ paths:
               additionalProperties: false
               required: [email, password, displayName]
               properties:
-                email: { type: string, format: email }
+                email: { type: string, format: email, maxLength: 254 }
                 password: { type: string, minLength: 8, maxLength: 128 }
                 displayName: { type: string, minLength: 1, maxLength: 150 }
       responses:
@@ -106,7 +174,7 @@ paths:
               type: object
               required: [email, password]
               properties:
-                email: { type: string, format: email }
+                email: { type: string, format: email, maxLength: 254 }
                 password: { type: string }
       responses:
         '200':
@@ -167,6 +235,10 @@ paths:
       parameters:
         - { in: query, name: search, schema: { type: string } }
         - { in: query, name: city, schema: { type: string } }
+        - { in: query, name: regionCode, schema: { type: string, maxLength: 32 }, description: 'Exact region code; includeRemote applies' }
+        - { in: query, name: typicalPosition, schema: { type: string, maxLength: 255 }, description: 'Exact typical position' }
+        - { in: query, name: codeProfession, schema: { type: string, maxLength: 64 }, description: 'Exact profession code' }
+        - { in: query, name: specialisation, schema: { type: string, maxLength: 255 }, description: 'Exact specialisation' }
         - { in: query, name: regionName, schema: { type: string } }
         - { in: query, name: countryCode, schema: { type: string, minLength: 2, maxLength: 2 } }
         - { in: query, name: includeRemote, schema: { type: boolean, default: false } }
@@ -201,7 +273,22 @@ paths:
       parameters:
         - { in: path, name: id, required: true, schema: { type: string, pattern: '^[1-9][0-9]*$' } }
       responses:
-        '200': { description: Vacancy plus skills }
+        '200':
+          description: Vacancy plus skills; includes archived vacancies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  vacancy: { $ref: '#/components/schemas/VacancyCard' }
+                  skills:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id: { type: string }
+                        name: { type: string }
+                        is_required: { type: integer, enum: [0, 1] }
         '400': { description: Invalid ID }
         '401': { description: No valid access token }
         '404': { description: Vacancy not found }
@@ -213,6 +300,7 @@ paths:
         - { in: path, name: id, required: true, schema: { type: string, pattern: '^[1-9][0-9]*$' } }
       responses:
         '200': { description: '{ originalUrl: string }' }
+        '400': { description: Invalid vacancy ID }
         '401': { description: No valid access token }
         '404': { description: Active vacancy not found }
   /api/favorites:
@@ -223,7 +311,17 @@ paths:
         - { in: query, name: page, schema: { type: integer, default: 1, minimum: 1 } }
         - { in: query, name: pageSize, schema: { type: integer, default: 20, minimum: 1, maximum: 100 } }
       responses:
-        '200': { description: Favorites list }
+        '200':
+          description: Favorites including archived, owned by current user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/Favorite' } }
+                  page: { type: integer }
+                  pageSize: { type: integer }
+        '400': { description: Invalid pagination }
         '401': { description: No valid access token }
   /api/favorites/{vacancyId}:
     put:
@@ -232,6 +330,7 @@ paths:
       parameters:
         - { in: path, name: vacancyId, required: true, schema: { type: string } }
       responses:
+        '400': { description: Invalid vacancy ID }
         '204': { description: Added or already exists }
         '401': { description: No valid access token }
         '404': { description: Active vacancy not found }
@@ -241,5 +340,6 @@ paths:
       parameters:
         - { in: path, name: vacancyId, required: true, schema: { type: string } }
       responses:
+        '400': { description: Invalid vacancy ID }
         '204': { description: Removed or already missing }
         '401': { description: No valid access token }

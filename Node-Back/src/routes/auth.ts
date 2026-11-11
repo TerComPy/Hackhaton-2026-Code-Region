@@ -14,17 +14,19 @@ interface AccountRow extends RowDataPacket {
   email: string;
   password_hash: string;
   role: 'user' | 'admin';
+  status: 'active' | 'blocked';
+  token_version: number;
   display_name: string;
   profile_id: string;
 }
 const credentials = z.object({
-  email: z.string().trim().pipe(z.email().max(255)).transform(v => v.toLowerCase()),
+  email: z.string().trim().pipe(z.email().max(254)).transform(v => v.toLowerCase()),
   password: z.string().min(8).max(128)
 });
 const registerSchema = credentials.extend({ displayName: z.string().trim().min(1).max(150) }).strict();
 const secret = new TextEncoder().encode(env.JWT_SECRET);
-async function tokenFor(id: string) {
-  return new SignJWT({})
+async function tokenFor(id: string, tokenVersion: number) {
+  return new SignJWT({ token_version: tokenVersion })
     .setProtectedHeader({ alg: 'HS256' })
     .setSubject(id)
     .setIssuer(env.JWT_ISSUER)
@@ -34,7 +36,7 @@ async function tokenFor(id: string) {
     .sign(secret);
 }
 function publicAccount(account: AccountRow) {
-  return { id: account.id, profileId: account.profile_id, email: account.email,
+  return { id: account.id, profileId: String(account.profile_id), email: account.email,
     displayName: account.display_name, role: account.role };
 }
 export const authRouter = Router();
@@ -47,7 +49,7 @@ authRouter.post('/register', async (req, res) => {
   try {
     await connection.beginTransaction();
     await connection.execute(
-      'INSERT INTO auth_users (id, email, normalized_email, password_hash) VALUES (?, ?, ?, ?)',
+      'INSERT INTO users (id, email, normalized_email, password_hash) VALUES (?, ?, ?, ?)',
       [id, input.email, input.email, hash]
     );
     await connection.execute('INSERT INTO user_profiles (auth_subject, display_name) VALUES (?, ?)',
@@ -67,27 +69,27 @@ authRouter.post('/register', async (req, res) => {
   }
   res.status(201).json({
     user: { id, profileId, email: input.email, displayName: input.displayName, role: 'user' },
-    accessToken: await tokenFor(id), tokenType: 'Bearer', expiresIn: 3600
+    accessToken: await tokenFor(id, 0), tokenType: 'Bearer', expiresIn: 3600
   });
 });
 authRouter.post('/login', async (req, res) => {
   const input = credentials.parse(req.body);
   const [rows] = await db.execute<AccountRow[]>(
-    `SELECT a.id, a.email, a.password_hash, a.role,
+    `SELECT a.id, a.email, a.password_hash, a.role, a.status, a.token_version,
       p.id AS profile_id, p.display_name
-     FROM auth_users a JOIN user_profiles p ON p.auth_subject = a.id
+     FROM users a JOIN user_profiles p ON p.auth_subject = a.id
      WHERE a.normalized_email = ? LIMIT 1`, [input.email]);
   const account = rows[0];
-  if (!account || !(await argon2.verify(account.password_hash, input.password)))
+  if (!account || account.status !== 'active' || !(await argon2.verify(account.password_hash, input.password)))
     throw new HttpError(401, 'Invalid credentials', 'INVALID_CREDENTIALS');
-  res.json({ user: publicAccount(account), accessToken: await tokenFor(account.id),
+  res.json({ user: publicAccount(account), accessToken: await tokenFor(account.id, account.token_version),
     tokenType: 'Bearer', expiresIn: 3600 });
 });
 authRouter.get('/me', requireAuth, async (_req, res) => {
   const [rows] = await db.execute<AccountRow[]>(
-    `SELECT a.id, a.email, a.password_hash, a.role,
+    `SELECT a.id, a.email, a.password_hash, a.role, a.status, a.token_version,
       p.id AS profile_id, p.display_name
-     FROM auth_users a JOIN user_profiles p ON p.auth_subject = a.id
+     FROM users a JOIN user_profiles p ON p.auth_subject = a.id
      WHERE a.id = ? LIMIT 1`, [res.locals.authUserId]);
   if (!rows[0]) throw new HttpError(401, 'Account unavailable', 'UNAUTHORIZED');
   res.json({ user: publicAccount(rows[0]) });

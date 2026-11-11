@@ -9,6 +9,10 @@ import { requireAuth } from '../middleware/auth.js';
 const filterSchema = z.object({
   search: z.string().max(255).default(''),
   city: z.string().max(150).optional(),
+  regionCode: z.string().max(32).optional(),
+  typicalPosition: z.string().max(255).optional(),
+  codeProfession: z.string().max(64).optional(),
+  specialisation: z.string().max(255).optional(),
   regionName: z.string().max(150).optional(),
   countryCode: z.string().length(2).optional(),
   includeRemote: z.enum(['true', 'false']).default('false'),
@@ -40,6 +44,10 @@ vacanciesRouter.get('/', async (req, res) => {
   if (f.city) add("(v.city = ? OR (? = 1 AND v.work_format = 'remote'))", f.city, f.includeRemote === 'true' ? 1 : 0);
   if (f.regionName) add("(v.region_name = ? OR (? = 1 AND v.work_format = 'remote'))", f.regionName, f.includeRemote === 'true' ? 1 : 0);
   if (f.countryCode) add("(v.country_code = ? OR (? = 1 AND v.work_format = 'remote'))", f.countryCode.toUpperCase(), f.includeRemote === 'true' ? 1 : 0);
+  if (f.regionCode) add("(v.region_code = ? OR (? = 1 AND v.work_format = 'remote'))", f.regionCode, f.includeRemote === 'true' ? 1 : 0);
+  if (f.typicalPosition) add('v.typical_position = ?', f.typicalPosition);
+  if (f.codeProfession) add('v.code_profession = ?', f.codeProfession);
+  if (f.specialisation) add('v.specialisation = ?', f.specialisation);
   if (f.workFormat) add('v.work_format = ?', f.workFormat);
   if (f.employmentType) add('v.employment_type = ?', f.employmentType);
   if (f.scheduleType) add('v.schedule_type = ?', f.scheduleType);
@@ -64,7 +72,7 @@ vacanciesRouter.get('/', async (req, res) => {
     LEFT JOIN user_skills us ON us.skill_id = vs.skill_id AND us.user_id = ?
     GROUP BY vs.vacancy_id
   )
-  SELECT v.id, v.title, c.name AS company_name, v.city, v.region_name,
+  SELECT v.id, v.title, v.typical_position, v.code_profession, v.specialisation, v.region_code, v.status, c.name AS company_name, v.city, v.region_name,
     v.work_format, v.employment_type, v.schedule_type, v.contract_type,
     v.salary_min, v.salary_max, v.currency, v.salary_period, v.salary_gross,
     v.original_url, v.published_at, s.name AS source_name,
@@ -86,7 +94,7 @@ vacanciesRouter.get('/:id', async (req, res) => {
   const id = errorForId(req.params.id);
   const p = await getProfile(res.locals.authUserId);
   const [rows] = await db.execute<RowDataPacket[]>(
-    `SELECT v.id, v.source_id, v.external_id, v.company_id, v.title,
+    `SELECT v.id, v.source_id, v.external_id, v.company_id, v.title, v.typical_position, v.code_profession, v.specialisation, v.region_code,
       v.description, v.requirements, v.responsibilities, v.original_url,
       v.country_code, v.region_name, v.city, v.address_text, v.work_format,
       v.employment_type, v.schedule_text, v.schedule_type, v.contract_type,
@@ -101,7 +109,9 @@ vacanciesRouter.get('/:id', async (req, res) => {
     `SELECT sk.id, sk.name, vs.is_required FROM vacancy_skills vs
      JOIN skills sk ON sk.id = vs.skill_id WHERE vs.vacancy_id = ?
      ORDER BY vs.is_required DESC, sk.name`, [id]);
-  res.json({ vacancy: rows[0], skills });
+  // EXISTS is a BIGINT expression in mysql2 and arrives as a string. Keep the
+  // documented 0/1 flag numeric without converting any IDs or monetary values.
+  res.json({ vacancy: { ...rows[0], is_favorite: Number(rows[0].is_favorite) }, skills });
 });
 vacanciesRouter.post('/:id/outbound-click', async (req, res) => {
   const id = errorForId(req.params.id);
