@@ -30,95 +30,51 @@ function submit() {
   <section class="account wrap">
     <div v-if="!store.user" class="account__guest">
       <div class="account__intro">
-        <p class="auth-brand"><span aria-hidden="true">↗</span> стартер<span class="eyebrow"> / профиль</span></p>
-        <h1 class="page-title">{{ mode === "register" ? "Создать аккаунт" : "С возвращением" }}</h1>
-        <p class="auth-subtitle">{{ mode === "register" ? "Сохраните вакансии и найдите своё направление." : "Вернитесь к подборке и сохранённым вакансиям." }}</p>
-        <div class="seg account__tabs">
-          <button
-            v-for="m in ['register', 'login']"
-            class="seg__btn"
-            :aria-pressed="mode === m"
-            @click="mode = m; error = ''; reveal = false"
-          >
-            {{ m === "register" ? "Регистрация" : "Вход" }}
-          </button>
-        </div>
-        <form class="auth" @submit.prevent="submit">
-          <div class="field" v-if="mode === 'register'">
-            <label for="auth-name" class="field__label">Имя</label
-            ><input
-              id="auth-name"
-              class="input input--lg"
-              v-model="name"
-              maxlength="80"
-              required
-              autocomplete="name"
-            />
-          </div>
-          <div class="field">
-            <label for="auth-email" class="field__label">Email</label
-            ><input
-              id="auth-email"
-              type="email"
-              class="input input--lg"
-              v-model="email"
-              required
-              autocomplete="email"
-            />
-          </div>
-          <div class="field">
-            <label for="auth-password" class="field__label">Пароль</label>
-            <div class="input-wrap">
-              <input
-                id="auth-password"
-                :type="reveal ? 'text' : 'password'"
-                class="input input--lg"
-                v-model="password"
-                aria-describedby="password-hint"
-                minlength="10"
-                maxlength="128"
-                required
-                :autocomplete="
-                  mode === 'register' ? 'new-password' : 'current-password'
-                "
-              /><button
-                class="input-wrap__btn"
-                type="button"
-                :aria-pressed="reveal"
-                :aria-label="reveal ? 'Скрыть пароль' : 'Показать пароль'"
-                @click="reveal = !reveal"
-              >
-                <svg class="icon"><use href="#i-eye" /></svg>
-              </button>
+        <div class="auth-content">
+          <a class="logo auth-brand" href="#/" aria-label="Стартер — на главную">стартер<span class="logo__mark" aria-hidden="true"></span></a>
+          <header class="auth-heading">
+            <p class="eyebrow">Личное пространство</p>
+            <h1 class="page-title">{{ mode === 'register' ? 'Начните со своего.' : 'Продолжим поиск.' }}</h1>
+            <p class="auth-subtitle">{{ mode === 'register' ? 'Создайте демо-профиль, чтобы сохранять вакансии и собирать свою подборку.' : 'Войдите в демо-профиль и вернитесь к сохранённым вакансиям.' }}</p>
+          </header>
+          <form class="auth" @submit.prevent="submit">
+            <div class="field auth-name" :class="{ 'is-inactive': mode === 'login' }" :inert="mode === 'login'" :aria-hidden="mode === 'login'">
+              <label for="auth-name" class="field__label">Как вас зовут</label>
+              <input id="auth-name" class="input input--lg" v-model="name" placeholder="Ваше имя" maxlength="80" :required="mode === 'register'" :disabled="mode === 'login'" autocomplete="name" />
             </div>
-            <p id="password-hint" class="field__hint">Не меньше 10 символов</p>
-          </div>
-          <p class="form-error" role="alert">{{ error }}</p>
-          <button class="btn btn--accent">
-            {{ mode === "register" ? "Создать профиль" : "Войти" }}
-          </button>
-          <p class="auth__note">
-            Демо-профиль: имя и email хранятся в браузере. Пароль не сохраняется
-            и не проверяется сервером.
-          </p>
-        </form>
+            <div class="field">
+              <label for="auth-email" class="field__label">Email</label>
+              <input id="auth-email" type="email" class="input input--lg" v-model="email" placeholder="name@example.ru" required autocomplete="email" />
+            </div>
+            <div class="field">
+              <label for="auth-password" class="field__label">Пароль <span class="auth-password-hint" id="password-hint">от 10 символов</span></label>
+              <div class="input-wrap">
+                <input id="auth-password" :type="reveal ? 'text' : 'password'" class="input input--lg" v-model="password" placeholder="Введите пароль" aria-describedby="password-hint" minlength="10" maxlength="128" required :autocomplete="mode === 'register' ? 'new-password' : 'current-password'" />
+                <button class="input-wrap__btn" type="button" :aria-pressed="reveal" :aria-label="reveal ? 'Скрыть пароль' : 'Показать пароль'" @click="reveal = !reveal"><svg class="icon" aria-hidden="true"><use :href="reveal ? '#i-eye-off' : '#i-eye'" /></svg></button>
+              </div>
+            </div>
+            <div class="auth-feedback"><p class="form-error" role="alert">{{ error }}</p></div>
+            <button class="btn btn--accent auth-submit">{{ mode === 'register' ? 'Создать профиль' : 'Войти' }}<svg class="icon" aria-hidden="true"><use href="#i-right" /></svg></button>
+          </form>
+          <p class="auth-switch">{{ mode === 'register' ? 'Уже есть аккаунт?' : 'Нет аккаунта?' }} <button type="button" :aria-label="mode === 'register' ? 'Вход' : 'Регистрация'" @click="mode = mode === 'register' ? 'login' : 'register'; error = ''; reveal = false">{{ mode === 'register' ? 'Войти' : 'Зарегистрироваться' }}</button></p>
+          <p class="auth__note">Демо-режим. Имя и email остаются в браузере.<br />Пароль не сохраняется и не проверяется сервером.</p>
+        </div>
       </div>
       <aside class="opportunity" aria-label="Карта возможностей">
-        <div class="opportunity__header"><span class="eyebrow">Стартер / Атлас направлений</span><span class="eyebrow">01 — 03</span></div>
-        <div class="opportunity__title">У каждого навыка —<br />несколько направлений.</div>
-        <svg class="opportunity__map" viewBox="0 0 600 440" aria-hidden="true">
-          <defs><pattern id="atlas-dots" width="24" height="24" patternUnits="userSpaceOnUse"><circle cx="12" cy="12" r="1" fill="currentColor" opacity=".2" /></pattern></defs>
-          <rect width="600" height="440" fill="url(#atlas-dots)" />
-          <g fill="none" stroke="currentColor" stroke-width="1" opacity=".35">
-            <path d="M60 330 180 260 300 330 420 260 540 330 540 190 420 120 300 190 180 120 60 190Z M60 190 180 260 180 120 M180 260 300 190 420 260 420 120 M300 190 300 330 M420 260 540 190 M60 330 300 50 540 330 M180 120 300 50 420 120" />
-            <ellipse cx="300" cy="236" rx="236" ry="158" stroke-dasharray="3 9" />
-            <path d="M24 382H576 M300 24V410" stroke-dasharray="4 8" />
+        <div class="opportunity__header"><span class="eyebrow">Стартер / Карта возможностей</span><span class="eyebrow">01 — 03</span></div>
+        <div class="opportunity__copy"><p class="eyebrow">От навыка к профессии</p><h2>Ваш опыт.<br />Новые направления.</h2><p>Свяжите то, что умеете,<br />с тем, чем хочется заниматься.</p></div>
+        <svg class="opportunity__map" viewBox="0 0 560 320" aria-hidden="true">
+          <g fill="none" stroke="currentColor" stroke-width="1">
+            <path opacity=".1" d="M40 40H520M40 100H520M40 160H520M40 220H520M40 280H520M100 20V300M220 20V300M340 20V300M460 20V300" />
+            <path opacity=".3" d="M100 220 220 100 340 160 460 40M100 220 340 280 460 160M220 100 460 160M340 160 340 280" />
+            <path stroke="var(--accent)" d="M100 220 220 100 340 160 460 160" />
+            <circle cx="340" cy="160" r="35" opacity=".25"/><circle cx="340" cy="160" r="53" opacity=".1"/>
           </g>
-          <g fill="var(--bg-raise)" stroke="currentColor"><circle cx="60" cy="190" r="5"/><circle cx="180" cy="120" r="5"/><circle cx="300" cy="50" r="5"/><circle cx="420" cy="120" r="5"/><circle cx="540" cy="190" r="5"/><circle cx="60" cy="330" r="5"/><circle cx="300" cy="330" r="5"/><circle cx="540" cy="330" r="5"/></g>
-          <g fill="var(--accent)"><circle cx="180" cy="260" r="7"/><circle cx="300" cy="190" r="7"/><circle cx="420" cy="260" r="7"/></g>
-          <g fill="currentColor" font-size="11" font-family="monospace"><text x="196" y="252">НАВЫКИ</text><text x="316" y="182">ПРОФЕССИИ</text><text x="436" y="284">ПРАКТИКА</text><text x="24" y="410">СВЯЗИ / ВОЗМОЖНОСТИ / ВЫБОР</text></g>
+          <g fill="var(--bg-raise)" stroke="currentColor"><circle cx="100" cy="220" r="6"/><circle cx="220" cy="100" r="6"/><circle cx="340" cy="280" r="6"/><circle cx="460" cy="40" r="6"/><circle cx="460" cy="160" r="6"/></g>
+          <circle cx="340" cy="160" r="8" fill="var(--accent)"/>
+          <g fill="currentColor" font-size="11" font-family="monospace"><text x="65" y="248">НАВЫКИ</text><text x="184" y="76">ИНТЕРЕСЫ</text><text x="362" y="140">ВАШ ПУТЬ</text></g>
         </svg>
-        <div class="opportunity__footer"><span class="eyebrow">Ваш следующий шаг</span><p>От того, что умеете,<br />к тому, что интересно.</p><span aria-hidden="true">↗</span></div>
+        <div class="opportunity__footer"><span class="eyebrow">Возможности начинаются с вас</span><span aria-hidden="true">↗</span></div>
       </aside>
     </div>
     <div class="member" v-else>
@@ -138,3 +94,5 @@ function submit() {
     </div>
   </section>
 </template>
+
+<style src="./account.css"></style>

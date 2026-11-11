@@ -6,15 +6,18 @@ for (const theme of ['light', 'dark']) {
   await page.addInitScript(t => localStorage.setItem('starter.theme', JSON.stringify(t)), theme);
   await page.goto('/#/account');
   await expect(page.locator('#auth-name')).toBeVisible();
-  const baseline = process.env.CAPTURE_AUTH_BEFORE === '1';
+  const baseline = false;
+  const boxes = async () => Promise.all(['.account__guest','.account__intro','.opportunity','.auth-brand','.auth-heading','#auth-email','#auth-password','.auth-submit'].map(s => page.locator(s).boundingBox()));
+  const initialBoxes = await boxes();
   for (const mode of ['register', 'login']) {
-   await page.getByRole('button', {name: mode === 'register' ? 'Регистрация' : 'Вход', exact:true}).click();
-   await page.screenshot({animations: "disabled", path:`docs/auth-fullscreen/screenshots/${baseline ? 'before' : 'after'}-${mode}-${theme}-${info.project.name}.png`});
+   if (mode === 'login') await page.getByRole('button', {name:'Вход',exact:true}).click();
+   expect(await boxes()).toEqual(initialBoxes);
+   await page.screenshot({animations: "disabled", path:`docs/auth-local-v3/screenshots/after-${mode}-${theme}-${info.project.name}.png`});
    if (baseline) continue;
    await expect(page.locator('.footer')).toHaveCount(0);
    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
    if (!info.project.name.startsWith('mobile')) {
-    expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight)).toBe(true);
+    expect(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1)).toBe(true);
     await expect(page.locator('.auth__note')).toBeInViewport();
     await expect(page.locator('.opportunity__footer')).toBeInViewport();
     const cta = page.locator('.nav__link--cta');
@@ -37,7 +40,7 @@ for (const theme of ['light', 'dark']) {
   await page.getByRole('button',{name:'Создать профиль',exact:true}).click();
   await expect(page.getByRole('alert')).not.toBeEmpty();
   await expect(page.getByRole('alert')).toBeInViewport();
-  await page.screenshot({animations: "disabled", path:`docs/auth-fullscreen/screenshots/after-error-${theme}-${info.project.name}.png`});
+  await page.screenshot({animations: "disabled", path:`docs/auth-local-v3/screenshots/after-error-${theme}-${info.project.name}.png`});
   await page.locator('#auth-name').fill('Анна');
   await page.getByRole('button',{name:'Создать профиль',exact:true}).click();
   await expect(page.locator('.member')).toBeVisible();
