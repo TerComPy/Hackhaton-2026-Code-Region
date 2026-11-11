@@ -1,6 +1,6 @@
 ﻿<script setup lang="ts">
 import { dataMode } from "../shared/api";
-import { ref, onMounted, onActivated, onDeactivated } from "vue";
+import { ref, onMounted, onActivated, onDeactivated, onBeforeUnmount, nextTick } from "vue";
 import { useCatalog } from "../entities/store";
 import { catalog } from "../entities/catalog";
 import { photo, salary, type Job } from "../entities/job";
@@ -8,10 +8,34 @@ import CatalogWidget from "../widgets/CatalogWidget.vue";
 import VacancySheet from "../widgets/VacancySheet.vue";
 import { Scene } from "../widgets/scene";
 const store = useCatalog();
-// KeepAlive activates only on route entry; theme/data updates do not replay entrances.
+// KeepAlive retains the page: pause expensive scenes away from home, and replay
+// CSS entrances only on a genuine route reactivation (not on theme/store updates).
+type SceneControl = { pause: () => void; resume: () => void; destroy: () => void };
+const sceneControls: SceneControl[] = [];
 const entering = ref(true);
-onActivated(() => { entering.value = true; });
-onDeactivated(() => { entering.value = false; });
+let activatedOnce = false;
+let activationToken = 0;
+onActivated(() => {
+  const token = ++activationToken;
+  sceneControls.forEach((control) => control.resume());
+  if (!activatedOnce) {
+    activatedOnce = true;
+  } else {
+    void nextTick(() => {
+      if (token === activationToken) entering.value = true;
+    });
+  }
+});
+onDeactivated(() => {
+  ++activationToken;
+  entering.value = false;
+  sceneControls.forEach((control) => control.pause());
+});
+onBeforeUnmount(() => {
+  ++activationToken;
+  sceneControls.forEach((control) => control.destroy());
+  sceneControls.length = 0;
+});
 const selected = ref<Job | null>(null);
 const ringJobs = [1, 4, 3, 2, 6, 14, 7, 9, 11, 10].map((id) =>
   catalog.jobs.find((j) => j.id === id)!,
@@ -21,21 +45,21 @@ function search() {
 }
 onMounted(() => {
   const $ = (s: string) => document.querySelector(s);
-  Scene.createRing({
+  sceneControls.push(Scene.createRing({
     stage: $("#ring-stage"),
     ring: $("#ring"),
     items: ringJobs,
     render: () => null,
     onPick: (j: Job) => (selected.value = j),
-  });
-  Scene.createHowScene({
+  }));
+  sceneControls.push(Scene.createHowScene({
     track: $("#how-track"),
     scene: $("#scene"),
     steps: [...document.querySelectorAll("#steps .step")],
     bar: $("#how-bar"),
     onStep: () => {},
-  });
-  Scene.createParallax($("#invite-media"));
+  }));
+  sceneControls.push(Scene.createParallax($("#invite-media")));
 });
 </script>
 <template>
@@ -45,7 +69,9 @@ onMounted(() => {
         <div class="hero__copy">
           <p class="eyebrow">Агрегатор вакансий</p>
           <h1 class="hero__title" id="hero-title">
-            Вакансии со&nbsp;всей сети —<span> без канцелярита.</span>
+            <span class="hero__line" style="--entrance-delay: 260ms">Вакансии</span>
+            <span class="hero__line" style="--entrance-delay: 420ms">со&nbsp;всей сети —</span>
+            <span class="hero__line hero__line--muted" style="--entrance-delay: 580ms">без канцелярита.</span>
           </h1>
           <p class="hero__lead">
             Собираем предложения с «Работы России», hh.ru и SuperJob,
@@ -128,21 +154,26 @@ onMounted(() => {
             </div>
           </div>
           <div class="ring-floor" aria-hidden="true"></div>
-          <p v-if="dataMode === 'api'" class="ring-hint">???????????? ????????? ? ??????????? ????????</p>
-          <p v-if="dataMode === 'api'" class="ring-hint">Демонстрация профессий · вымышленные вакансии</p><p class="ring-hint">
-            <span class="hint-desktop">Потяните, чтобы покрутить</span
-            ><span class="hint-touch">Проведите, чтобы покрутить</span> ·
-            нажмите на профессию, чтобы открыть вакансию
+          <p class="ring-hint">
+            <span v-if="dataMode === 'api'" class="ring-hint__demo">
+              Демонстрация профессий · вымышленные вакансии
+            </span>
+            <span>
+              <span class="hint-desktop">Потяните, чтобы покрутить</span>
+              <span class="hint-touch">Проведите, чтобы покрутить</span>
+              · нажмите на профессию, чтобы открыть вакансию
+            </span>
           </p>
         </div>
       </div>
 
       <div class="wrap">
         <ul class="sources" id="sources" aria-label="Источники вакансий">
-          <div v-for="(_, name) in catalog.sources" :key="name">
-            <dt>{{ name }}</dt>
-            <dd>Демо-каталог</dd>
-          </div>
+          <li
+            v-for="(_, name, index) in catalog.sources"
+            :key="name"
+            :style="{ '--entrance-delay': `${1600 + index * 120}ms` }"
+          >{{ name }}</li>
         </ul>
       </div>
     </section>

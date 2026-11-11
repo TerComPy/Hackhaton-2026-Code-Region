@@ -20,7 +20,7 @@
   --paper: #FBFAF7;
   --paper-ink: #141413;
   --shade: 20 20 19;
-  --how-bg: #EAE8E3;
+  --how-bg: #E8E5DF;
   --how-surface: #FBFAF7;
   --how-line: #DCD8CF;
   --how-line-strong: #C3BEB2;
@@ -400,7 +400,9 @@ legend.field__label { padding: 0; margin-bottom: var(--s2); }
 .ring-hint {
   position: absolute; bottom: 12px; left: 0; right: 0;
   text-align: center; font: 400 var(--t-xs)/1.4 var(--mono); color: var(--ink-3);
+  display: grid; justify-items: center; gap: 4px;
 }
+.ring-hint__demo { color: var(--accent-ink); }
 .hint-touch { display: none; }
 @media (hover: none) { .hint-touch { display: inline; } .hint-desktop { display: none; } }
 
@@ -410,9 +412,7 @@ legend.field__label { padding: 0; margin-bottom: var(--s2); }
   margin-top: var(--s6); padding: var(--s5) 0 var(--s7);
   border-top: 1px solid var(--line);
 }
-.sources div { display: flex; align-items: baseline; gap: var(--s2); }
 .sources li { font-weight: 500; }
-.sources dd { font: var(--t-xs) var(--mono); color: var(--ink-3); }
 
 /* ---------- Как это работает (3D, привязано к прокрутке) ---------- */
 .how {
@@ -930,18 +930,18 @@ body.is-locked { overflow: hidden; }
 
 /* Route-entry sequence: transforms preserve layout and sticky positioning. */
 .topbar--home-enter {
-  animation: home-header-in 650ms cubic-bezier(.22, 1, .36, 1) both;
+  animation: home-header-in 650ms cubic-bezier(.22, 1, .36, 1) backwards;
 }
 .home-enter .hero__line {
   animation: home-line-in 650ms cubic-bezier(.22, 1, .36, 1) both;
-  animation-delay: calc(180ms + var(--entrance-index) * 150ms);
+  animation-delay: var(--entrance-delay, 260ms);
 }
 .home-enter .hero__alt {
-  animation: home-link-in 550ms cubic-bezier(.22, 1, .36, 1) 1230ms both;
+  animation: home-link-in 550ms cubic-bezier(.22, 1, .36, 1) 1200ms both;
 }
 .home-enter .sources li {
   animation: home-source-in 450ms cubic-bezier(.22, 1, .36, 1) both;
-  animation-delay: calc(1900ms + var(--entrance-index) * 120ms);
+  animation-delay: var(--entrance-delay, 1600ms);
 }
 @keyframes home-header-in {
   from { transform: translateY(-100%); opacity: 0; }
@@ -961,8 +961,17 @@ body.is-locked { overflow: hidden; }
   76% { transform: translateY(-4px); opacity: 1; }
   to { transform: translateY(0); opacity: 1; }
 }
+/* Avoid transforming the parent of fixed bottom navigation on mobile. */
+@media (max-width: 720px) {
+  .topbar--home-enter { animation: none; }
+  .topbar--home-enter .logo,
+  .topbar--home-enter #theme-toggle {
+    animation: home-header-in 650ms cubic-bezier(.22, 1, .36, 1) backwards;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .topbar--home-enter, .home-enter .hero__line,
+  .topbar--home-enter, .topbar--home-enter .logo,
+  .topbar--home-enter #theme-toggle, .home-enter .hero__line,
   .home-enter .hero__alt, .home-enter .sources li {
     animation: none;
   }
