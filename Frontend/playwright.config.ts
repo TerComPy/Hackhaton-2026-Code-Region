@@ -12,6 +12,7 @@ export default defineConfig({
     reuseExistingServer: !process.env.CI,
   },
   projects: [
+    { name: "desktop-large", use: { viewport: { width: 1920, height: 1080 } } },
     { name: "desktop-small", use: { viewport: { width: 1280, height: 800 } } },
     { name: "mobile-small", use: { viewport: { width: 375, height: 812 }, isMobile: true, hasTouch: true } },
     { name: "desktop", use: { viewport: { width: 1440, height: 900 } } },
