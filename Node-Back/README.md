@@ -51,3 +51,11 @@ isolated MySQL/CLI/Express verification after build. Setup and results:
 [importer reference](docs/import/TRUDVSEM.md).
 Live source access failed in this environment; integration passed with a mock and
 sanitized fixture. Imports are one page, at most 100 vacancies; no incremental sync.
+
+## Journaled synchronization v1
+
+Use `npm run sync:trudvsem -- --max-pages 5 --limit 20 --max-records 100`
+for journaled runs; legacy single-page import remains compatible. Same-scope runs
+are locked; partial/failed runs never advance cursor. Live TLS currently stalls.
+See [sync behavior, tests and recovery](docs/import/SYNC_V1.md) for safe limits, mock incremental
+and reproduction. No archive-by-absence, AI or worker changes.

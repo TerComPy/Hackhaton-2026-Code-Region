@@ -23,3 +23,11 @@ No canonical SQL edits, new HTTP endpoints, importer rewrite, import_runs,
 multipage synchronization, cursor, LLM or recommendation features were added.
 Live offset probe failed (timeout/network error); up to 100 live records were not
 imported. Mock probe verifies page semantics only for the scripted mock.
+
+## Journaled synchronization v1
+
+Use `npm run sync:trudvsem -- --max-pages 5 --limit 20 --max-records 100`
+for journaled runs; legacy single-page import remains compatible. Same-scope runs
+are locked; partial/failed runs never advance cursor. Live TLS currently stalls.
+See [sync behavior, tests and recovery](import/SYNC_V1.md) for safe limits, mock incremental
+and reproduction. No archive-by-absence, AI or worker changes.

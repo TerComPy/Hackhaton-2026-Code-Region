@@ -115,7 +115,10 @@ function classifyFetchError(err: unknown, outer: AbortSignal | undefined, timeou
   if (err instanceof ImportError) return err;
   if (outer?.aborted) return new ImportError('ABORTED', 'Import aborted', { cause: err });
   if (timeout.aborted) return new ImportError('TIMEOUT', 'Source did not answer in time', { retryable: true, cause: err });
-  return new ImportError('NETWORK_ERROR', 'Network error while calling the source', { retryable: true, cause: err });
+  const cause = (err as {cause?: {code?: unknown}} | null)?.cause?.code;
+  const safeCodes = ['UND_ERR_CONNECT_TIMEOUT','ENOTFOUND','EAI_AGAIN','ECONNREFUSED','ECONNRESET','ETIMEDOUT','CERT_HAS_EXPIRED','UNABLE_TO_VERIFY_LEAF_SIGNATURE','DEPTH_ZERO_SELF_SIGNED_CERT'];
+  const networkCode = typeof cause === 'string' && safeCodes.includes(cause) ? cause : undefined;
+  return new ImportError('NETWORK_ERROR', `Network error while calling the source${networkCode ? ` (${networkCode})` : ''}`, { retryable: true, networkCode, cause: err });
 }
 
 /**
@@ -146,7 +149,7 @@ export async function getJsonWithRetry<T>(
       lastError = error;
       const willRetry = error.retryable && n < opts.maxAttempts && !signal?.aborted;
       deps.logger.warn(
-        { url: safeUrl(url), attempt: n, code: error.code, httpStatus: error.options.httpStatus, willRetry },
+        { url: safeUrl(url), attempt: n, code: error.code, httpStatus: error.options.httpStatus, networkCode: error.options.networkCode, willRetry },
         'Source request failed'
       );
       if (!willRetry) throw error;
