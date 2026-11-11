@@ -1,5 +1,13 @@
 import { test, expect, type Page, type Route } from "@playwright/test";
 
+test.beforeEach(() => {
+  const config = test.info().config.configFile ?? "";
+  test.skip(
+    !config.endsWith("playwright.ai.config.ts") && !config.endsWith("playwright.api.config.ts"),
+    "AI summaries require VITE_DATA_MODE=api"
+  );
+});
+
 const vacancy = {
   id: "4", title: "Инженер технической поддержки", company_name: "Тестовая компания",
   city: "Москва", status: "active", work_format: "remote",
