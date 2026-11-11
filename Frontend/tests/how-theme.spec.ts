@@ -13,7 +13,7 @@ test('how scene follows theme through scroll stages', async ({ page }, info) => 
     // Allow the existing inertial scroll and step transitions to settle.
     await expect.poll(() => track.evaluate(el => Number(getComputedStyle(el.querySelector('.how__progress')!).getPropertyValue('--p')))).toBeCloseTo(progress, 2);
     await page.locator('#theme-toggle').evaluate((el: HTMLElement) => el.click());
-    await expect(section).toHaveCSS('background-color', 'rgb(234, 232, 227)');
+    await expect(section).toHaveCSS('background-color', 'rgb(232, 229, 223)');
     await expect(page.locator('.step.is-active .step__btn')).toHaveCSS('color', 'rgb(20, 20, 19)');
     await expect(page.locator('.step:not(.is-active) .step__btn').first()).toHaveCSS('color', 'rgb(107, 104, 98)');
     await expect(page.locator('.src-card').first()).toHaveCSS('background-color', 'rgb(251, 250, 247)');
