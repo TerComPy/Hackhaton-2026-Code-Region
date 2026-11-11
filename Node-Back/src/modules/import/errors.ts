@@ -11,7 +11,8 @@ export type ImportErrorCode =
   | 'SOURCE_DISABLED'
   | 'SCHEMA_MISMATCH'
   | 'DB_ERROR'
-  | 'ABORTED';
+  | 'ABORTED'
+  | 'SCOPE_BUSY';
 
 /**
  * Error thrown by the import module. `message` is safe to log: it never
@@ -21,7 +22,7 @@ export class ImportError extends Error {
   constructor(
     public readonly code: ImportErrorCode,
     message: string,
-    public readonly options: { retryable?: boolean; httpStatus?: number | undefined; retryAfterMs?: number | null; cause?: unknown } = {}
+    public readonly options: { retryable?: boolean; networkCode?: string | undefined; httpStatus?: number | undefined; retryAfterMs?: number | null; cause?: unknown } = {}
   ) {
     super(message, options.cause === undefined ? undefined : { cause: options.cause });
     this.name = 'ImportError';

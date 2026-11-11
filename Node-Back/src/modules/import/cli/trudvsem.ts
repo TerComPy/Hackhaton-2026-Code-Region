@@ -11,7 +11,9 @@
 import { parseArgs } from 'node:util';
 import { z } from 'zod';
 import { TrudvsemAdapter, TRUDVSEM_MAX_LIMIT } from '../adapters/trudvsem.adapter.js';
-import { describeError } from '../errors.js';
+import { MysqlRunRepository } from '../repositories/run.repository.js';
+import { runSync } from '../services/sync.service.js';
+import { ImportError, describeError } from '../errors.js';
 import { runImport, type ImportStore } from '../services/import.service.js';
 import type { ImportDbPool, ImportLogger } from '../types.js';
 
@@ -28,9 +30,26 @@ const HELP = `Usage: tsx src/modules/import/cli/trudvsem.ts [options]
   --retries <n>         retries for transient errors (default 2)
   --api-base-url <url>  override the API endpoint (QA mock servers only)
   --verbose             debug logs
+  --sync                journaled synchronization (legacy one-page import remains available)
+  --max-pages <1..100>   sync page cap; probes offset before requesting multiple pages
+  --max-records <n>     sync record cap (1..10000, default 1000)
+  --pause-ms <ms>       pause between pages (default 500)
+  --mode <full|incremental> incremental requires verified date filters (mock only for now)
+  --mock-modified-window assert the local mock implements modifiedFrom/modifiedTo
+  --list-runs           operator DB audit, last 20 runs (QI04)
+  --fail-run <id> --confirm-stopped  recover a hard-killed run after verifying it stopped
   --help`;
 
 const argsSchema = z.object({
+  sync: z.boolean().default(false),
+  maxPages: z.coerce.number().int().min(1).max(100).default(1),
+  maxRecords: z.coerce.number().int().min(1).max(10000).default(1000),
+  pauseMs: z.coerce.number().int().min(0).max(60000).default(500),
+  mode: z.enum(['full','incremental']).default('full'),
+  mockModifiedWindow: z.boolean().default(false),
+  listRuns: z.boolean().default(false),
+  failRun: z.string().regex(/^[1-9][0-9]*$/).optional(),
+  confirmStopped: z.boolean().default(false),
   limit: z.coerce.number().int().min(1).max(TRUDVSEM_MAX_LIMIT).default(20),
   region: z.string().regex(/^\d{13}$/, 'region must be 13 digits').optional(),
   text: z.string().trim().min(1).max(200).optional(),
@@ -63,6 +82,9 @@ async function main(): Promise<number> {
         limit: { type: 'string' }, region: { type: 'string' }, text: { type: 'string' }, offset: { type: 'string' },
         'dry-run': { type: 'boolean' }, preview: { type: 'string' }, 'probe-offset': { type: 'boolean' },
         'timeout-ms': { type: 'string' }, retries: { type: 'string' }, 'api-base-url': { type: 'string' },
+        sync: { type: 'boolean' }, 'max-pages': { type: 'string' }, 'max-records': { type: 'string' },
+        'pause-ms': { type: 'string' }, mode: { type: 'string' }, 'mock-modified-window': { type: 'boolean' },
+        'list-runs': { type: 'boolean' }, 'fail-run': { type: 'string' }, 'confirm-stopped': { type: 'boolean' },
         verbose: { type: 'boolean' }, help: { type: 'boolean' }
       },
       strict: true,
@@ -77,6 +99,8 @@ async function main(): Promise<number> {
     return 0;
   }
   const parsed = argsSchema.safeParse({
+    sync: values.sync, maxPages: values['max-pages'], maxRecords: values['max-records'], pauseMs: values['pause-ms'],
+    mode: values.mode, mockModifiedWindow: values['mock-modified-window'],listRuns:values['list-runs'],failRun:values['fail-run'],confirmStopped:values['confirm-stopped'],
     limit: values.limit, region: values.region, text: values.text, offset: values.offset,
     dryRun: values['dry-run'], preview: values.preview, probeOffset: values['probe-offset'],
     timeoutMs: values['timeout-ms'], retries: values.retries, apiBaseUrl: values['api-base-url'], verbose: values.verbose
@@ -87,6 +111,13 @@ async function main(): Promise<number> {
     return 1;
   }
   const args = parsed.data;
+  if(args.apiBaseUrl){const u=new URL(args.apiBaseUrl);if(u.username||u.password||u.search||u.hash)throw new ImportError('INVALID_OPTIONS','Endpoint must not contain credentials, query or fragment');}
+  if(!args.sync && (values['max-pages']!==undefined||values['max-records']!==undefined||values['pause-ms']!==undefined||values.mode!==undefined||args.mockModifiedWindow))throw new ImportError('INVALID_OPTIONS','Sync controls require --sync (or npm run sync:trudvsem)');
+  const localMock = args.apiBaseUrl && ['127.0.0.1','localhost','[::1]'].includes(new URL(args.apiBaseUrl).hostname);
+  if (args.mockModifiedWindow && !localMock) throw new ImportError('INVALID_OPTIONS','Mock date capability requires a loopback endpoint');
+  if ((args.sync || args.listRuns || args.failRun) && args.dryRun) throw new ImportError('INVALID_OPTIONS','Sync/audit/recovery requires database mode');
+  if (args.failRun && !args.confirmStopped) throw new ImportError('INVALID_OPTIONS','Recovery requires --confirm-stopped');
+  if(args.sync && args.mode==='incremental'&&!args.mockModifiedWindow)throw new ImportError('INVALID_OPTIONS','Live incremental is disabled until date window semantics are verified');
   const logger = createCliLogger(args.verbose);
   const controller = new AbortController();
   const onSignal = () => {
@@ -104,7 +135,7 @@ async function main(): Promise<number> {
   });
 
   if (args.probeOffset) {
-    const probe = await adapter.probeOffset(5, controller.signal);
+    const probe = await adapter.probeOffset(5, controller.signal, {regionCode:args.region,text:args.text});
     process.stdout.write(`${JSON.stringify(probe, null, 2)}\n`);
     return 0;
   }
@@ -120,6 +151,19 @@ async function main(): Promise<number> {
       ]);
       pool = db;
       store = new MysqlImportRepository(db, logger);
+    }
+    if (pool && (args.listRuns || args.failRun)) {
+      const runs = new MysqlRunRepository(pool);
+      if(args.listRuns) process.stdout.write(`${JSON.stringify(await runs.audit())}\n`);
+      else { const source=await store!.resolveSource('trudvsem');await runs.recover(args.failRun!,source.id);process.stdout.write('"Recovered stopped run"\n'); }
+      return 0;
+    }
+    if(args.sync && pool && store){
+      let semantics: 'page'|'record'|'unknown' = 'unknown';
+      if(args.maxPages>1){const source=await store.resolveSource(adapter.sourceCode);if(!source.enabled)throw new ImportError('SOURCE_DISABLED','Source disabled');try{semantics=(await adapter.probeOffset(5,controller.signal,{regionCode:args.region,text:args.text})).semantics;}catch(e){logger.warn(describeError(e),'Offset probe unavailable; safe one-page fallback');}}
+      const report=await runSync(adapter,{limit:args.limit,offset:args.offset,regionCode:args.region,text:args.text,signal:controller.signal,mode:args.mode,maxPages:args.maxPages,maxRecords:args.maxRecords,pauseMs:args.pauseMs},{store,runs:new MysqlRunRepository(pool),logger,endpoint:args.apiBaseUrl??'https://opendata.trudvsem.ru/api/v1/vacancies',offsetSemantics:semantics,modifiedWindowVerified:args.mockModifiedWindow});
+      process.stdout.write(`${JSON.stringify(report,null,2)}\n`);
+      return report.status==='succeeded'?0:report.status==='partial'?2:1;
     }
     const report = await runImport(
       adapter,

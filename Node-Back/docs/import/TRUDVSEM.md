@@ -186,3 +186,11 @@ npx tsx --test test/import/*.test.ts
 6. **Пустой массив `skills`** считается полным снимком и удаляет старые связи навыков вакансии. Это соответствует правилу «заменить по полному снимку»?
 7. **Q01/Q02 с row alias** (`AS new_row`) вместо повторных именованных параметров. Это эквивалентная запись для mysql2 без `namedPlaceholders`. Нужна ли она в каталоге?
 8. **`import_runs`** (QI01–QI03, Q13) будет подключён на следующем этапе, если таблица войдёт в принятую схему.
+
+## Journaled synchronization v1
+
+Use `npm run sync:trudvsem -- --max-pages 5 --limit 20 --max-records 100`
+for journaled runs; legacy single-page import remains compatible. Same-scope runs
+are locked; partial/failed runs never advance cursor. Live TLS currently stalls.
+See [sync behavior, tests and recovery](SYNC_V1.md) for safe limits, mock incremental
+and reproduction. No archive-by-absence, AI or worker changes.

@@ -31,3 +31,20 @@ remains unverified. Independent pytest suite remains owned by Python QA.
 For machine-readable stdout use `npm run --silent import:trudvsem -- <args>`
 or `node dist/modules/import/cli/trudvsem.js <args>` after build. Normal npm run
 prints npm banners before the JSON report; CLI itself emits one JSON report.
+
+## Sync v1 handoff (2026-11-11)
+
+New CLI: sync:trudvsem (journaled), import:runs (operator-only audit),
+diagnose:trudvsem. No HTTP contract changes or public audit endpoint.
+See [SYNC_V1](../import/SYNC_V1.md) and [network diagnosis](../import/NETWORK_DIAGNOSTICS.md).
+Python QA should cover stable scope hash, independent filter cursors, successful
+terminal traversal, page/record limits, ignored offsets/repeated page, rejected and
+failed saves, exact committed counters and scope lock across processes. Test both
+page/record offset mocks. Partial/failed MUST leave QI01 cursor unchanged. Kill a
+worker: running remains blocking; only confirmed-stopped operator recovery releases
+it. Check last-page checkpoint limitations after abrupt kill. Incremental dates are
+mock-only until the live contract is proven; assert remote incremental is rejected.
+74 unit tests, 28 sync MySQL checks, 48 importer and 118 backend regressions passed.
+Live API provided no vacancies: DNS IPv4 resolves but TLS handshake stalls before
+HTTP; no proxy is configured and a control TLS host works. Offset/date semantics
+remain unverified for live. No canonical schema, AI or working-volume changes.

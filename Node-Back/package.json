@@ -12,7 +12,11 @@
     "test:integration": "node scripts/integration-smoke.mjs",
     "import:trudvsem": "tsx src/modules/import/cli/trudvsem.ts",
     "test:import": "tsx --test test/import/*.test.ts",
-    "test:import:integration": "node scripts/import-integration.mjs"
+    "test:import:integration": "node scripts/import-integration.mjs",
+    "sync:trudvsem": "tsx src/modules/import/cli/trudvsem.ts --sync",
+    "test:sync:integration": "node scripts/sync-integration.mjs",
+    "diagnose:trudvsem": "node scripts/diagnose-trudvsem.mjs",
+    "import:runs": "tsx src/modules/import/cli/trudvsem.ts --list-runs"
   },
   "engines": {
     "node": ">=22"

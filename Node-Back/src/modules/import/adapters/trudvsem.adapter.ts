@@ -81,6 +81,8 @@ export class TrudvsemAdapter implements VacancySourceAdapter {
     url.searchParams.set('limit', String(limit));
     const trimmed = text?.trim();
     if (trimmed) url.searchParams.set('text', trimmed.slice(0, 200));
+    if (options.modifiedFrom) url.searchParams.set('modifiedFrom', options.modifiedFrom);
+    if (options.modifiedTo) url.searchParams.set('modifiedTo', options.modifiedTo);
     return url;
   }
 
@@ -112,9 +114,9 @@ export class TrudvsemAdapter implements VacancySourceAdapter {
    * The documentation does not define the unit of `offset`. Fetch offset=0 and
    * offset=1 with the same small limit and compare IDs to find out.
    */
-  async probeOffset(limit = 5, signal?: AbortSignal): Promise<OffsetProbeResult> {
+  async probeOffset(limit = 5, signal?: AbortSignal, filters: Pick<FetchOptions, 'regionCode' | 'text'> = {}): Promise<OffsetProbeResult> {
     const page = async (offset: number) => {
-      const env = await getJsonWithRetry(this.buildUrl({ limit, offset }), validateEnvelope, this.http, this.deps, signal);
+      const env = await getJsonWithRetry(this.buildUrl({ ...filters, limit, offset }), validateEnvelope, this.http, this.deps, signal);
       return (env.results?.vacancies ?? []).map(x => {
         const id = (x.vacancy as { id?: unknown } | null)?.id;
         return typeof id === 'string' ? id : '';

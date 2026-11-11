@@ -85,6 +85,9 @@ export interface FetchOptions {
   /** Passed to the source unchanged; its unit is source-specific (see docs). */
   offset?: number | undefined;
   signal?: AbortSignal | undefined;
+  /** Only passed when a tested source capability explicitly supports date windows. */
+  modifiedFrom?: string | undefined;
+  modifiedTo?: string | undefined;
 }
 
 /** A record the adapter could not normalize. Contains no personal data. */
