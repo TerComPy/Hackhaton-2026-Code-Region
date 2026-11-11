@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from "vue";
+import PerlinOpportunity from "../widgets/PerlinOpportunity.vue";
 import { useCatalog } from "../entities/store";
 const store = useCatalog(),
   mode = ref("register"),
@@ -38,9 +39,9 @@ function submit() {
             <p class="auth-subtitle">{{ mode === 'register' ? 'Создайте демо-профиль, чтобы сохранять вакансии и собирать свою подборку.' : 'Войдите в демо-профиль и вернитесь к сохранённым вакансиям.' }}</p>
           </header>
           <form class="auth" @submit.prevent="submit">
-            <div class="field auth-name" :class="{ 'is-inactive': mode === 'login' }" :inert="mode === 'login'" :aria-hidden="mode === 'login'">
+            <div v-if="mode === 'register'" class="field auth-name">
               <label for="auth-name" class="field__label">Как вас зовут</label>
-              <input id="auth-name" class="input input--lg" v-model="name" placeholder="Ваше имя" maxlength="80" :required="mode === 'register'" :disabled="mode === 'login'" autocomplete="name" />
+              <input id="auth-name" class="input input--lg" v-model="name" placeholder="Ваше имя" maxlength="80" required autocomplete="name" />
             </div>
             <div class="field">
               <label for="auth-email" class="field__label">Email</label>
@@ -53,29 +54,14 @@ function submit() {
                 <button class="input-wrap__btn" type="button" :aria-pressed="reveal" :aria-label="reveal ? 'Скрыть пароль' : 'Показать пароль'" @click="reveal = !reveal"><svg class="icon" aria-hidden="true"><use :href="reveal ? '#i-eye-off' : '#i-eye'" /></svg></button>
               </div>
             </div>
-            <div class="auth-feedback"><p class="form-error" role="alert">{{ error }}</p></div>
+            <div v-if="error" class="auth-feedback"><p class="form-error" role="alert">{{ error }}</p></div>
             <button class="btn btn--accent auth-submit">{{ mode === 'register' ? 'Создать профиль' : 'Войти' }}<svg class="icon" aria-hidden="true"><use href="#i-right" /></svg></button>
           </form>
           <p class="auth-switch">{{ mode === 'register' ? 'Уже есть аккаунт?' : 'Нет аккаунта?' }} <button type="button" :aria-label="mode === 'register' ? 'Вход' : 'Регистрация'" @click="mode = mode === 'register' ? 'login' : 'register'; error = ''; reveal = false">{{ mode === 'register' ? 'Войти' : 'Зарегистрироваться' }}</button></p>
           <p class="auth__note">Демо-режим. Имя и email остаются в браузере.<br />Пароль не сохраняется и не проверяется сервером.</p>
         </div>
       </div>
-      <aside class="opportunity" aria-label="Карта возможностей">
-        <div class="opportunity__header"><span class="eyebrow">Стартер / Карта возможностей</span><span class="eyebrow">01 — 03</span></div>
-        <div class="opportunity__copy"><p class="eyebrow">От навыка к профессии</p><h2>Ваш опыт.<br />Новые направления.</h2><p>Свяжите то, что умеете,<br />с тем, чем хочется заниматься.</p></div>
-        <svg class="opportunity__map" viewBox="0 0 560 320" aria-hidden="true">
-          <g fill="none" stroke="currentColor" stroke-width="1">
-            <path opacity=".1" d="M40 40H520M40 100H520M40 160H520M40 220H520M40 280H520M100 20V300M220 20V300M340 20V300M460 20V300" />
-            <path opacity=".3" d="M100 220 220 100 340 160 460 40M100 220 340 280 460 160M220 100 460 160M340 160 340 280" />
-            <path stroke="var(--accent)" d="M100 220 220 100 340 160 460 160" />
-            <circle cx="340" cy="160" r="35" opacity=".25"/><circle cx="340" cy="160" r="53" opacity=".1"/>
-          </g>
-          <g fill="var(--bg-raise)" stroke="currentColor"><circle cx="100" cy="220" r="6"/><circle cx="220" cy="100" r="6"/><circle cx="340" cy="280" r="6"/><circle cx="460" cy="40" r="6"/><circle cx="460" cy="160" r="6"/></g>
-          <circle cx="340" cy="160" r="8" fill="var(--accent)"/>
-          <g fill="currentColor" font-size="11" font-family="monospace"><text x="65" y="248">НАВЫКИ</text><text x="184" y="76">ИНТЕРЕСЫ</text><text x="362" y="140">ВАШ ПУТЬ</text></g>
-        </svg>
-        <div class="opportunity__footer"><span class="eyebrow">Возможности начинаются с вас</span><span aria-hidden="true">↗</span></div>
-      </aside>
+      <PerlinOpportunity />
     </div>
     <div class="member" v-else>
       <div class="member__head">

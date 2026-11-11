@@ -8,13 +8,54 @@ const emit = defineEmits<{ close: [] }>();
 const dialog = ref<HTMLDialogElement>(),
   mode = ref("plain");
 const previous = document.activeElement as HTMLElement | null;
+const isOpen = ref(false);
+let openingFrame = 0;
+let closeTimer: ReturnType<typeof setTimeout> | undefined;
+let closing = false;
+let finished = false;
+let savedOverflow = "";
+function finishClose() {
+  if (finished) return;
+  finished = true;
+  clearTimeout(closeTimer);
+  dialog.value?.close();
+  document.body.style.overflow = savedOverflow;
+  emit("close");
+}
+function close() {
+  if (closing) return;
+  closing = true;
+  cancelAnimationFrame(openingFrame);
+  const panel = dialog.value?.querySelector<HTMLElement>(".sheet__panel");
+  const wasOpen = isOpen.value;
+  isOpen.value = false;
+  if (!wasOpen || !panel || matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    finishClose();
+    return;
+  }
+  const style = getComputedStyle(panel);
+  const seconds = (value: string) => value.split(",").map(v => parseFloat(v) * (v.trim().endsWith("ms") ? 1 : 1000));
+  const durations = seconds(style.transitionDuration), delays = seconds(style.transitionDelay);
+  const duration = Math.max(...durations.map((d, i) => d + delays[i % delays.length]!));
+  closeTimer = setTimeout(finishClose, duration + 50);
+}
+function onTransitionEnd(event: TransitionEvent) {
+  if (closing && event.target === event.currentTarget && event.propertyName === "transform") finishClose();
+}
 onMounted(() => {
+  savedOverflow = document.body.style.overflow;
   dialog.value?.showModal();
   document.body.style.overflow = "hidden";
+  // Commit the closed pose before scheduling the opening transition.
+  dialog.value?.querySelector(".sheet__panel")?.getBoundingClientRect();
+  openingFrame = requestAnimationFrame(() => { if (!closing) isOpen.value = true; });
 });
 onBeforeUnmount(() => {
-  document.body.style.overflow = "";
-  previous?.focus();
+  cancelAnimationFrame(openingFrame);
+  clearTimeout(closeTimer);
+  dialog.value?.close();
+  document.body.style.overflow = savedOverflow;
+  if (previous?.isConnected) previous.focus();
 });
 const labels = {
   duties: "Что делать",
@@ -26,18 +67,19 @@ const labels = {
   <dialog
     ref="dialog"
     class="sheet"
+    :class="{ 'is-open': isOpen }"
     aria-labelledby="sheet-title"
-    @cancel.prevent="emit('close')"
+    @cancel.prevent="close"
     @click="
       (e) => {
-        if (e.target === dialog) emit('close');
+        if (e.target === dialog) close();
       }
     "
   >
-    <div class="sheet__panel">
+    <div class="sheet__panel" @transitionend="onTransitionEnd">
       <div class="sheet__bar">
         <span class="sheet__source">{{ job.source }}</span
-        ><button class="icon-btn" aria-label="Закрыть" @click="emit('close')">
+        ><button class="icon-btn" aria-label="Закрыть" @click="close">
           <svg class="icon"><use href="#i-close" /></svg>
         </button>
       </div>
