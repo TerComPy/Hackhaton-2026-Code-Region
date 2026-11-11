@@ -1,0 +1,243 @@
+openapi: 3.0.3
+info:
+  title: STARTER API
+  version: 0.2.0
+  description: "Node.js адаптация; auth_users пока ожидает согласования инженером БД."
+servers:
+  - url: http://localhost:3000
+components:
+  securitySchemes:
+    bearerAuth: { type: http, scheme: bearer, bearerFormat: JWT }
+  schemas:
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code: { type: string }
+            message: { type: string }
+    Account:
+      type: object
+      required: [id, profileId, email, displayName, role]
+      properties:
+        id: { type: string, format: uuid }
+        profileId: { type: string, description: 'BIGINT profile ID sent as decimal string' }
+        email: { type: string, format: email }
+        displayName: { type: string }
+        role: { type: string, enum: [user, admin] }
+    AuthResponse:
+      type: object
+      required: [user, accessToken, tokenType, expiresIn]
+      properties:
+        user: { $ref: '#/components/schemas/Account' }
+        accessToken: { type: string }
+        tokenType: { type: string, enum: [Bearer] }
+        expiresIn: { type: integer, example: 3600 }
+    Profile:
+      type: object
+      required: [id, displayName, city]
+      properties:
+        id: { type: string }
+        displayName: { type: string }
+        city: { type: string, nullable: true }
+    VacancySummary:
+      type: object
+      properties:
+        id: { type: string, description: 'BIGINT serialized as string' }
+        title: { type: string }
+        company_name: { type: string, nullable: true }
+        city: { type: string, nullable: true }
+        work_format: { type: string, enum: [onsite, remote, hybrid, unknown] }
+        employment_type: { type: string, enum: [full_time, part_time, internship, unknown] }
+        schedule_type: { type: string, enum: [five_two, six_one, shift, flexible, other, unknown] }
+        contract_type: { type: string, enum: [permanent, fixed_term, unknown] }
+        salary_min: { type: string, nullable: true, description: 'DECIMAL precise string' }
+        salary_max: { type: string, nullable: true }
+        currency: { type: string, nullable: true }
+        original_url: { type: string, format: uri }
+        skill_match_percent: { type: integer, nullable: true }
+paths:
+  /api/health:
+    get:
+      summary: Liveness check
+      responses:
+        '200': { description: API running }
+  /api/ready:
+    get:
+      summary: Database readiness check
+      responses:
+        '200': { description: Database available }
+        '503': { description: Database unavailable }
+  /api/auth/register:
+    post:
+      summary: Register account; creates business profile transactionally
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, displayName]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string, minLength: 8, maxLength: 128 }
+                displayName: { type: string, minLength: 1, maxLength: 150 }
+      responses:
+        '201':
+          description: Account created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '400': { description: Validation error }
+        '409': { description: Duplicate email }
+  /api/auth/login:
+    post:
+      summary: Authenticate
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string, format: email }
+                password: { type: string }
+      responses:
+        '200':
+          description: Valid credentials
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '400': { description: Validation error }
+        '401': { description: Invalid credentials }
+  /api/auth/me:
+    get:
+      summary: Current account
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Current account
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user: { $ref: '#/components/schemas/Account' }
+        '401': { description: Invalid bearer token }
+  /api/profile:
+    get:
+      summary: Current user's business profile
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: Profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  profile: { $ref: '#/components/schemas/Profile' }
+        '401': { description: No valid access token }
+    patch:
+      summary: Update current user's business profile
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName: { type: string, maxLength: 150 }
+                city: { type: string, nullable: true, maxLength: 150 }
+      responses:
+        '200': { description: Updated profile }
+        '400': { description: Invalid update }
+        '401': { description: No valid access token }
+  /api/vacancies:
+    get:
+      summary: Search active vacancies with current user's skill overlap
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: search, schema: { type: string } }
+        - { in: query, name: city, schema: { type: string } }
+        - { in: query, name: regionName, schema: { type: string } }
+        - { in: query, name: countryCode, schema: { type: string, minLength: 2, maxLength: 2 } }
+        - { in: query, name: includeRemote, schema: { type: boolean, default: false } }
+        - { in: query, name: workFormat, schema: { type: string, enum: [onsite, remote, hybrid, unknown] } }
+        - { in: query, name: employmentType, schema: { type: string, enum: [full_time, part_time, internship, unknown] } }
+        - { in: query, name: scheduleType, schema: { type: string, enum: [five_two, six_one, shift, flexible, other, unknown] } }
+        - { in: query, name: contractType, schema: { type: string, enum: [permanent, fixed_term, unknown] } }
+        - { in: query, name: minSalary, schema: { type: number, minimum: 0 }, description: 'RUB/month only in this version' }
+        - { in: query, name: salaryGross, schema: { type: boolean } }
+        - { in: query, name: onlyNoExperience, schema: { type: boolean, default: false } }
+        - { in: query, name: experienceMonths, schema: { type: integer, minimum: 0 } }
+        - { in: query, name: requireAllRequired, schema: { type: boolean, default: false } }
+        - { in: query, name: page, schema: { type: integer, default: 1, minimum: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20, minimum: 1, maximum: 100 } }
+      responses:
+        '200':
+          description: Current active vacancies
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items: { type: array, items: { $ref: '#/components/schemas/VacancySummary' } }
+                  page: { type: integer }
+                  pageSize: { type: integer }
+        '400': { description: Invalid query }
+        '401': { description: No valid access token }
+  /api/vacancies/{id}:
+    get:
+      summary: Vacancy card with skill list (archived cards included)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, pattern: '^[1-9][0-9]*$' } }
+      responses:
+        '200': { description: Vacancy plus skills }
+        '400': { description: Invalid ID }
+        '401': { description: No valid access token }
+        '404': { description: Vacancy not found }
+  /api/vacancies/{id}/outbound-click:
+    post:
+      summary: Log click then return original vacancy URL; not a job application
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: id, required: true, schema: { type: string, pattern: '^[1-9][0-9]*$' } }
+      responses:
+        '200': { description: '{ originalUrl: string }' }
+        '401': { description: No valid access token }
+        '404': { description: Active vacancy not found }
+  /api/favorites:
+    get:
+      summary: List current user's favorites, including archived
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: query, name: page, schema: { type: integer, default: 1, minimum: 1 } }
+        - { in: query, name: pageSize, schema: { type: integer, default: 20, minimum: 1, maximum: 100 } }
+      responses:
+        '200': { description: Favorites list }
+        '401': { description: No valid access token }
+  /api/favorites/{vacancyId}:
+    put:
+      summary: Add active vacancy to current user's favorites (idempotent)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: vacancyId, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Added or already exists }
+        '401': { description: No valid access token }
+        '404': { description: Active vacancy not found }
+    delete:
+      summary: Remove current user's favorite (idempotent)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - { in: path, name: vacancyId, required: true, schema: { type: string } }
+      responses:
+        '204': { description: Removed or already missing }
+        '401': { description: No valid access token }
