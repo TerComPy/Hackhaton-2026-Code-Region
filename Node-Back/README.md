@@ -1,71 +1,38 @@
-# СТАРТЕР — Express 5 / MySQL 8.4, DB-aligned boilerplate
+# STARTER ? Express / TypeScript / mysql2
 
-Node.js 22+ · TypeScript · mysql2 · JWT/Argon2id · Zod · Docker Compose.
+Node.js 22+, MySQL 8.4, Argon2id, JWT, Zod.
 
-**ВАЖНО:** upstream SQL (https://github.com/manhattanattack/hackaton-sql-scheme)
-ориентирован на ASP.NET Core Identity. Здесь Node.js-адаптер **предложен**, но
-пока не утверждён инженером БД. Смотрите `docs/db/UPSTREAM_ALIGNMENT.md`.
+Copy `.env.example` to `.env`, set database credentials and a random JWT_SECRET
+(at least 32 characters). Never commit secrets. Prepare the isolated DB as below.
+Run `npm ci`, `npm run typecheck`, `npm run build`, then `npm start`.
+PowerShell users can use `npm.cmd`.
 
-## Первоначальная установка
+Canonical DB: https://github.com/manhattanattack/hackaton-sql-scheme/tree/4ce04c4870c43a65fe1f0265f0c75d3f4265c603
 
-```bash
-cp .env.example .env
-# Установить длинный случайный JWT_SECRET (не коммитить .env)
-docker compose up -d mysql
-npm install
-```
+Use MySQL 8.4 in an isolated disposable instance. The SQL files explicitly USE
+vacancy_aggregator; never apply them to an unknown server or an existing working DB.
+Check out revision `4ce04c4870c43a65fe1f0265f0c75d3f4265c603`. Run once, in order:
+1. `01_schema.sql` (12 tables)
+2. `08_prompt_schema.sql` (4 tables)
+3. `09_ai_schema.sql` (1 table)
+4. `03_seed.sql` (fictional catalog)
+5. Register accounts through the API; optionally run `07_demo_profile_seed.sql`
+   with the registered account UUID as documented upstream.
 
-Получить отдельно SQL репозиторий инженера БД:
+No local adapter migrations are required. This is initial creation, not migration
+of older databases. Do not remove existing volumes. Query catalogs 02/05/06/10 are
+reference operations, not migrations to execute wholesale.
 
-```bash
-git clone https://github.com/manhattanattack/hackaton-sql-scheme.git ../hackaton-sql-scheme
-# Для воспроизводимости использовать коммит проекта:
-cd ../hackaton-sql-scheme && git checkout efe6b9d199ef602c4f97282b998e953b21cebe8d
-cd ../starter-boilerplate-db-v2
-```
+API contract: [OpenAPI](docs/api/openapi.yaml). Register/login are anonymous;
+me, profile, catalog, favorites and outbound-click require Bearer JWT.
+Catalog accepts text/location, profession, specialisation, salary, work format,
+schedule and experience filters. Lists contain active vacancies; cards and saved
+favorites retain archived vacancies. Only active vacancies accept new saves/clicks
+(an existing favorite remains an idempotent success).
 
-После согласования схемы с инженером БД применить **по очереди**:
-
-```bash
-docker compose exec -T mysql mysql -ustarter -pstarter_dev_password < ../hackaton-sql-scheme/01_schema.sql
-docker compose exec -T mysql mysql -ustarter -pstarter_dev_password < db/node-adapter/01_auth_users.sql
-docker compose exec -T mysql mysql -ustarter -pstarter_dev_password < db/node-adapter/02_link_profile.sql
-# История промптов пока не используется API, можно подключить заранее:
-docker compose exec -T mysql mysql -ustarter -pstarter_dev_password < ../hackaton-sql-scheme/08_prompt_schema.sql
-docker compose exec -T mysql mysql -ustarter -pstarter_dev_password < ../hackaton-sql-scheme/03_seed.sql
-npm run dev
-```
-
-Уведомление: `identity/01_preflight.sql`, `identity/02_link_profile.sql`,
-`tests/identity_stub.sql` из DB-репозитория для Node.js НЕ запускать.
-
-Проверка API:
-```bash
-curl http://localhost:3000/api/health
-curl http://localhost:3000/api/ready
-npm run typecheck
-npm run build
-```
-
-## API (авторизация обязательна, кроме /auth/* и health/ready)
-- `POST /api/auth/register` — email, password, displayName → account UUID, profileId, token.
-- `POST /api/auth/login` — email, password → account UUID, profileId, token.
-- `GET /api/auth/me` — user account/profile summary.
-- `GET /api/profile`, `PATCH /api/profile` — current user's profile.
-- `GET /api/vacancies` — filtered catalog using DB team fields.
-- `GET /api/vacancies/:id` — vacancy card + skills.
-- `POST /api/vacancies/:id/outbound-click` — record source link click and return originalUrl.
-- `GET /api/favorites`, `PUT /api/favorites/:vacancyId`, `DELETE /api/favorites/:vacancyId`.
-
-## Границы версии
-- Нет внешнего импортёра, OpenAI-вызова, поиска по промпту, refresh-токенов,
-  email-подтверждения и готовой публичной безопасности (rate limits).
-- Нет встроенной Python QA suite: требования в docs/qa, тесты ведёт другой участник.
-- SQL-скрипты upstream принадлежат инженеру БД. Локальная авторизационная
-  надстройка — предлагаемый вариант для синхронизации команд.
-- Файл package-lock.json появится после npm install — закоммить его;
-  затем использовать npm ci в CI.
-
-Windows PowerShell: use `npm.cmd install` (or `npm.cmd install --cache .npm-cache` if the default cache is inaccessible), `npm.cmd run typecheck`, `npm.cmd run build`. Current stage verification and DB limitations: docs/qa/HANDOFF.md.
-
-Importer integration contract: `docs/INTEGRATION.md`. Use `npm ci` with the committed lockfile.
+All personal ownership is derived from JWT subject. JWT lasts one hour and includes
+ token_version; blocked users and mismatched versions receive 401. Old tokens lacking
+this claim must be replaced through login. No refresh rotation or logout endpoint
+is implemented; there is no claim of logout revoking JWT.
+No importer, LLM calls or recommendation features are added in this stage.
+QA status and limitations: [handoff](docs/qa/HANDOFF.md).

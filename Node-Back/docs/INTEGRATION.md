@@ -1,7 +1,12 @@
-# Claude importer integration contract
+# Importer integration
 
-Import `db` from src/config/db.ts, `env` from src/config/env.ts and `logger` from src/lib/logger.ts. Do not import server.ts or app.ts in a standalone CLI. Run from Node-Back so dotenv finds .env. The CLI entrypoint owns db.end() in finally; reusable importer functions must never close the shared pool. Release borrowed connections in finally and roll back failed transactions. Use parameterized SQL and preserve BIGINT strings.
+Target canonical DB revision: 4ce04c4870c43a65fe1f0265f0c75d3f4265c603. Shared mysql2 pool is configured for
+UTC, string BIGINT/DECIMAL/date values and named placeholders. Catalog selects
+ typical_position, code_profession, specialisation and region_code explicitly.
+No raw payload/contact fields are exposed.
 
-Claude supplies its CLI entrypoint and required configuration fields. Codex then adds import:trudvsem as `tsx <agreed-entrypoint>`; no placeholder command is installed. New environment fields must be validated centrally. Log counts, source IDs and durations; never log credentials, tokens, raw request bodies or connection strings. Throw errors from reusable modules; CLI catches at the boundary, logs a sanitized summary and sets exitCode=1. HTTP errors use HttpError and the existing middleware. No importer implementation is included here.
-
-SQL adapter remains pending DBA approval. Existing business tables and Identity scripts must not be changed or executed by the importer. Integrate via PR; no merge without agreement.
+At inspection, origin contains main and feat/core-auth only; feat/trudvsem-import
+and a Git bundle/report were not available in this workspace. Importer code was
+not recreated. Once delivered, use a separate integration PR and verify Q01/Q02
+upserts, source/company FK, content hash, archival scope and import_runs against
+real MySQL 8.4. Claude's claimed dual-schema compatibility is not SQL verification.

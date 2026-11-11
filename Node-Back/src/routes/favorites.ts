@@ -18,7 +18,7 @@ favoritesRouter.get('/', async (req, res) => {
   if (!Number.isSafeInteger(offset)) throw new HttpError(400, 'Pagination out of range', 'INVALID_PAGE');
   const p = await getProfile(res.locals.authUserId);
   const [items] = await db.query<RowDataPacket[]>(
-    `SELECT v.id,v.title,v.city,v.salary_min,v.salary_max,v.currency,v.salary_period,
+    `SELECT v.id,v.title,v.typical_position,v.code_profession,v.specialisation,v.region_code,v.city,v.salary_min,v.salary_max,v.currency,v.salary_period,
       v.status,v.original_url,c.name AS company_name,f.created_at AS saved_at
      FROM favorites f JOIN vacancies v ON v.id=f.vacancy_id
      LEFT JOIN companies c ON c.id=v.company_id WHERE f.user_id=?
