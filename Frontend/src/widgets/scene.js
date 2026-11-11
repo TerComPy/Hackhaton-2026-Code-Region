@@ -14,6 +14,9 @@ export const Scene = (() => {
 
   /* ---------------- Кольцо профессий ---------------- */
   function createRing({ stage, ring, items, render, onPick }) {
+    const controller = new AbortController();
+    let active = true;
+    let frameId = 0;
     const n = items.length;
     const step = 360 / n;
     const cards = items.map((item, i) => {
@@ -65,6 +68,8 @@ export const Scene = (() => {
     }
 
     function frame(now) {
+      frameId = 0;
+      if (!active || !visible) return;
       const dt = Math.min(64, now - last);
       last = now;
       if (!dragging) {
@@ -83,7 +88,14 @@ export const Scene = (() => {
       }
       tilt += (tiltTarget - tilt) * 0.08;
       paint();
-      if (visible) requestAnimationFrame(frame);
+      frameId = requestAnimationFrame(frame);
+    }
+
+    function schedule() {
+      if (active && visible && !frameId) {
+        last = performance.now();
+        frameId = requestAnimationFrame(frame);
+      }
     }
 
     function cardAt(x, y) {
@@ -92,17 +104,18 @@ export const Scene = (() => {
     }
 
     stage.addEventListener("pointerdown", (e) => {
-      if (e.button !== 0) return;
+      if (!active || e.button !== 0) return;
       dragging = true;
       pointerId = e.pointerId;
       lastX = e.clientX;
       travel = 0;
       velocity = 0;
       target = null;
-    });
+    }, { signal: controller.signal });
     window.addEventListener(
       "pointermove",
       (e) => {
+        if (!active) return;
         if (dragging && e.pointerId === pointerId) {
           const dx = e.clientX - lastX;
           lastX = e.clientX;
@@ -127,7 +140,7 @@ export const Scene = (() => {
           tiltTarget = -11 + ny * 8;
         }
       },
-      { passive: true },
+      { passive: true, signal: controller.signal },
     );
     const release = (e) => {
       if (!dragging || e.pointerId !== pointerId) return;
@@ -139,53 +152,82 @@ export const Scene = (() => {
         if (card) onPick(items[+card.dataset.index], card);
       }
     };
-    window.addEventListener("pointerup", release);
-    window.addEventListener("pointercancel", release);
+    window.addEventListener("pointerup", release, { signal: controller.signal });
+    window.addEventListener("pointercancel", release, { signal: controller.signal });
     stage.addEventListener("pointerenter", (e) => {
-      if (e.pointerType === "mouse") hovering = true;
-    });
+      if (active && e.pointerType === "mouse") hovering = true;
+    }, { signal: controller.signal });
     stage.addEventListener("pointerleave", () => {
       hovering = false;
       idleUntil = performance.now() + 800;
-    });
+    }, { signal: controller.signal });
 
     // Клавиатура: Enter/пробел открывают вакансию, фокус доворачивает карточку к зрителю.
     cards.forEach((card, i) => {
       card.addEventListener("click", (e) => {
-        if (e.detail === 0) onPick(items[i], card);
-      });
+        if (active && e.detail === 0) onPick(items[i], card);
+      }, { signal: controller.signal });
       card.addEventListener("focus", () => {
+        if (!active) return;
         const desired = -i * step;
         const k = Math.round((angle - desired) / 360);
         target = desired + k * 360;
         idleUntil = performance.now() + 4000;
-      });
+      }, { signal: controller.signal });
       card.addEventListener("keydown", (e) => {
-        if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
+        if (!active || (e.key !== "ArrowRight" && e.key !== "ArrowLeft")) return;
         e.preventDefault();
         cards[(i + (e.key === "ArrowRight" ? 1 : -1) + n) % n].focus();
-      });
+      }, { signal: controller.signal });
     });
 
-    // Не крутим кольцо, когда его не видно.
+    // Останавливаем рендер вне экрана и при деактивации KeepAlive.
+    let observer = null;
     if ("IntersectionObserver" in window) {
-      new IntersectionObserver(([entry]) => {
-        const was = visible;
+      observer = new IntersectionObserver(([entry]) => {
         visible = entry.isIntersecting;
-        if (visible && !was) {
-          last = performance.now();
-          requestAnimationFrame(frame);
+        if (visible) schedule();
+        else if (frameId) {
+          cancelAnimationFrame(frameId);
+          frameId = 0;
         }
-      }).observe(stage);
+      });
+      observer.observe(stage);
     }
 
+    const pause = () => {
+      active = false;
+      dragging = false;
+      pointerId = null;
+      hovering = false;
+      velocity = 0;
+      stage.classList.remove("is-dragging");
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = 0;
+    };
+    const resume = () => {
+      if (active) return;
+      active = true;
+      layout();
+      schedule();
+    };
+    const destroy = () => {
+      pause();
+      controller.abort();
+      observer?.disconnect();
+    };
+
     layout();
-    addEventListener("resize", layout);
-    requestAnimationFrame(frame);
+    addEventListener("resize", () => { if (active) layout(); }, { signal: controller.signal });
+    schedule();
+    return { pause, resume, destroy };
   }
 
   /* ---------------- Сцена «Как это работает» ---------------- */
   function createHowScene({ track, scene, steps, bar, onStep }) {
+    const controller = new AbortController();
+    let active = true;
+    let frameId = 0;
     const sources = [...scene.querySelectorAll(".src-card")];
     const doc = scene.querySelector(".doc");
     const note = scene.querySelector(".fit-note");
@@ -290,6 +332,11 @@ export const Scene = (() => {
     }
     // Плавное догоняние: колесо мыши даёт рывки, а сцена тянется за целевым значением с инерцией.
     function tick(now) {
+      frameId = 0;
+      if (!active) {
+        running = false;
+        return;
+      }
       const dt = Math.min(48, now - lastT);
       lastT = now;
       const k = reduced.matches ? 1 : 1 - Math.exp(-dt / 340);
@@ -324,24 +371,26 @@ export const Scene = (() => {
       }
       render();
       if (done) running = false;
-      else requestAnimationFrame(tick);
+      else frameId = requestAnimationFrame(tick);
     }
     const request = () => {
+      if (!active) return;
       tp = progress();
       if (!running) {
         running = true;
         lastT = performance.now();
-        requestAnimationFrame(tick);
+        frameId = requestAnimationFrame(tick);
       }
     };
 
-    addEventListener("scroll", request, { passive: true });
+    addEventListener("scroll", request, { passive: true, signal: controller.signal });
     addEventListener("resize", () => {
+      if (!active) return;
       fit();
       request();
-    });
+    }, { signal: controller.signal });
     host.addEventListener("pointermove", (e) => {
-      if (e.pointerType !== "mouse" || reduced.matches) return;
+      if (!active || e.pointerType !== "mouse" || reduced.matches) return;
       const r = host.getBoundingClientRect();
       pointerX = clamp((e.clientX - r.left) / r.width - 0.5, -0.5, 0.5);
       pointerY = clamp((e.clientY - r.top) / r.height - 0.5, -0.5, 0.5);
@@ -356,12 +405,13 @@ export const Scene = (() => {
         docHover.tx = docHover.ty = docHover.th = 0;
       if (!overNote) noteHover.tx = noteHover.ty = noteHover.th = 0;
       request();
-    });
+    }, { signal: controller.signal });
     host.addEventListener("pointerleave", () => {
+      if (!active) return;
       pointerX = pointerY = 0;
       for (const h of [docHover, noteHover]) h.tx = h.ty = h.th = 0;
       request();
-    });
+    }, { signal: controller.signal });
     function hoverFrom(h, node, e) {
       const r = node.getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width - 0.5,
@@ -376,42 +426,67 @@ export const Scene = (() => {
     // Карточки площадок покачиваются под курсором
     sources.forEach((card, i) => {
       card.addEventListener("pointermove", (e) => {
-        if (e.pointerType !== "mouse" || reduced.matches) return;
+        if (!active || e.pointerType !== "mouse" || reduced.matches) return;
         const r = card.getBoundingClientRect();
         const h = hover[i];
         h.tx = clamp((e.clientX - r.left) / r.width - 0.5, -0.5, 0.5) * 2;
         h.ty = clamp((e.clientY - r.top) / r.height - 0.5, -0.5, 0.5) * 2;
         h.th = 1;
         request();
-      });
+      }, { signal: controller.signal });
       card.addEventListener("pointerleave", () => {
         const h = hover[i];
         h.tx = h.ty = h.th = 0;
         request();
-      });
+      }, { signal: controller.signal });
     });
 
     // Клик по шагу — прокрутка к нужной фазе сцены.
     const anchors = [0.11, 0.39, 0.8];
     steps.forEach((s, i) =>
       s.querySelector("button").addEventListener("click", () => {
+        if (!active) return;
         const r = track.getBoundingClientRect();
         const top = scrollY + r.top + (r.height - innerHeight) * anchors[i];
         scrollTo({ top, behavior: reduced.matches ? "auto" : "smooth" });
-      }),
+      }, { signal: controller.signal }),
     );
+
+    const pause = () => {
+      active = false;
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = 0;
+      running = false;
+      pointerX = pointerY = 0;
+      for (const h of hover) h.tx = h.ty = h.th = 0;
+    };
+    const resume = () => {
+      if (active) return;
+      active = true;
+      fit();
+      request();
+    };
+    const destroy = () => {
+      pause();
+      controller.abort();
+    };
 
     fit();
     tp = cp = progress();
     render();
+    return { pause, resume, destroy };
   }
 
   /* ---------------- Параллакс фотографии ---------------- */
   function createParallax(figure) {
+    const controller = new AbortController();
     const img = figure.querySelector("img");
-    let pending = false;
+    let active = true;
+    let frameId = 0;
+
     const update = () => {
-      pending = false;
+      frameId = 0;
+      if (!active) return;
       if (reduced.matches) {
         img.style.setProperty("--py", "-8%");
         return;
@@ -420,17 +495,28 @@ export const Scene = (() => {
       const t = clamp((innerHeight - r.top) / (innerHeight + r.height));
       img.style.setProperty("--py", `${(-t * 15).toFixed(2)}%`);
     };
-    addEventListener(
-      "scroll",
-      () => {
-        if (!pending) {
-          pending = true;
-          requestAnimationFrame(update);
-        }
-      },
-      { passive: true },
-    );
+    const request = () => {
+      if (active && !frameId) frameId = requestAnimationFrame(update);
+    };
+    addEventListener("scroll", request, { passive: true, signal: controller.signal });
+    addEventListener("resize", request, { passive: true, signal: controller.signal });
+
+    const pause = () => {
+      active = false;
+      if (frameId) cancelAnimationFrame(frameId);
+      frameId = 0;
+    };
+    const resume = () => {
+      if (active) return;
+      active = true;
+      request();
+    };
+    const destroy = () => {
+      pause();
+      controller.abort();
+    };
     update();
+    return { pause, resume, destroy };
   }
 
   return { createRing, createHowScene, createParallax };

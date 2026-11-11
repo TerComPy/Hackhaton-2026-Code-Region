@@ -275,8 +275,8 @@ watchEffect(() => {
       </div>
     </div>
     <img v-if="route.path === '/'" class="footer__cat"
-      src="/images/branding/starter-footer-cat-ball-800.webp"
-      srcset="/images/branding/starter-footer-cat-ball-400.webp 400w, /images/branding/starter-footer-cat-ball-800.webp 800w, /images/branding/starter-footer-cat-ball-1440.webp 1440w"
+      src="/images/branding/starter-footer-cat-ball-800.webp?v=20261112-2"
+      srcset="/images/branding/starter-footer-cat-ball-400.webp?v=20261112-2 400w, /images/branding/starter-footer-cat-ball-800.webp?v=20261112-2 800w, /images/branding/starter-footer-cat-ball-1440.webp?v=20261112-2 1440w"
       sizes="(max-width: 720px) 206px, 309px" width="800" height="388"
       alt="" aria-hidden="true" loading="lazy" decoding="async" />
   </footer>

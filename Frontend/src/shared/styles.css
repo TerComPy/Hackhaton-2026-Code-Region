@@ -400,7 +400,9 @@ legend.field__label { padding: 0; margin-bottom: var(--s2); }
 .ring-hint {
   position: absolute; bottom: 12px; left: 0; right: 0;
   text-align: center; font: 400 var(--t-xs)/1.4 var(--mono); color: var(--ink-3);
+  display: grid; justify-items: center; gap: 4px;
 }
+.ring-hint__demo { color: var(--accent-ink); }
 .hint-touch { display: none; }
 @media (hover: none) { .hint-touch { display: inline; } .hint-desktop { display: none; } }
 
@@ -932,14 +934,14 @@ body.is-locked { overflow: hidden; }
 }
 .home-enter .hero__line {
   animation: home-line-in 650ms cubic-bezier(.22, 1, .36, 1) both;
-  animation-delay: calc(260ms + var(--entrance-index) * 160ms);
+  animation-delay: var(--entrance-delay, 260ms);
 }
 .home-enter .hero__alt {
   animation: home-link-in 550ms cubic-bezier(.22, 1, .36, 1) 1200ms both;
 }
 .home-enter .sources li {
   animation: home-source-in 450ms cubic-bezier(.22, 1, .36, 1) both;
-  animation-delay: calc(1600ms + var(--entrance-index) * 120ms);
+  animation-delay: var(--entrance-delay, 1600ms);
 }
 @keyframes home-header-in {
   from { transform: translateY(-100%); opacity: 0; }
