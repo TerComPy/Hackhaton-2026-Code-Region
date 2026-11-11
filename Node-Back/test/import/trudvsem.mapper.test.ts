@@ -148,3 +148,21 @@ describe('mapTrudvsemVacancy — rules', () => {
     assert.equal(v.publishedAt, '2026-11-02 21:00:00.000000');
   });
 });
+
+
+describe('contact scrubbing across public text columns', () => {
+  it('scrubs contacts from schedule, shifts, company, position, region, specialisation and skills', () => {
+    const raw = rawVacancy();
+    const canary = 'private-canary@example.invalid';
+    const phone = '+7 (900) 123-45-67';
+    const privateText = `${canary} ${phone} ${raw.contact_person}`;
+    for (const field of ['duty', 'schedule', 'typicalPosition']) raw[field] = `QA ${privateText}`;
+    raw.shift = [`QA ${privateText}`];
+    raw.company.name = `Company ${privateText}`;
+    raw.region.name = `Region ${privateText}`;
+    raw.category = { specialisation: `Category ${privateText}` };
+    raw.skills = [`QA ${privateText}`];
+    const out = JSON.stringify(mapOk(raw));
+    for (const contact of [canary, phone, raw.contact_person]) assert.ok(!out.includes(contact));
+  });
+});

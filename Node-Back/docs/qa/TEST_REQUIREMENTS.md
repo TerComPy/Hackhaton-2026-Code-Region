@@ -47,3 +47,18 @@ mysql2 text/binary protocol. Include these observed types in independent pytest.
 The developer suite forces a real SQL permission failure on the profile INSERT,
 then asserts the users INSERT rolled back. It also checks concurrent email conflicts,
 10 pooled UTC sessions despite a +03:00 server default, and IDs above 2^53.
+
+## Task 3: importer + canonical backend integration
+
+Owner merged PR #2; integration base is main ff35dd7 with Claude bcb56bc.
+Commands: npm run import:trudvsem / test:import / test:import:integration.
+58 importer tests, 48 real-MySQL importer/API checks, 118 backend regression checks
+passed. See [acceptance](../import/INTEGRATION_ACCEPTANCE.md) for exact isolated
+setup, test fixtures, retained databases and live API limitation. HTTP contract
+unchanged; all imported cards and catalog use Bearer, ownership from profile only.
+Privacy regression: source contacts in schedule, shift/company/position/region/category
+labels and skills now pass through existing scrubContacts. Check an injected email,
+phone and known contact name in these fields, plus DB and API output. Existing
+fixture contacts are excluded. Never equate absence of known canaries with a full
+arbitrary-prose PII guarantee. Live API timed out/failed; live 100-record import
+remains unverified. Independent pytest suite remains owned by Python QA.
