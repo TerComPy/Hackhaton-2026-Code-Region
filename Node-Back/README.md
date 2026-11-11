@@ -34,8 +34,20 @@ All personal ownership is derived from JWT subject. JWT lasts one hour and inclu
  token_version; blocked users and mismatched versions receive 401. Old tokens lacking
 this claim must be replaced through login. No refresh rotation or logout endpoint
 is implemented; there is no claim of logout revoking JWT.
-No importer, LLM calls or recommendation features are added in this stage.
+Trudvsem importer is available as a standalone CLI; LLM/recommendations remain separate.
 QA status and limitations: [handoff](docs/qa/HANDOFF.md).
 
 Developer real-MySQL acceptance: `npm run test:integration` after the isolated
 setup in [acceptance commands](docs/qa/INTEGRATION_ACCEPTANCE.md).
+
+## Trudvsem importer
+
+`npm run import:trudvsem -- --dry-run --limit 10` fetches and normalizes one page.
+`npm run import:trudvsem -- --limit 100` writes to the MYSQL_* database from .env.
+`npm run import:trudvsem -- --probe-offset` probes source pagination without DB writes.
+Run `npm run test:import` for 58 tests and `npm run test:import:integration` for
+isolated MySQL/CLI/Express verification after build. Setup and results:
+[import acceptance](docs/import/INTEGRATION_ACCEPTANCE.md),
+[importer reference](docs/import/TRUDVSEM.md).
+Live source access failed in this environment; integration passed with a mock and
+sanitized fixture. Imports are one page, at most 100 vacancies; no incremental sync.

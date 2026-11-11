@@ -1,3 +1,10 @@
+> Integration update (2026-11-11): supersedes the historical verification limitations
+> below. Commands import:trudvsem/test:import now exist. All original 57 tests plus
+> 1 regression pass; real MySQL 8.4.13 CLI/fixture/API acceptance passed 48 checks.
+> Canonical deployment target is 4ce04c4 (17 tables); old schema is not integration-tested.
+> Live probe failed with TIMEOUT/NETWORK_ERROR. See
+> [integration acceptance](INTEGRATION_ACCEPTANCE.md).
+
 # Импорт вакансий «Работы России» (этап 1B)
 
 Модуль `src/modules/import` загружает вакансии из открытого API «Работы России», приводит их к каноническому формату БД и идемпотентно сохраняет в MySQL. Работает отдельно от Express: CLI не импортирует `app.ts` / `server.ts`.
