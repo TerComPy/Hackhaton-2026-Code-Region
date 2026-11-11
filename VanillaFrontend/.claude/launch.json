@@ -3,7 +3,8 @@
   "configurations": [
     {
       "name": "starter",
-      "url": "http://127.0.0.1:5173",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5173", "--bind", "127.0.0.1"],
       "port": 5173
     }
   ]

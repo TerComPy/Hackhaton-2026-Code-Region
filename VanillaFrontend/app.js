@@ -22,7 +22,9 @@
     const a = Math.abs(n) % 100, b = a % 10;
     return forms[a > 10 && a < 20 ? 2 : b === 1 ? 0 : b > 1 && b < 5 ? 1 : 2];
   };
-  const photo = (id, w, h) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}${h ? `&h=${h}` : ''}&q=70`;
+  const photo = (id, w, h, focus) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}${h ? `&h=${h}` : ''}${focus ? `&crop=focalpoint&fp-x=${focus[0]}&fp-y=${focus[1]}` : ''}&q=70`;
+  // Кадрирует фото вакансии по точке фокуса, чтобы человек не обрезался краем кадра.
+  const jobPhoto = (job, w, h) => photo(job.photo, w, h, job.focus);
   const el = (tag, attrs = {}, ...children) => {
     const node = document.createElement(tag);
     for (const [k, v] of Object.entries(attrs)) {
@@ -125,7 +127,7 @@
 
     return el('li', {class: 'job'},
       el('figure', {class: 'job__media'},
-        el('img', {src: photo(job.photo, 208, 208), srcset: `${photo(job.photo, 208, 208)} 1x, ${photo(job.photo, 416, 416)} 2x`, alt: '', loading: 'lazy', width: 104, height: 104})),
+        el('img', {src: jobPhoto(job, 208, 208), srcset: `${jobPhoto(job, 208, 208)} 1x, ${jobPhoto(job, 416, 416)} 2x`, alt: '', loading: 'lazy', width: 104, height: 104})),
       el('div', {class: 'job__body'},
         el('p', {class: 'job__meta'}, el('span', {text: job.source}), el('span', {class: 'dot', 'aria-hidden': 'true'}), el('span', {text: job.posted})),
         el('h3', {class: 'job__title'}, el('button', {class: 'job__open', type: 'button', text: job.title, onclick: e => openSheet(job, e.currentTarget)})),
@@ -154,6 +156,9 @@
   const catalogState = $('#catalog-state');
   const filtersForm = $('#filters-form');
   const filtersEl = $('#filters');
+  const moreBtn = $('#catalog-more');
+  const PAGE = 7;
+  let expanded = false;
 
   function filtered() {
     const f = state.filters;
@@ -187,12 +192,14 @@
     list.setAttribute('aria-busy', String(state.status === 'loading'));
 
     if (state.status === 'loading') {
+      moreBtn.hidden = true;
       list.replaceChildren(...skeletonRows());
       catalogState.hidden = true;
       count.textContent = 'Загружаем…';
       return;
     }
     if (state.status === 'error') {
+      moreBtn.hidden = true;
       list.replaceChildren();
       catalogState.hidden = false;
       catalogState.replaceChildren(
@@ -214,7 +221,11 @@
     else hint.append(el('a', {class: 'link-arrow', href: '#/match', text: 'Узнать, какие подходят вам'}));
     $('#sort option[value="fit"]').disabled = !state.analysis;
 
-    list.replaceChildren(...res.map(job => jobRow(job, fitKeys())));
+    const shown = expanded ? res : res.slice(0, PAGE);
+    list.replaceChildren(...shown.map(job => jobRow(job, fitKeys())));
+    const rest = res.length - shown.length;
+    moreBtn.hidden = rest <= 0;
+    $('#catalog-more-count').textContent = rest;
     catalogState.hidden = res.length > 0;
     if (!res.length) {
       catalogState.replaceChildren(
@@ -233,6 +244,7 @@
     f.noExp = fd.has('noexp');
     f.salary = Number(fd.get('salary') || 0);
     f.sources = new Set(fd.getAll('source'));
+    expanded = false;
     renderCatalog();
   }
   function writeFilters() {
@@ -242,10 +254,12 @@
     $$('input[name="format"]', filtersForm).forEach(i => { i.checked = f.formats.has(i.value); });
     filtersForm.elements.noexp.checked = f.noExp;
     filtersForm.elements.salary.value = String(f.salary);
+    syncSelects();
     $$('input[name="source"]', filtersForm).forEach(i => { i.checked = f.sources.has(i.value); });
   }
   function resetFilters() {
     state.filters = {q: '', city: '', formats: new Set(), noExp: false, salary: 0, sources: new Set()};
+    expanded = false;
     writeFilters();
     const hero = $('#hero-search');
     hero.elements.q.value = hero.elements.city.value = '';
@@ -256,6 +270,110 @@
   filtersForm.addEventListener('submit', e => e.preventDefault());
   filtersForm.addEventListener('reset', e => { e.preventDefault(); resetFilters(); });
   $('#sort').addEventListener('change', e => { state.sort = e.target.value; renderCatalog(); });
+  moreBtn.addEventListener('click', () => {
+    const first = list.children.length;
+    expanded = true;
+    renderCatalog();
+    const next = list.children[first] && list.children[first].querySelector('.job__open');
+    if (next) next.focus({preventScroll: true});
+  });
+
+  /* ---------- Выпадающие списки в общем стиле ---------- */
+  // Нативный <select> остаётся источником значения (форма, события), поверх рисуем свой список.
+  const selectSyncs = [];
+  function syncSelects() { selectSyncs.forEach(fn => fn()); }
+  function enhanceSelect(select, name) {
+    const box = el('div', {class: 'dd' + (select.classList.contains('select--bare') ? ' dd--bare' : '')});
+    const listId = select.id + '-list';
+    const value = el('span', {class: 'dd__value', id: select.id + '-value'});
+    const btn = el('button', {type: 'button', class: 'dd__btn', 'aria-haspopup': 'listbox', 'aria-expanded': 'false', 'aria-controls': listId}, value);
+    const menu = el('ul', {class: 'dd__menu', role: 'listbox', id: listId, tabindex: '-1', 'aria-label': name, hidden: true});
+    btn.setAttribute('aria-label', name);
+    select.classList.add('dd__native');
+    select.tabIndex = -1;
+    select.setAttribute('aria-hidden', 'true');
+    select.replaceWith(box);
+    box.append(select, btn, menu);
+
+    let active = -1;
+    const options = () => [...select.options];
+    function sync() {
+      const o = select.options[select.selectedIndex];
+      value.textContent = o ? o.textContent : '';
+      btn.setAttribute('aria-label', `${name}: ${value.textContent}`);
+    }
+    // Пункты строятся один раз при открытии; подсветка меняется классом, без перерисовки.
+    function build() {
+      menu.replaceChildren(...options().map((o, i) => el('li', {
+        class: 'dd__opt', role: 'option', id: `${listId}-${i}`,
+        'aria-selected': String(i === select.selectedIndex), 'aria-disabled': o.disabled ? 'true' : false,
+        onpointerdown: e => e.preventDefault(),
+        onpointermove: () => { if (!o.disabled && active !== i) { active = i; paint(); } },
+        onclick: () => { if (!o.disabled) choose(i); }
+      }, o.textContent)));
+    }
+    function paint() {
+      [...menu.children].forEach((li, i) => li.classList.toggle('is-active', i === active));
+      if (active >= 0) menu.setAttribute('aria-activedescendant', `${listId}-${active}`);
+      else menu.removeAttribute('aria-activedescendant');
+    }
+    function open() {
+      if (!menu.hidden) return;
+      active = select.selectedIndex;
+      build();
+      paint();
+      menu.hidden = false;
+      requestAnimationFrame(() => box.classList.add('is-open'));
+      btn.setAttribute('aria-expanded', 'true');
+      menu.focus({preventScroll: true});
+    }
+    function close(focusBtn = true) {
+      if (menu.hidden) return;
+      menu.hidden = true;
+      box.classList.remove('is-open');
+      btn.setAttribute('aria-expanded', 'false');
+      if (focusBtn) btn.focus({preventScroll: true});
+    }
+    function choose(i) {
+      const changed = select.selectedIndex !== i;
+      select.selectedIndex = i;
+      sync();
+      close();
+      if (changed) {
+        select.dispatchEvent(new Event('input', {bubbles: true}));
+        select.dispatchEvent(new Event('change', {bubbles: true}));
+      }
+    }
+    function move(d) {
+      const os = options();
+      let i = active;
+      for (let k = 0; k < os.length; k++) {
+        i = (i + d + os.length) % os.length;
+        if (!os[i].disabled) break;
+      }
+      active = i;
+      paint();
+    }
+    btn.addEventListener('click', () => (menu.hidden ? open() : close()));
+    btn.addEventListener('keydown', e => {
+      if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key)) { e.preventDefault(); open(); }
+    });
+    menu.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); move(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); move(-1); }
+      else if (e.key === 'Home') { e.preventDefault(); active = -1; move(1); }
+      else if (e.key === 'End') { e.preventDefault(); active = 0; move(-1); }
+      else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (active >= 0 && !select.options[active].disabled) choose(active); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(); }
+      else if (e.key === 'Tab') close(false);
+    });
+    menu.addEventListener('focusout', e => { if (!box.contains(e.relatedTarget)) close(false); });
+    document.addEventListener('pointerdown', e => { if (!box.contains(e.target)) close(false); });
+    selectSyncs.push(sync);
+    sync();
+  }
+  enhanceSelect($('#f-salary'), 'Зарплата от');
+  enhanceSelect($('#sort'), 'Сортировка');
 
   // Фильтры раскрыты на десктопе и свёрнуты на телефоне.
   const wide = matchMedia('(min-width: 961px)');
@@ -274,18 +392,31 @@
 
     const dl = $('#sources');
     dl.replaceChildren(
-      el('div', {class: 'sources__lead'}, el('dt', {class: 'eyebrow', text: 'Источники в демо-каталоге'})),
       ...Object.entries(counts).map(([name, c]) => el('div', {},
         el('dt', {text: name}),
         el('dd', {text: (SOURCES[name].site !== name ? SOURCES[name].site + ' · ' : '') + `${c} ${plural(c, ['вакансия', 'вакансии', 'вакансий'])}`}))));
   }
 
-  // Поиск на первом экране
+  // Поиск на первом экране: подсказка укорачивается, если поле стало узким
+  const heroQ = $('#hero-search input[name="q"]');
+  const qHints = ['Профессия, навык или компания', 'Профессия или навык', 'Профессия'];
+  const measure = document.createElement('canvas').getContext('2d');
+  function fitHeroHint() {
+    const cs = getComputedStyle(heroQ);
+    measure.font = `${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+    const room = heroQ.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    heroQ.placeholder = qHints.find(t => measure.measureText(t).width <= room) || qHints[qHints.length - 1];
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(fitHeroHint).observe(heroQ);
+  if (document.fonts) document.fonts.ready.then(fitHeroHint);
+  fitHeroHint();
+
   $('#hero-search').addEventListener('submit', e => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     state.filters.q = String(fd.get('q') || '').trim();
     state.filters.city = String(fd.get('city') || '').trim();
+    expanded = false;
     writeFilters();
     renderCatalog();
     $('#catalog').scrollIntoView({behavior: reduced.matches ? 'auto' : 'smooth'});
@@ -351,7 +482,7 @@
     if (closing) { clearTimeout(closing); closing = null; }
     $('#sheet-source').textContent = `${job.source} · ${job.posted}`;
     const img = $('#sheet-img');
-    img.src = photo(job.photo, 1200, 600);
+    img.src = jobPhoto(job, 1200, 600);
     img.alt = '';
     $('#sheet-title').textContent = job.title;
     $('#sheet-company').textContent = job.company;
@@ -494,7 +625,7 @@
 
   function miniJob(job, extra) {
     return el('li', {class: 'mini-job'},
-      el('img', {src: photo(job.photo, 112, 112), alt: '', loading: 'lazy', width: 56, height: 56}),
+      el('img', {src: jobPhoto(job, 112, 112), alt: '', loading: 'lazy', width: 56, height: 56}),
       el('div', {},
         el('p', {class: 'mini-job__title'}, el('button', {class: 'job__open', type: 'button', text: job.title, onclick: () => openSheet(job)})),
         el('p', {class: 'mini-job__note', text: [job.company, extra || job.note].join(' · ')})),
@@ -751,7 +882,7 @@
     items: ringJobs,
     render: job => {
       const face = side => el('span', {class: `ring__face ring__face--${side}`, 'aria-hidden': 'true'},
-        el('img', {src: photo(job.photo, 400, 528), alt: '', draggable: 'false'}),
+        el('img', {src: jobPhoto(job, 400, 528), alt: '', draggable: 'false'}),
         el('span', {class: 'ring__label'}, el('span', {class: 'ring__role', text: job.short}), el('span', {class: 'ring__pay', text: salaryShort(job)})));
       return el('button', {class: 'ring__card', type: 'button', 'aria-label': `${job.title}, ${salaryShort(job)}. Открыть вакансию`}, face('front'), face('back'));
     },

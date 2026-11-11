@@ -139,7 +139,7 @@
                 </div>
 
                 <div class="doc" id="doc">
-                  <div class="doc__face doc__front">
+                  <div class="doc__face doc__front"><span class="doc__shine"></span>
                     <div class="doc__head"><span class="doc__label">Текст работодателя</span><span class="doc__merge">3 объявления → 1</span></div>
                     <p class="doc__title">Оператор контакт-центра</p>
                     <p class="doc__pay">40 000 – 55 000 ₽ · удалённо</p>
@@ -148,7 +148,7 @@
                     <p class="doc__h">Требования</p>
                     <p>Грамотная речь, <mark>стрессоустойчивость</mark>, <mark>клиентоориентированность</mark>, уверенный пользователь ПК.</p>
                   </div>
-                  <div class="doc__face doc__back">
+                  <div class="doc__face doc__back"><span class="doc__shine"></span>
                     <div class="doc__head"><span class="doc__label doc__label--ai">Пересказ ИИ</span></div>
                     <p class="doc__title">Оператор контакт-центра</p>
                     <p class="doc__pay">40 000 – 55 000 ₽ · удалённо <span class="doc__same">как в оригинале</span></p>
@@ -229,6 +229,7 @@
               </label>
             </div>
             <ul class="jobs" id="job-list" aria-busy="true"></ul>
+            <button class="btn btn--ghost catalog__more" type="button" id="catalog-more" hidden>Показать ещё<span class="catalog__more-count" id="catalog-more-count"></span></button>
             <div class="state" id="catalog-state" hidden></div>
           </div>
         </div>
@@ -364,10 +365,52 @@
 </main>
 
 <footer class="footer">
-  <div class="wrap footer__inner">
-    <span class="logo logo--small" aria-hidden="true">стартер<span class="logo__mark"></span></span>
-    <p>Прототип агрегатора. Вакансии в каталоге демонстрационные, компании вымышлены. Кнопка отклика ведёт на исходную площадку — сервис не принимает и не пересылает отклики.</p>
-    <p>Фотографии — <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a></p>
+  <div class="wrap">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a class="logo" href="#/" aria-label="Стартер — на главную">стартер<span class="logo__mark" aria-hidden="true"></span></a>
+        <p>Вакансии с нескольких площадок в одном каталоге. Пересказываем объявления простыми словами и подсказываем, какая профессия подойдёт.</p>
+      </div>
+      <nav class="footer__col" aria-label="Разделы сайта">
+        <h2 class="footer__h">Сервис</h2>
+        <ul>
+          <li><a href="#/">Вакансии</a></li>
+          <li><a href="#/match">Подбор профессии</a></li>
+          <li><a href="#/saved">Избранное</a></li>
+          <li><a href="#/account">Профиль</a></li>
+        </ul>
+      </nav>
+      <div class="footer__col">
+        <h2 class="footer__h">Источники</h2>
+        <ul>
+          <li><a href="https://trudvsem.ru" target="_blank" rel="noopener noreferrer">Работа России</a></li>
+          <li><a href="https://hh.ru" target="_blank" rel="noopener noreferrer">hh.ru</a></li>
+          <li><a href="https://superjob.ru" target="_blank" rel="noopener noreferrer">SuperJob</a></li>
+        </ul>
+        <p class="footer__note">Отклик отправляется на сайте источника.</p>
+      </div>
+      <address class="footer__col footer__contacts">
+        <h2 class="footer__h">Контакты</h2>
+        <ul>
+          <li><a href="mailto:hello@starter.example">hello@starter.example</a></li>
+          <li><a href="tel:+70000000000">+7 (000) 000-00-00</a></li>
+          <li><a href="https://max.ru/" target="_blank" rel="noopener noreferrer">Max</a> · <a href="https://vk.com/" target="_blank" rel="noopener noreferrer">VK</a></li>
+        </ul>
+      </address>
+    </div>
+
+    <div class="footer__map">
+      <div class="footer__map-view" id="office-map" role="region" aria-label="Карта офиса Стартера в Донецке">
+        <p role="status">Загрузка карты…</p>
+      </div>
+      <a class="link-arrow" href="https://yandex.ru/maps/?ll=37.8028%2C48.0159&amp;pt=37.8028%2C48.0159&amp;z=15" target="_blank" rel="noopener noreferrer">Открыть в Яндекс Картах <svg class="icon" aria-hidden="true"><use href="#i-arrow"/></svg></a>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 Стартер · хакатон «Код региона — 2026»</p>
+      <p>Прототип: вакансии демонстрационные, компании вымышлены. Сервис не принимает и не пересылает отклики. Фотографии — <a href="https://unsplash.com" target="_blank" rel="noopener noreferrer">Unsplash</a>.</p>
+      <p><a href="#">Политика конфиденциальности</a> · <a href="#">Пользовательское соглашение</a></p>
+    </div>
   </div>
 </footer>
 
@@ -411,5 +454,6 @@
 <script src="data.js" defer></script>
 <script src="scene.js" defer></script>
 <script src="app.js" defer></script>
+<script src="office-map.js" defer></script>
 </body>
 </html>

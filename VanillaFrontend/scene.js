@@ -141,13 +141,21 @@ window.StarterScene = (() => {
     const doc = scene.querySelector('.doc');
     const note = scene.querySelector('.fit-note');
     const host = scene.parentElement;
+    // Более мягкая кривая, чем smoothstep: без рывка в начале и в конце фазы.
+    const soft = (a, b, v) => { const t = clamp((v - a) / (b - a)); return t * t * t * (t * (t * 6 - 15) + 10); };
     // Откуда прилетают объявления с разных площадок
     const from = [
       {x: -190, y: -150, z: -120, ry: 26, rz: -7},
       {x: 200, y: -40, z: -260, ry: -32, rz: 6},
       {x: -120, y: 170, z: 40, ry: 18, rz: 3}
     ];
-    let pointerX = 0, pointerY = 0, current = -1, pending = false;
+    // Наклон карточек под курсором: цель (tx, ty, th) и сглаженное значение (x, y, h).
+    // Последние два элемента — документ и плашка «Подходит вам».
+    const hover = [...sources, doc, note].map(() => ({tx: 0, ty: 0, th: 0, x: 0, y: 0, h: 0}));
+    const docHover = hover[sources.length], noteHover = hover[sources.length + 1];
+    // Наклон под курсором — чуть мягче, чем у карточек площадок (у них 18° и 16°).
+    const tiltOf = (h, amount) => `translate3d(0, ${-h.h * 5 * amount}px, ${h.h * 26 * amount}px) rotateX(${-h.y * 14 * amount}deg) rotateY(${h.x * 16 * amount}deg)`;
+    let pointerX = 0, pointerY = 0, sx = 0, sy = 0, tp = 0, cp = 0, current = -1, running = false, lastT = 0;
 
     function fit() {
       const avail = host.clientWidth;
@@ -162,40 +170,70 @@ window.StarterScene = (() => {
       return total > 0 ? clamp(-r.top / total) : 0;
     }
 
-    function update() {
-      pending = false;
-      const p = progress();
-      let t1 = smooth(0.04, 0.30, p);
-      let t2 = smooth(0.40, 0.60, p);
-      let t3 = smooth(0.72, 0.88, p);
-      if (reduced.matches) { t1 = p > 0.17 ? 1 : 0; t2 = p > 0.5 ? 1 : 0; t3 = p > 0.8 ? 1 : 0; }
+    function render() {
+      const p = cp, pointerX = sx, pointerY = sy;
+      let t1 = soft(0.0, 0.24, p);
+      let t2 = soft(0.27, 0.47, p);
+      let t3 = soft(0.52, 0.7, p);
+      if (reduced.matches) { t1 = p > 0.11 ? 1 : 0; t2 = p > 0.35 ? 1 : 0; t3 = p > 0.6 ? 1 : 0; }
 
       sources.forEach((card, i) => {
         const f = from[i];
-        const k = t1;
-        const x = mix(f.x, 0, k), y = mix(f.y, 0, k), z = mix(f.z, -30 - i * 14, k);
-        card.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateY(${mix(f.ry, 0, k)}deg) rotateZ(${mix(f.rz, 0, k)}deg)`;
-        card.style.opacity = String(1 - smooth(0.75, 1, k));
+        // Карточки сходятся по очереди, а не все разом
+        const k = reduced.matches ? t1 : soft(i * 0.08, 0.76 + i * 0.08, t1);
+        const hv = hover[i];
+        const lift = hv.h * (1 - k);
+        const x = mix(f.x, 0, k), y = mix(f.y, 0, k) - lift * 6, z = mix(f.z, -30 - i * 14, k) + lift * 30;
+        card.style.transform = `translate3d(${x}px, ${y}px, ${z}px) rotateX(${-hv.y * 16 * (1 - k)}deg) rotateY(${mix(f.ry, 0, k) + hv.x * 18 * (1 - k)}deg) rotateZ(${mix(f.rz, 0, k)}deg)`;
+        card.style.opacity = String(1 - soft(0.7, 1, k));
+        card.style.pointerEvents = k < 0.6 ? '' : 'none';
       });
 
-      const appear = smooth(0.7, 1, t1);
+      // Документ: появляется, затем переворачивается с подъёмом, как лист, который берут в руки
+      const appear = soft(0.62, 1, t1);
+      const arc = Math.sin(Math.PI * t2);
       const ry = 180 * t2 + pointerX * 8;
-      const rx = 6 * t3 - pointerY * 6;
-      doc.style.opacity = String(appear);
-      doc.style.transform = `translate3d(0, ${mix(30, 0, appear) - 34 * t3}px, ${mix(-120, 0, appear)}px) rotateX(${rx}deg) rotateY(${ry}deg)`;
+      const rx = 6 * t3 - pointerY * 6 - arc * 8;
+      const rz = arc * -3;
+      const z = mix(-120, 0, appear) + arc * 110;
+      doc.style.setProperty('--doc-o', appear.toFixed(3));
+      doc.style.setProperty('--shine', (arc * 0.8).toFixed(3));
+      doc.style.transform = `${tiltOf(docHover, appear * (1 - t3 * 0.5))} translate3d(0, ${mix(30, 0, appear) - 34 * t3 - arc * 14}px, ${z}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg)`;
 
       note.style.opacity = String(t3);
-      note.style.transform = `translate3d(0, ${mix(60, 0, t3) - 34 * t3}px, ${mix(0, 70, t3)}px) rotateX(${rx}deg) rotateY(${pointerX * 8}deg)`;
+      note.style.transform = `${tiltOf(noteHover, t3)} translate3d(0, ${mix(60, 0, t3) - 34 * t3}px, ${mix(0, 70, t3)}px) rotateX(${rx}deg) rotateY(${pointerX * 8}deg)`;
 
       bar.parentElement.style.setProperty('--p', p.toFixed(4));
-      const idx = p < 0.36 ? 0 : p < 0.68 ? 1 : 2;
+      const idx = p < 0.25 ? 0 : p < 0.50 ? 1 : 2;
       if (idx !== current) {
         current = idx;
         steps.forEach((s, i) => s.classList.toggle('is-active', i === idx));
         onStep && onStep(idx);
       }
     }
-    const request = () => { if (!pending) { pending = true; requestAnimationFrame(update); } };
+    // Плавное догоняние: колесо мыши даёт рывки, а сцена тянется за целевым значением с инерцией.
+    function tick(now) {
+      const dt = Math.min(48, now - lastT); lastT = now;
+      const k = reduced.matches ? 1 : 1 - Math.exp(-dt / 340);
+      const kh = reduced.matches ? 1 : 1 - Math.exp(-dt / 140);
+      cp += (tp - cp) * k;
+      sx += (pointerX - sx) * k; sy += (pointerY - sy) * k;
+      let done = Math.abs(tp - cp) < 0.0003 && Math.abs(pointerX - sx) < 0.001 && Math.abs(pointerY - sy) < 0.001;
+      for (const h of hover) {
+        h.x += (h.tx - h.x) * kh; h.y += (h.ty - h.y) * kh; h.h += (h.th - h.h) * kh;
+        if (Math.abs(h.tx - h.x) > 0.002 || Math.abs(h.ty - h.y) > 0.002 || Math.abs(h.th - h.h) > 0.002) done = false;
+      }
+      if (done) {
+        cp = tp; sx = pointerX; sy = pointerY;
+        for (const h of hover) { h.x = h.tx; h.y = h.ty; h.h = h.th; }
+      }
+      render();
+      if (done) running = false; else requestAnimationFrame(tick);
+    }
+    const request = () => {
+      tp = progress();
+      if (!running) { running = true; lastT = performance.now(); requestAnimationFrame(tick); }
+    };
 
     addEventListener('scroll', request, {passive: true});
     addEventListener('resize', () => { fit(); request(); });
@@ -204,12 +242,46 @@ window.StarterScene = (() => {
       const r = host.getBoundingClientRect();
       pointerX = clamp((e.clientX - r.left) / r.width - 0.5, -0.5, 0.5);
       pointerY = clamp((e.clientY - r.top) / r.height - 0.5, -0.5, 0.5);
+      // Документ и плашка не ловят события сами (лежат поверх карточек), поэтому проверяем попадание по рамке.
+      const overNote = Number(note.style.opacity) > 0.3 && hoverFrom(noteHover, note, e);
+      if (overNote) docHover.tx = docHover.ty = docHover.th = 0;
+      else if (!(Number(doc.style.getPropertyValue('--doc-o')) > 0.3 && hoverFrom(docHover, doc, e))) docHover.tx = docHover.ty = docHover.th = 0;
+      if (!overNote) noteHover.tx = noteHover.ty = noteHover.th = 0;
       request();
     });
-    host.addEventListener('pointerleave', () => { pointerX = pointerY = 0; request(); });
+    host.addEventListener('pointerleave', () => {
+      pointerX = pointerY = 0;
+      for (const h of [docHover, noteHover]) h.tx = h.ty = h.th = 0;
+      request();
+    });
+    function hoverFrom(h, node, e) {
+      const r = node.getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      if (Math.abs(x) > 0.5 || Math.abs(y) > 0.5) return false;
+      h.tx = x * 2; h.ty = y * 2; h.th = 1;
+      return true;
+    }
+
+    // Карточки площадок покачиваются под курсором
+    sources.forEach((card, i) => {
+      card.addEventListener('pointermove', e => {
+        if (e.pointerType !== 'mouse' || reduced.matches) return;
+        const r = card.getBoundingClientRect();
+        const h = hover[i];
+        h.tx = clamp((e.clientX - r.left) / r.width - 0.5, -0.5, 0.5) * 2;
+        h.ty = clamp((e.clientY - r.top) / r.height - 0.5, -0.5, 0.5) * 2;
+        h.th = 1;
+        request();
+      });
+      card.addEventListener('pointerleave', () => {
+        const h = hover[i];
+        h.tx = h.ty = h.th = 0;
+        request();
+      });
+    });
 
     // Клик по шагу — прокрутка к нужной фазе сцены.
-    const anchors = [0.2, 0.52, 0.9];
+    const anchors = [0.11, 0.39, 0.8];
     steps.forEach((s, i) => s.querySelector('button').addEventListener('click', () => {
       const r = track.getBoundingClientRect();
       const top = scrollY + r.top + (r.height - innerHeight) * anchors[i];
@@ -217,7 +289,8 @@ window.StarterScene = (() => {
     }));
 
     fit();
-    update();
+    tp = cp = progress();
+    render();
   }
 
   /* ---------------- Параллакс фотографии ---------------- */
