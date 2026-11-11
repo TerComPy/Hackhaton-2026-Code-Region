@@ -16,7 +16,10 @@
     "sync:trudvsem": "tsx src/modules/import/cli/trudvsem.ts --sync",
     "test:sync:integration": "node scripts/sync-integration.mjs",
     "diagnose:trudvsem": "node scripts/diagnose-trudvsem.mjs",
-    "import:runs": "tsx src/modules/import/cli/trudvsem.ts --list-runs"
+    "import:runs": "tsx src/modules/import/cli/trudvsem.ts --list-runs",
+    "ai:worker": "tsx src/modules/ai/cli/worker.ts",
+    "test:ai": "tsx --test test/ai/provider.test.ts",
+    "test:ai:integration": "tsx test/ai/db-integration.ts"
   },
   "engines": {
     "node": ">=22"
