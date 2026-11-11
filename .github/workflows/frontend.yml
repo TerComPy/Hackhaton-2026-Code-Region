@@ -22,8 +22,8 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npx playwright install --with-deps chromium
-      - run: npm run test:smoke
       - run: npm run test:ai-ui
+      - run: npm run test:smoke
       - uses: actions/upload-artifact@v4
         if: failure()
         with:

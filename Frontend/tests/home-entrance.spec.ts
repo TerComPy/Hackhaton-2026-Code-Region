@@ -70,7 +70,9 @@ test('reduced motion does not animate home elements', async ({ page }) => {
 
 test('cached home scene pauses while another route is active and resumes on return', async ({ page }) => {
   await page.goto('/#/');
-  await expect(page.locator('#ring')).toBeVisible();
+  // The 3D ring origin intentionally has width:0 and height:0; assert its actual cards.
+  await expect(page.locator('#ring .ring__card')).toHaveCount(10);
+  await expect(page.locator('#ring .ring__card').first()).toBeVisible();
 
   // Keep a reference to the cached DOM node while Vue moves it out of the document.
   await page.evaluate(() => {
