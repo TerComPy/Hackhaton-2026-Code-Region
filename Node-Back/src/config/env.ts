@@ -7,7 +7,7 @@ const schema = z.object({
   HOST: z.string().default('0.0.0.0'),
   CORS_ORIGIN: z.string().min(1),
   MYSQL_HOST: z.string().min(1),
-  MYSQL_PORT: z.coerce.number().int().default(3306),
+  MYSQL_PORT: z.coerce.number().int().min(1).max(65535).default(3306),
   MYSQL_USER: z.string().min(1),
   MYSQL_PASSWORD: z.string(),
   MYSQL_DATABASE: z.string().min(1),

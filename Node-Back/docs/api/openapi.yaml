@@ -68,6 +68,7 @@ paths:
   /api/ready:
     get:
       summary: Database readiness check
+      description: Checks SELECT 1 only; does not certify schema or migrations. Connection timeout is 5 seconds.
       responses:
         '200': { description: Database available }
         '503': { description: Database unavailable }
