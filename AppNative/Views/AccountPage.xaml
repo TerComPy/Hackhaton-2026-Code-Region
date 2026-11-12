@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Профиль = Account.vue (режим mock):
+     гость — карточка 1160px из двух половин (форма входа | «карта возможностей»), без футера;
+     вошёл — шапка с аватаром, «Выйти», счётчик избранного, рассказ о себе и ссылки. -->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AppNative.ViewModels"
+             xmlns:controls="clr-namespace:AppNative.Views.Controls"
+             x:Class="AppNative.Views.AccountPage"
+             x:DataType="vm:AccountViewModel"
+             Title="Профиль"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <controls:OpportunityDrawable x:Key="OpportunityDrawable" />
+        <Style x:Key="AuthInputStyle" TargetType="Border" BasedOn="{StaticResource InputBorderStyle}">
+            <Setter Property="HeightRequest" Value="48" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource BgLight}, Dark={StaticResource BgDark}}" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+        <controls:AppTopBar Grid.Row="0" />
+
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout>
+
+                <!-- ==================== ГОСТЬ ==================== -->
+                <Grid IsVisible="{Binding IsSignedIn, Converter={StaticResource InverseBoolConverter}}"
+                      Padding="{OnIdiom Phone='16,24', Desktop='32,16'}">
+                    <Border MaximumWidthRequest="1160"
+                            HorizontalOptions="Fill"
+                            StrokeThickness="{OnIdiom Phone=0, Desktop=1}"
+                            Stroke="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}"
+                            StrokeShape="RoundRectangle 8"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+                        <Grid ColumnDefinitions="{OnIdiom Phone='*', Desktop='*,*'}" MinimumHeightRequest="{OnIdiom Phone=0, Desktop=640}">
+
+                            <!-- .account__intro -->
+                            <VerticalStackLayout Grid.Column="0"
+                                                 Padding="{OnIdiom Phone='0', Desktop='48,24'}"
+                                                 MaximumWidthRequest="{OnIdiom Phone=440, Desktop=400}"
+                                                 HorizontalOptions="Center"
+                                                 VerticalOptions="Start">
+
+                                <!-- .auth-brand -->
+                                <Border StrokeThickness="0" StrokeShape="RoundRectangle 4" Padding="10,4,8,6"
+                                        HorizontalOptions="Center" Margin="0,24"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}">
+                                    <HorizontalStackLayout Spacing="3">
+                                        <Label Text="стартер" FontFamily="GolosTextSemiBold" FontSize="19" CharacterSpacing="-0.4" TextColor="{AppThemeBinding Light={StaticResource BgLight}, Dark={StaticResource BgDark}}" />
+                                        <BoxView WidthRequest="6" HeightRequest="6" CornerRadius="1" VerticalOptions="Start" Margin="0,4,0,0" Color="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" />
+                                    </HorizontalStackLayout>
+                                </Border>
+
+                                <Label Text="Личное пространство" Style="{StaticResource EyebrowStyle}" Margin="0,0,0,8" />
+                                <Label Text="{Binding AuthTitle}" FontFamily="GolosTextMedium" FontSize="{OnIdiom Phone=30, Desktop=34}" LineHeight="1.2" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                <Label Text="{Binding AuthSubtitle}" FontSize="14" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" Margin="0,8,0,0" />
+
+                                <!-- форма -->
+                                <VerticalStackLayout Margin="0,24,0,0" Spacing="12">
+                                    <VerticalStackLayout Spacing="8" IsVisible="{Binding IsRegisterMode}">
+                                        <Label Text="Как вас зовут" Style="{StaticResource FieldLabelStyle}" />
+                                        <Border Style="{StaticResource AuthInputStyle}">
+                                            <Entry Text="{Binding Name}" Placeholder="Ваше имя" MaxLength="80" />
+                                        </Border>
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Email" Style="{StaticResource FieldLabelStyle}" />
+                                        <Border Style="{StaticResource AuthInputStyle}">
+                                            <Entry Text="{Binding Email}" Placeholder="name@example.ru" Keyboard="Email" MaxLength="254" />
+                                        </Border>
+                                    </VerticalStackLayout>
+
+                                    <VerticalStackLayout Spacing="8">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="Пароль" Style="{StaticResource FieldLabelStyle}" />
+                                            <Label Grid.Column="1" Text="от 10 символов" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" VerticalOptions="End" />
+                                        </Grid>
+                                        <Border Style="{StaticResource AuthInputStyle}" Padding="16,0,4,0">
+                                            <Grid ColumnDefinitions="*,40">
+                                                <Entry Text="{Binding Password}" Placeholder="Введите пароль" IsPassword="{Binding IsPasswordHidden}" MaxLength="128"
+                                                       ReturnCommand="{Binding SubmitAuthCommand}" />
+                                                <Button Grid.Column="1"
+                                                        Command="{Binding TogglePasswordVisibilityCommand}"
+                                                        WidthRequest="40" HeightRequest="40" MinimumHeightRequest="40"
+                                                        Padding="0" CornerRadius="8" BorderWidth="0"
+                                                        BackgroundColor="Transparent"
+                                                        SemanticProperties.Description="Показать пароль">
+                                                    <Button.Triggers>
+                                                        <DataTrigger TargetType="Button" Binding="{Binding IsPasswordHidden}" Value="True">
+                                                            <Setter Property="ImageSource" Value="i_eye.png" />
+                                                        </DataTrigger>
+                                                        <DataTrigger TargetType="Button" Binding="{Binding IsPasswordHidden}" Value="False">
+                                                            <Setter Property="ImageSource" Value="i_eye_off.png" />
+                                                        </DataTrigger>
+                                                    </Button.Triggers>
+                                                </Button>
+                                            </Grid>
+                                        </Border>
+                                    </VerticalStackLayout>
+
+                                    <Label Text="{Binding GeneralError}"
+                                           IsVisible="{Binding GeneralError, Converter={StaticResource StringNotEmptyConverter}}"
+                                           FontSize="12" LineHeight="1.4" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" />
+
+                                    <!-- .auth-submit: во всю ширину, текст слева, стрелка справа -->
+                                    <Border StrokeThickness="0" StrokeShape="RoundRectangle 8" HeightRequest="48" Padding="24,0"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SubmitAuthCommand}" />
+                                        </Border.GestureRecognizers>
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Text="{Binding SubmitButtonText}" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource OnAccentLight}, Dark={StaticResource OnAccentDark}}" VerticalOptions="Center" />
+                                            <Label Grid.Column="1" Text="→" FontFamily="GolosTextMedium" FontSize="18" TextColor="{AppThemeBinding Light={StaticResource OnAccentLight}, Dark={StaticResource OnAccentDark}}" VerticalOptions="Center" />
+                                        </Grid>
+                                    </Border>
+                                </VerticalStackLayout>
+
+                                <!-- .auth-switch -->
+                                <HorizontalStackLayout HorizontalOptions="Center" Spacing="4" Margin="0,8,0,0">
+                                    <Label Text="{Binding SwitchQuestion}" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" VerticalOptions="Center" />
+                                    <Label Text="{Binding SwitchAction}" FontFamily="GolosTextMedium" FontSize="14"
+                                           TextDecorations="Underline" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" Padding="4,12" VerticalOptions="Center">
+                                        <Label.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding SwitchModeCommand}" />
+                                        </Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+
+                                <Label Text="Демо-режим. Имя и email остаются на этом устройстве.&#10;Пароль не сохраняется и не проверяется сервером."
+                                       FontSize="11" LineHeight="1.5" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}"
+                                       HorizontalTextAlignment="Center" Margin="0,8,0,24" />
+                            </VerticalStackLayout>
+
+                            <!-- PerlinOpportunity: «карта возможностей» (на телефоне скрыта, как на сайте) -->
+                            <Grid Grid.Column="1"
+                                  IsVisible="{OnIdiom Phone=False, Desktop=True}"
+                                  BackgroundColor="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}">
+                                <BoxView WidthRequest="1" HorizontalOptions="Start" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+                                <GraphicsView x:Name="OpportunityView" Drawable="{StaticResource OpportunityDrawable}" />
+                                <VerticalStackLayout Padding="32" VerticalOptions="Start" MaximumWidthRequest="470" HorizontalOptions="Start">
+                                    <Label Text="ОТ НАВЫКА К ПРОФЕССИИ" FontFamily="JetBrainsMonoMedium" FontSize="11" CharacterSpacing="1" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" />
+                                    <Label Text="Ваш опыт.&#10;Новые направления." FontFamily="GolosTextMedium" FontSize="38" LineHeight="1.12"
+                                           TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" Margin="0,12,0,14" />
+                                    <Label Text="Свяжите то, что умеете,&#10;с тем, чем хочется заниматься." FontSize="14" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Grid>
+                    </Border>
+                </Grid>
+
+                <!-- ==================== ВОШЁЛ (.member) ==================== -->
+                <VerticalStackLayout IsVisible="{Binding IsSignedIn}">
+                    <Grid Padding="{OnIdiom Phone='16,40,16,96', Desktop='32,64,32,128'}">
+                        <VerticalStackLayout MaximumWidthRequest="1320" HorizontalOptions="Fill" Spacing="16">
+                            <!-- .member__head -->
+                            <Grid ColumnDefinitions="{OnIdiom Phone='Auto,*', Desktop='Auto,*,Auto'}"
+                                  RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                                  ColumnSpacing="{OnIdiom Phone=16, Desktop=24}" RowSpacing="16" Padding="0,0,0,32">
+                                <Border StrokeThickness="0" StrokeShape="RoundRectangle 8"
+                                        WidthRequest="{OnIdiom Phone=56, Desktop=72}" HeightRequest="{OnIdiom Phone=56, Desktop=72}"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" VerticalOptions="Center">
+                                    <Label Text="{Binding CurrentUser.Initial}" FontFamily="GolosTextMedium" FontSize="{OnIdiom Phone=24, Desktop=30}"
+                                           TextColor="{AppThemeBinding Light={StaticResource OnAccentLight}, Dark={StaticResource OnAccentDark}}" HorizontalOptions="Center" VerticalOptions="Center" />
+                                </Border>
+                                <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
+                                    <Label Text="Демо-профиль" Style="{StaticResource EyebrowStyle}" Margin="0,0,0,8" />
+                                    <Label Text="{Binding CurrentUser.Name}" Style="{StaticResource PageTitleStyle}" />
+                                    <Label Text="{Binding CurrentUser.Email}" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" Margin="0,4,0,0" />
+                                </VerticalStackLayout>
+                                <Button Grid.Row="{OnIdiom Phone=1, Desktop=0}" Grid.Column="{OnIdiom Phone=0, Desktop=2}"
+                                        Grid.ColumnSpan="{OnIdiom Phone=2, Desktop=1}"
+                                        Text="Выйти" Style="{StaticResource BtnGhostStyle}"
+                                        Command="{Binding LogoutCommand}"
+                                        HorizontalOptions="Start" VerticalOptions="Center" />
+                                <BoxView Grid.Row="{OnIdiom Phone=1, Desktop=0}" Grid.ColumnSpan="3" HeightRequest="1" VerticalOptions="End"
+                                         Margin="0,0,0,-32" Color="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                            </Grid>
+
+                            <Label Text="{Binding SavedStatsText}" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" Margin="0,16,0,0" />
+                            <Label Text="{Binding AboutStatsText}" FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                            <HorizontalStackLayout Spacing="24">
+                                <Label Text="Обновить подбор" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}">
+                                    <Label.GestureRecognizers><TapGestureRecognizer Command="{Binding NavigateToMatchCommand}" /></Label.GestureRecognizers>
+                                </Label>
+                                <Label Text="Избранное" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}">
+                                    <Label.GestureRecognizers><TapGestureRecognizer Command="{Binding NavigateToSavedCommand}" /></Label.GestureRecognizers>
+                                </Label>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Grid>
+
+                    <controls:AppFooter />
+                </VerticalStackLayout>
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>

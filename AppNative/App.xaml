@@ -2,6 +2,9 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:AppNative"
+             xmlns:converters="clr-namespace:AppNative.Converters"
+             xmlns:controls="clr-namespace:AppNative.Views.Controls"
+             xmlns:vm="clr-namespace:AppNative.ViewModels"
              x:Class="AppNative.App">
     <Application.Resources>
         <ResourceDictionary>
@@ -9,6 +12,22 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
+            <converters:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
+            <converters:GreaterThanZeroConverter x:Key="GreaterThanZeroConverter" />
+            <converters:BoolToFavBgConverter x:Key="BoolToFavBgConverter" />
+            <converters:BoolToFavBorderConverter x:Key="BoolToFavBorderConverter" />
+            <converters:BoolToBookmarkIconConverter x:Key="BoolToBookmarkIconConverter" />
+            <converters:HowLabelConverter x:Key="HowLabelConverter" />
+            <converters:HowColorConverter x:Key="HowColorConverter" />
+            <converters:HowDutiesConverter x:Key="HowDutiesConverter" />
+            <converters:HowReqsConverter x:Key="HowReqsConverter" />
+            <converters:ThemeIconConverter x:Key="ThemeIconConverter" />
+
+            <DataTemplate x:Key="VacancyDataTemplate" x:DataType="vm:VacancyItemViewModel">
+                <controls:VacancyRow />
+            </DataTemplate>
         </ResourceDictionary>
     </Application.Resources>
 </Application>

@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Строка каталога = JobList.vue .job:
+     десктоп — фото 104 | текст | зарплата + закладка; телефон — фото 72, без пересказа, зарплата и закладка под текстом. -->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AppNative.ViewModels"
+             x:Class="AppNative.Views.Controls.VacancyRow"
+             x:DataType="vm:VacancyItemViewModel">
+
+    <Grid>
+        <Grid.GestureRecognizers>
+            <TapGestureRecognizer Command="{Binding OpenDetailsCommand}" />
+        </Grid.GestureRecognizers>
+
+        <Grid ColumnDefinitions="{OnIdiom Phone='72,*', Desktop='104,*,Auto'}"
+              RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+              ColumnSpacing="{OnIdiom Phone='16', Desktop='24'}"
+              RowSpacing="12"
+              Padding="{OnIdiom Phone='0,16', Desktop='0,24'}">
+
+            <!-- .job__media -->
+            <Border Grid.Column="0"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 6"
+                    WidthRequest="{OnIdiom Phone='72', Desktop='104'}"
+                    HeightRequest="{OnIdiom Phone='72', Desktop='104'}"
+                    VerticalOptions="Start"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}">
+                <Image Source="{Binding Vacancy.PhotoUrl}" Aspect="AspectFill" />
+            </Border>
+
+            <!-- .job__body -->
+            <VerticalStackLayout Grid.Column="1" Spacing="6">
+                <Label FontFamily="JetBrainsMonoRegular" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding Vacancy.Source}" />
+                            <Span Text=" · " />
+                            <Span Text="{Binding Vacancy.Posted}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+                <Label Text="{Binding Vacancy.Title}"
+                       FontFamily="GolosTextMedium"
+                       FontSize="{OnIdiom Phone='17', Desktop='19'}"
+                       LineHeight="1.3"
+                       MaxLines="2"
+                       LineBreakMode="TailTruncation"
+                       TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                <Label FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}">
+                    <Label.FormattedText>
+                        <FormattedString>
+                            <Span Text="{Binding Vacancy.Company}" />
+                            <Span Text=" · " />
+                            <Span Text="{Binding Vacancy.City}" />
+                        </FormattedString>
+                    </Label.FormattedText>
+                </Label>
+                <Label Text="{Binding Vacancy.Summary}"
+                       IsVisible="{OnIdiom Phone=False, Desktop=True}"
+                       FontSize="15" LineHeight="1.45"
+                       MaximumWidthRequest="620" HorizontalOptions="Start"
+                       Margin="0,2,0,0"
+                       TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                <!-- .job__tags: «Подходит вам», опыт, формат -->
+                <FlexLayout Wrap="Wrap" Margin="0,8,0,0">
+                    <Border Style="{StaticResource TagFitStyle}" Margin="0,0,6,6" IsVisible="{Binding IsFit}">
+                        <Label Text="Подходит вам" Style="{StaticResource TagFitLabelStyle}" />
+                    </Border>
+                    <Border Style="{StaticResource TagStyle}" Margin="0,0,6,6">
+                        <Label Text="{Binding Vacancy.Experience}" Style="{StaticResource TagLabelStyle}" />
+                    </Border>
+                    <Border Style="{StaticResource TagStyle}" Margin="0,0,6,6">
+                        <Label Text="{Binding Vacancy.Format}" Style="{StaticResource TagLabelStyle}" />
+                    </Border>
+                </FlexLayout>
+            </VerticalStackLayout>
+
+            <!-- .job__side -->
+            <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
+                  Grid.Column="{OnIdiom Phone='1', Desktop='2'}"
+                  ColumnDefinitions="{OnIdiom Phone='*,Auto', Desktop='Auto'}"
+                  RowDefinitions="{OnIdiom Phone='Auto', Desktop='Auto,*'}"
+                  RowSpacing="12">
+                <Label Text="{Binding Vacancy.SalaryDisplay}"
+                       FontFamily="GolosTextMedium" FontSize="16"
+                       HorizontalTextAlignment="{OnIdiom Phone=Start, Desktop=End}"
+                       VerticalOptions="{OnIdiom Phone=Center, Desktop=Start}"
+                       TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                <Button Grid.Row="{OnIdiom Phone='0', Desktop='1'}"
+                        Grid.Column="{OnIdiom Phone='1', Desktop='0'}"
+                        Command="{Binding ToggleFavoriteCommand}"
+                        WidthRequest="40" HeightRequest="40" MinimumHeightRequest="40"
+                        CornerRadius="8" BorderWidth="1" Padding="0"
+                        VerticalOptions="End" HorizontalOptions="End"
+                        BackgroundColor="Transparent"
+                        SemanticProperties.Description="Сохранить в избранное">
+                        <!-- .save[aria-pressed=true]: закладка залита, рамка акцентная -->
+                        <Button.Triggers>
+                            <DataTrigger TargetType="Button" Binding="{Binding IsFavorite}" Value="False">
+                                <Setter Property="ImageSource" Value="{AppThemeBinding Light=i_bookmark.png, Dark=i_bookmark_d.png}" />
+                                <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+                            </DataTrigger>
+                            <DataTrigger TargetType="Button" Binding="{Binding IsFavorite}" Value="True">
+                                <Setter Property="ImageSource" Value="i_bookmark_f.png" />
+                                <Setter Property="BorderColor" Value="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" />
+                            </DataTrigger>
+                        </Button.Triggers>
+                    </Button>
+            </Grid>
+        </Grid>
+
+        <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+    </Grid>
+</ContentView>

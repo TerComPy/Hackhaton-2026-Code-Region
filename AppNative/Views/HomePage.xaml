@@ -1,0 +1,618 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AppNative.ViewModels"
+             xmlns:models="clr-namespace:AppNative.Models"
+             xmlns:controls="clr-namespace:AppNative.Views.Controls"
+             x:Class="AppNative.Views.HomePage"
+             x:DataType="vm:HomeViewModel"
+             Title="Вакансии"
+             Shell.NavBarIsVisible="False">
+
+    <ContentPage.Resources>
+        <!-- Документ в блоке «Как это работает» (.doc: всегда «бумага», тексты тёмные) -->
+        <Style x:Key="DocLabelStyle" TargetType="Label">
+            <Setter Property="FontFamily" Value="JetBrainsMonoMedium" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="CharacterSpacing" Value="1" />
+            <Setter Property="TextTransform" Value="Uppercase" />
+            <Setter Property="TextColor" Value="#6B6862" />
+        </Style>
+        <Style x:Key="DocTitleStyle" TargetType="Label">
+            <Setter Property="FontFamily" Value="GolosTextMedium" />
+            <Setter Property="FontSize" Value="22" />
+            <Setter Property="LineHeight" Value="1.2" />
+            <Setter Property="TextColor" Value="#141413" />
+        </Style>
+        <Style x:Key="DocPayStyle" TargetType="Label">
+            <Setter Property="FontFamily" Value="GolosTextMedium" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="Margin" Value="0,4,0,0" />
+            <Setter Property="TextColor" Value="#4A4843" />
+        </Style>
+        <Style x:Key="DocHeadStyle" TargetType="Label">
+            <Setter Property="FontFamily" Value="JetBrainsMonoMedium" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="CharacterSpacing" Value="1" />
+            <Setter Property="TextTransform" Value="Uppercase" />
+            <Setter Property="Margin" Value="0,24,0,4" />
+            <Setter Property="TextColor" Value="#6B6862" />
+        </Style>
+        <Style x:Key="DocTextStyle" TargetType="Label">
+            <Setter Property="FontFamily" Value="GolosTextRegular" />
+            <Setter Property="FontSize" Value="15" />
+            <Setter Property="LineHeight" Value="1.55" />
+            <Setter Property="TextColor" Value="#141413" />
+        </Style>
+    </ContentPage.Resources>
+
+    <Grid RowDefinitions="Auto,*">
+        <!-- Фиксированный редакционный топбар (56px) -->
+        <controls:AppTopBar Grid.Row="0" />
+
+        <!-- Основное содержимое страницы -->
+        <ScrollView Grid.Row="1">
+            <VerticalStackLayout Spacing="0">
+
+                <!-- ==================== HERO (Home.vue .hero) ==================== -->
+                <Grid Padding="{OnIdiom Phone='16,40,16,0', Desktop='32,64,32,0'}">
+                    <Grid MaximumWidthRequest="1320"
+                          HorizontalOptions="Fill"
+                          RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                          ColumnDefinitions="{OnIdiom Phone='*', Desktop='1*,1*'}"
+                          ColumnSpacing="24"
+                          RowSpacing="32">
+
+                        <!-- .hero__copy -->
+                        <VerticalStackLayout Grid.Row="0" Grid.Column="0" VerticalOptions="Center" Padding="0,0,0,32">
+                            <Label Text="Агрегатор вакансий" Style="{StaticResource EyebrowStyle}" Margin="0,0,0,24" />
+
+                            <Label Style="{StaticResource HeroTitleStyle}">
+                                <Label.FormattedText>
+                                    <FormattedString>
+                                        <Span Text="Вакансии&#10;со&#160;всей сети&#160;—&#10;" />
+                                        <Span Text="без канцелярита." TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                    </FormattedString>
+                                </Label.FormattedText>
+                            </Label>
+
+                            <Label Text="Собираем предложения с «Работы России», hh.ru и SuperJob, пересказываем их простыми словами и подсказываем, какая профессия подойдёт именно вам."
+                                   Style="{StaticResource LeadTextStyle}"
+                                   Margin="0,24,0,0"
+                                   MaximumWidthRequest="560"
+                                   HorizontalOptions="Start" />
+
+                            <!-- .search: поверхность, рамка line-strong, радиус 10, поля 48px -->
+                            <Border Margin="0,32,0,0"
+                                    Padding="4"
+                                    MaximumWidthRequest="600"
+                                    HorizontalOptions="Fill"
+                                    StrokeThickness="1"
+                                    StrokeShape="RoundRectangle 10"
+                                    Stroke="{AppThemeBinding Light={StaticResource LineStrongLight}, Dark={StaticResource LineStrongDark}}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+                                <Grid RowDefinitions="{OnIdiom Phone='48,48,Auto', Desktop='48'}"
+                                      ColumnDefinitions="{OnIdiom Phone='*', Desktop='*,1,160,Auto'}"
+                                      RowSpacing="4">
+                                    <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="Auto,*" ColumnSpacing="8" Padding="12,0">
+                                        <Image Source="i_search.png" WidthRequest="20" HeightRequest="20" VerticalOptions="Center" />
+                                        <Entry Grid.Column="1" Text="{Binding SearchQuery}" Placeholder="Профессия, навык или компания"
+                                               ReturnCommand="{Binding SearchCommand}" VerticalOptions="Center" />
+                                    </Grid>
+                                    <BoxView Grid.Row="0" Grid.Column="1" WidthRequest="1" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}"
+                                             IsVisible="{OnIdiom Phone=False, Desktop=True}" />
+                                    <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}" Grid.Column="{OnIdiom Phone='0', Desktop='2'}"
+                                          ColumnDefinitions="Auto,*" ColumnSpacing="8" Padding="12,0">
+                                        <Image Source="i_pin.png" WidthRequest="20" HeightRequest="20" VerticalOptions="Center" />
+                                        <Entry Grid.Column="1" Text="{Binding CityQuery}" Placeholder="Город"
+                                               ReturnCommand="{Binding SearchCommand}" VerticalOptions="Center" />
+                                    </Grid>
+                                    <Button Grid.Row="{OnIdiom Phone='2', Desktop='0'}" Grid.Column="{OnIdiom Phone='0', Desktop='3'}"
+                                            Text="Найти"
+                                            Style="{StaticResource BtnAccentStyle}"
+                                            Command="{Binding SearchCommand}" />
+                                </Grid>
+                            </Border>
+
+                            <!-- .hero__alt -->
+                            <HorizontalStackLayout Spacing="8" Margin="0,24,0,0">
+                                <Label Text="Ещё не решили, кем хотите работать?" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" VerticalOptions="Center" />
+                                <HorizontalStackLayout Spacing="4">
+                                    <HorizontalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding NavigateToMatchCommand}" />
+                                    </HorizontalStackLayout.GestureRecognizers>
+                                    <Label Text="Расскажите о себе" FontFamily="GolosTextMedium" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" VerticalOptions="Center" />
+                                    <Label Text="→" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" VerticalOptions="Center" />
+                                </HorizontalStackLayout>
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+
+                        <!-- .hero__stage: карточки профессий (нажатие открывает вакансию) -->
+                        <VerticalStackLayout Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
+                                             Grid.Column="{OnIdiom Phone='0', Desktop='1'}"
+                                             Spacing="16"
+                                             VerticalOptions="Center">
+                            <ScrollView Orientation="Horizontal"
+                                        HorizontalScrollBarVisibility="{OnIdiom Phone=Never, Desktop=Default}">
+                                <HorizontalStackLayout BindableLayout.ItemsSource="{Binding FeaturedRingJobs}"
+                                                       Padding="0,6,0,12">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="models:Vacancy">
+                                            <controls:RingCardView>
+                                                <controls:RingCardView.GestureRecognizers>
+                                                    <TapGestureRecognizer Command="{Binding OpenVacancyCommand, Source={RelativeSource AncestorType={x:Type vm:HomeViewModel}}, x:DataType='vm:HomeViewModel'}"
+                                                                          CommandParameter="{Binding .}" />
+                                                </controls:RingCardView.GestureRecognizers>
+                                            </controls:RingCardView>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </HorizontalStackLayout>
+                            </ScrollView>
+                            <!-- .ring-hint -->
+                            <Label Text="{OnIdiom Phone='Проведите, чтобы покрутить · нажмите на профессию, чтобы открыть вакансию', Desktop='Прокрутите, чтобы покрутить · нажмите на профессию, чтобы открыть вакансию'}"
+                                   FontFamily="JetBrainsMonoRegular" FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}"
+                                   HorizontalTextAlignment="Center" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Grid>
+
+                <!-- .sources: только названия площадок, линия сверху -->
+                <Grid Padding="{OnIdiom Phone='16,32,16,0', Desktop='32,32,32,0'}">
+                    <VerticalStackLayout MaximumWidthRequest="1320" HorizontalOptions="Fill">
+                        <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+                        <FlexLayout Wrap="Wrap" Padding="0,24,0,48">
+                            <Label Text="Работа России" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" Margin="0,0,48,12" />
+                            <Label Text="hh.ru" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" Margin="0,0,48,12" />
+                            <Label Text="SuperJob" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" Margin="0,0,48,12" />
+                        </FlexLayout>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- ==================== КАК ЭТО РАБОТАЕТ (.how: фон how-bg, следует теме) ==================== -->
+                <Grid BackgroundColor="{AppThemeBinding Light=#E8E5DF, Dark=#1A1A18}"
+                      Padding="{OnIdiom Phone='16,48', Desktop='32,96'}">
+                    <Grid MaximumWidthRequest="1320"
+                          HorizontalOptions="Fill"
+                          ColumnDefinitions="{OnIdiom Phone='*', Desktop='5*,1*,6*'}"
+                          RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                          RowSpacing="40">
+
+                        <!-- .how__text: прогресс-линия слева + шаги -->
+                        <Grid Grid.Row="0" Grid.Column="0" ColumnDefinitions="1,*" VerticalOptions="Center">
+                            <BoxView Grid.Column="0" WidthRequest="1" Margin="0,46,0,0" Color="{AppThemeBinding Light=#DCD8CF, Dark=#2F2E2B}" />
+                            <VerticalStackLayout Grid.Column="1" Padding="32,0,0,0">
+                                <Label Text="Как это работает" Style="{StaticResource EyebrowStyle}" Margin="0,0,0,32" />
+                                <!-- шаг 01 -->
+                                <VerticalStackLayout Padding="0,4">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectHowStepCommand}">
+                                            <TapGestureRecognizer.CommandParameter><x:Int32>0</x:Int32></TapGestureRecognizer.CommandParameter>
+                                        </TapGestureRecognizer>
+                                    </VerticalStackLayout.GestureRecognizers>
+                                    <Grid ColumnDefinitions="36,*">
+                                        <Label Text="01" FontFamily="JetBrainsMonoMedium" FontSize="12" VerticalOptions="Center">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep0}" Value="False">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep0}" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Label Grid.Column="1" Text="Собираем и убираем дубли" FontFamily="GolosTextMedium" FontSize="{OnIdiom Phone=24, Desktop=30}" LineHeight="1.15">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep0}" Value="False">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep0}" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Grid>
+                                    <Label IsVisible="{Binding IsHowStep0}" Text="Одна и та же вакансия часто висит на трёх площадках под разными названиями. Мы приводим объявления к одному формату и склеиваем повторы."
+                                           Margin="36,8,0,16" MaximumWidthRequest="440" HorizontalOptions="Start"
+                                           FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                                </VerticalStackLayout>
+                                <!-- шаг 02 -->
+                                <VerticalStackLayout Padding="0,4">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectHowStepCommand}">
+                                            <TapGestureRecognizer.CommandParameter><x:Int32>1</x:Int32></TapGestureRecognizer.CommandParameter>
+                                        </TapGestureRecognizer>
+                                    </VerticalStackLayout.GestureRecognizers>
+                                    <Grid ColumnDefinitions="36,*">
+                                        <Label Text="02" FontFamily="JetBrainsMonoMedium" FontSize="12" VerticalOptions="Center">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep1}" Value="False">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep1}" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Label Grid.Column="1" Text="Пересказываем по‑человечески" FontFamily="GolosTextMedium" FontSize="{OnIdiom Phone=24, Desktop=30}" LineHeight="1.15">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep1}" Value="False">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep1}" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Grid>
+                                    <Label IsVisible="{Binding IsHowStep1}" Text="ИИ переводит «клиентоориентированность» и «SLA» на обычный язык. Зарплату, график и адрес не трогаем — они остаются как в оригинале."
+                                           Margin="36,8,0,16" MaximumWidthRequest="440" HorizontalOptions="Start"
+                                           FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                                </VerticalStackLayout>
+                                <!-- шаг 03 -->
+                                <VerticalStackLayout Padding="0,4">
+                                    <VerticalStackLayout.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding SelectHowStepCommand}">
+                                            <TapGestureRecognizer.CommandParameter><x:Int32>2</x:Int32></TapGestureRecognizer.CommandParameter>
+                                        </TapGestureRecognizer>
+                                    </VerticalStackLayout.GestureRecognizers>
+                                    <Grid ColumnDefinitions="36,*">
+                                        <Label Text="03" FontFamily="JetBrainsMonoMedium" FontSize="12" VerticalOptions="Center">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep2}" Value="False">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep2}" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                        <Label Grid.Column="1" Text="Объясняем, почему подходит" FontFamily="GolosTextMedium" FontSize="{OnIdiom Phone=24, Desktop=30}" LineHeight="1.15">
+                                            <Label.Triggers>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep2}" Value="False">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                                </DataTrigger>
+                                                <DataTrigger TargetType="Label" Binding="{Binding IsHowStep2}" Value="True">
+                                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                                </DataTrigger>
+                                            </Label.Triggers>
+                                        </Label>
+                                    </Grid>
+                                    <Label IsVisible="{Binding IsHowStep2}" Text="Сравниваем вакансию с вашим рассказом о себе и показываем, на какие именно ваши слова опирался подбор."
+                                           Margin="36,8,0,16" MaximumWidthRequest="440" HorizontalOptions="Start"
+                                           FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- .how__scene -->
+                        <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
+                              Grid.Column="{OnIdiom Phone='0', Desktop='2'}"
+                              VerticalOptions="Center"
+                              Padding="0,0,0,40">
+
+                            <!-- Шаг 1: одно объявление на трёх площадках -->
+                            <VerticalStackLayout IsVisible="{Binding IsHowStep0}" Spacing="16" MaximumWidthRequest="420" HorizontalOptions="Center">
+                                <Border Padding="24" Margin="0,0,0,0" WidthRequest="300" HorizontalOptions="Start"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light=#DCD8CF, Dark=Transparent}" StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="{AppThemeBinding Light=#FBFAF7, Dark=#E9E6DF}">
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="hh.ru" FontFamily="JetBrainsMonoMedium" FontSize="11" CharacterSpacing="1" TextTransform="Uppercase" TextColor="#8A3A22" />
+                                        <Label Text="Оператор call-центра (удалённо)" FontFamily="GolosTextMedium" FontSize="18" LineHeight="1.25" TextColor="#141413" />
+                                        <Label Text="от 40 000 ₽ · Новосибирск" FontSize="14" TextColor="#5A5752" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Padding="24" Margin="24,0,0,0" WidthRequest="300" HorizontalOptions="Start"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light=#DCD8CF, Dark=Transparent}" StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#E9E6DF}">
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="SuperJob" FontFamily="JetBrainsMonoMedium" FontSize="11" CharacterSpacing="1" TextTransform="Uppercase" TextColor="#8A3A22" />
+                                        <Label Text="ОПЕРАТОР КОЛЛ-ЦЕНТРА / ДОМА" FontFamily="GolosTextSemiBold" FontSize="18" LineHeight="1.25" TextColor="#141413" />
+                                        <Label Text="40 000 — 55 000 руб." FontSize="14" TextColor="#5A5752" />
+                                    </VerticalStackLayout>
+                                </Border>
+                                <Border Padding="24" Margin="48,0,0,0" WidthRequest="300" HorizontalOptions="Start"
+                                        StrokeThickness="1" Stroke="{AppThemeBinding Light=#DCD8CF, Dark=Transparent}" StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="{AppThemeBinding Light=#F5F3EE, Dark=#E9E6DF}">
+                                    <VerticalStackLayout Spacing="8">
+                                        <Label Text="Работа России" FontFamily="JetBrainsMonoMedium" FontSize="11" CharacterSpacing="1" TextTransform="Uppercase" TextColor="#8A3A22" />
+                                        <Label Text="Специалист контактного центра" FontFamily="GolosTextMedium" FontSize="18" LineHeight="1.25" TextColor="#141413" />
+                                        <Label Text="з/п по договорённости" FontSize="14" TextColor="#5A5752" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <!-- Шаги 2–3: документ, переворачивается по нажатию -->
+                            <Grid IsVisible="{Binding IsHowDocVisible}" MaximumWidthRequest="460" HorizontalOptions="Center">
+                                <Border x:Name="HowDocCard"
+                                        Padding="32"
+                                        StrokeThickness="1"
+                                        Stroke="{AppThemeBinding Light=#DCD8CF, Dark=Transparent}"
+                                        StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="#FBFAF7">
+                                    <Border.GestureRecognizers>
+                                        <TapGestureRecognizer Command="{Binding FlipHowDocCommand}" />
+                                    </Border.GestureRecognizers>
+                                    <VerticalStackLayout>
+                                        <!-- лицевая сторона: текст работодателя -->
+                                        <VerticalStackLayout IsVisible="{Binding IsHowDocOriginal}">
+                                            <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,24">
+                                                <Label Text="Текст работодателя" Style="{StaticResource DocLabelStyle}" VerticalOptions="Center" />
+                                                <Border Grid.Column="1" Padding="7,5" StrokeThickness="1" Stroke="#C3BEB2" StrokeShape="RoundRectangle 4">
+                                                    <Label Text="3 объявления → 1" FontFamily="JetBrainsMonoMedium" FontSize="11" TextColor="#4A4843" />
+                                                </Border>
+                                            </Grid>
+                                            <Label Text="Оператор контакт-центра" Style="{StaticResource DocTitleStyle}" />
+                                            <Label Text="40 000 – 55 000 ₽ · удалённо" Style="{StaticResource DocPayStyle}" />
+                                            <Label Text="Обязанности" Style="{StaticResource DocHeadStyle}" />
+                                            <Label Style="{StaticResource DocTextStyle}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="Консультирование абонентов в рамках утверждённых " />
+                                                        <Span Text="скриптов" TextDecorations="Underline" />
+                                                        <Span Text=", фиксация обращений в " />
+                                                        <Span Text="CRM-системе" TextDecorations="Underline" />
+                                                        <Span Text=", соблюдение " />
+                                                        <Span Text="SLA" TextDecorations="Underline" />
+                                                        <Span Text="." />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                            <Label Text="Требования" Style="{StaticResource DocHeadStyle}" />
+                                            <Label Style="{StaticResource DocTextStyle}">
+                                                <Label.FormattedText>
+                                                    <FormattedString>
+                                                        <Span Text="Грамотная речь, " />
+                                                        <Span Text="стрессоустойчивость" TextDecorations="Underline" />
+                                                        <Span Text=", " />
+                                                        <Span Text="клиентоориентированность" TextDecorations="Underline" />
+                                                        <Span Text=", уверенный пользователь ПК." />
+                                                    </FormattedString>
+                                                </Label.FormattedText>
+                                            </Label>
+                                        </VerticalStackLayout>
+
+                                        <!-- оборот: пересказ ИИ -->
+                                        <VerticalStackLayout IsVisible="{Binding IsHowDocAiSummary}">
+                                            <Label Text="Пересказ ИИ" Style="{StaticResource DocLabelStyle}" TextColor="#B3361A" Margin="0,0,0,24" />
+                                            <Label Text="Оператор контакт-центра" Style="{StaticResource DocTitleStyle}" />
+                                            <HorizontalStackLayout Spacing="8" Margin="0,4,0,0">
+                                                <Label Text="40 000 – 55 000 ₽ · удалённо" Style="{StaticResource DocPayStyle}" Margin="0" VerticalOptions="Center" />
+                                                <Border Padding="6,4" StrokeThickness="0" StrokeShape="RoundRectangle 4" BackgroundColor="#E6EFE3" VerticalOptions="Center">
+                                                    <Label Text="КАК В ОРИГИНАЛЕ" FontFamily="JetBrainsMonoMedium" FontSize="10" TextColor="#2D5A2A" />
+                                                </Border>
+                                            </HorizontalStackLayout>
+                                            <Label Text="Что делать" Style="{StaticResource DocHeadStyle}" />
+                                            <Label Text="Отвечать на звонки клиентов провайдера и помогать решить вопрос по готовым подсказкам. Записывать каждое обращение в программу." Style="{StaticResource DocTextStyle}" />
+                                            <Label Text="Что нужно" Style="{StaticResource DocHeadStyle}" />
+                                            <Label Text="Говорить понятно, не теряться, если человек недоволен, уверенно пользоваться компьютером. Опыт не нужен." Style="{StaticResource DocTextStyle}" />
+                                        </VerticalStackLayout>
+                                    </VerticalStackLayout>
+                                </Border>
+
+                                <!-- .fit-note (шаг 3) -->
+                                <Border IsVisible="{Binding IsHowStep2}"
+                                        Margin="24,0,24,-40"
+                                        VerticalOptions="End"
+                                        Padding="24,16"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 8"
+                                        BackgroundColor="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}">
+                                    <VerticalStackLayout Spacing="4">
+                                        <Label Text="ПОДХОДИТ ВАМ" FontFamily="JetBrainsMonoMedium" FontSize="11" CharacterSpacing="1" TextColor="{AppThemeBinding Light={StaticResource OnAccentLight}, Dark={StaticResource OnAccentDark}}" Opacity="0.8" />
+                                        <Label Text="Вы написали «люблю общаться с людьми» и «хочу работать из дома» — здесь нужно и то и другое."
+                                               FontSize="14" LineHeight="1.45" TextColor="{AppThemeBinding Light={StaticResource OnAccentLight}, Dark={StaticResource OnAccentDark}}" />
+                                    </VerticalStackLayout>
+                                </Border>
+                            </Grid>
+                        </Grid>
+                    </Grid>
+                </Grid>
+
+                <!-- ==================== КАТАЛОГ ВАКАНСИЙ (CatalogWidget.vue) ==================== -->
+                <Grid Padding="{OnIdiom Phone='16,64', Desktop='32,96'}">
+                    <VerticalStackLayout MaximumWidthRequest="1320" HorizontalOptions="Fill">
+
+                        <!-- .section-head -->
+                        <FlexLayout Wrap="Wrap" JustifyContent="SpaceBetween" AlignItems="End" Margin="0,0,0,32">
+                            <Label Text="Каталог" Style="{StaticResource PageTitleStyle}" Margin="0,0,24,0" />
+                            <Label Text="{Binding ResultCountText}" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                        </FlexLayout>
+
+                        <Grid ColumnDefinitions="{OnIdiom Phone='*', Desktop='240,*'}"
+                              RowDefinitions="{OnIdiom Phone='Auto,Auto,Auto', Desktop='Auto'}"
+                              ColumnSpacing="64"
+                              RowSpacing="16">
+
+                            <!-- телефон: summary «Фильтры» -->
+                            <Button Grid.Row="0"
+                                    IsVisible="{OnIdiom Phone=True, Desktop=False}"
+                                    Text="{Binding ActiveFiltersCount, StringFormat='Фильтры · {0}'}"
+                                    Style="{StaticResource BtnGhostStyle}"
+                                    Command="{Binding ToggleFiltersExpandedCommand}"
+                                    HorizontalOptions="Start" />
+
+                            <!-- .filters__form -->
+                            <VerticalStackLayout Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
+                                                 Grid.Column="0"
+                                                 IsVisible="{Binding IsFiltersPanelVisible}"
+                                                 VerticalOptions="Start"
+                                                 Spacing="24">
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="Поиск" Style="{StaticResource FieldLabelStyle}" />
+                                    <Border Style="{StaticResource InputBorderStyle}">
+                                        <Entry Text="{Binding SearchQuery}" ReturnCommand="{Binding SearchCommand}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="Город" Style="{StaticResource FieldLabelStyle}" />
+                                    <Border Style="{StaticResource InputBorderStyle}">
+                                        <Entry Text="{Binding CityQuery}" ReturnCommand="{Binding SearchCommand}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="Формат" Style="{StaticResource FieldLabelStyle}" />
+                                    <VerticalStackLayout>
+                                <HorizontalStackLayout Spacing="8" MinimumHeightRequest="32">
+                                    <CheckBox IsChecked="{Binding FormatOnSite}" VerticalOptions="Center" />
+                                    <Label Text="На месте" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" VerticalOptions="Center">
+                                        <Label.GestureRecognizers><TapGestureRecognizer Tapped="OnCheckLabelTapped" /></Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="8" MinimumHeightRequest="32">
+                                    <CheckBox IsChecked="{Binding FormatHybrid}" VerticalOptions="Center" />
+                                    <Label Text="Гибрид" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" VerticalOptions="Center">
+                                        <Label.GestureRecognizers><TapGestureRecognizer Tapped="OnCheckLabelTapped" /></Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="8" MinimumHeightRequest="32">
+                                    <CheckBox IsChecked="{Binding FormatRemote}" VerticalOptions="Center" />
+                                    <Label Text="Удалённо" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" VerticalOptions="Center">
+                                        <Label.GestureRecognizers><TapGestureRecognizer Tapped="OnCheckLabelTapped" /></Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                                <HorizontalStackLayout Spacing="8" MinimumHeightRequest="32">
+                                    <CheckBox IsChecked="{Binding OnlyNoExperience}" VerticalOptions="Center" />
+                                    <Label Text="Можно без опыта" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" VerticalOptions="Center">
+                                        <Label.GestureRecognizers><TapGestureRecognizer Tapped="OnCheckLabelTapped" /></Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="Зарплата от" Style="{StaticResource FieldLabelStyle}" />
+                                    <Border Style="{StaticResource InputBorderStyle}">
+                                        <Picker ItemsSource="{Binding SalaryOptions}"
+                                                SelectedIndex="{Binding MinSalaryIndex}"
+                                                FontSize="16" VerticalOptions="Center" />
+                                    </Border>
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="Источник" Style="{StaticResource FieldLabelStyle}" />
+                                    <VerticalStackLayout>
+                                <HorizontalStackLayout Spacing="8" MinimumHeightRequest="32">
+                                    <CheckBox IsChecked="{Binding SourceTrudVsem}" VerticalOptions="Center" />
+                                    <Label Text="Работа России" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" VerticalOptions="Center">
+                                        <Label.GestureRecognizers><TapGestureRecognizer Tapped="OnCheckLabelTapped" /></Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="8" MinimumHeightRequest="32">
+                                    <CheckBox IsChecked="{Binding SourceHh}" VerticalOptions="Center" />
+                                    <Label Text="hh.ru" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" VerticalOptions="Center">
+                                        <Label.GestureRecognizers><TapGestureRecognizer Tapped="OnCheckLabelTapped" /></Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+                                <HorizontalStackLayout Spacing="8" MinimumHeightRequest="32">
+                                    <CheckBox IsChecked="{Binding SourceSuperJob}" VerticalOptions="Center" />
+                                    <Label Text="SuperJob" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" VerticalOptions="Center">
+                                        <Label.GestureRecognizers><TapGestureRecognizer Tapped="OnCheckLabelTapped" /></Label.GestureRecognizers>
+                                    </Label>
+                                </HorizontalStackLayout>
+                                    </VerticalStackLayout>
+                                </VerticalStackLayout>
+                                <Button Text="Сбросить фильтры"
+                                        Style="{StaticResource BtnGhostStyle}"
+                                        Command="{Binding ResetFiltersCommand}"
+                                        HorizontalOptions="Start" />
+                            </VerticalStackLayout>
+
+                            <!-- .results -->
+                            <VerticalStackLayout Grid.Row="{OnIdiom Phone='2', Desktop='0'}"
+                                                 Grid.Column="{OnIdiom Phone='0', Desktop='1'}">
+                                <!-- .results__bar: подсказка + сортировка, линия ink снизу -->
+                                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="16" Padding="0,0,0,12">
+                                    <Label Text="Компании вымышлены" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" VerticalOptions="Center" />
+                                    <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                                        <Label Text="Сортировка" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" VerticalOptions="Center" />
+                                        <Border Style="{StaticResource InputBorderStyle}" Padding="12,0">
+                                            <Picker SelectedIndex="{Binding SelectedSortIndex}" FontSize="16" VerticalOptions="Center">
+                                                <Picker.ItemsSource>
+                                                    <x:Array Type="{x:Type x:String}">
+                                                        <x:String>Сначала новые</x:String>
+                                                        <x:String>По зарплате</x:String>
+                                                        <x:String>Сначала подходящие</x:String>
+                                                    </x:Array>
+                                                </Picker.ItemsSource>
+                                            </Picker>
+                                        </Border>
+                                    </HorizontalStackLayout>
+                                </Grid>
+                                <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+
+                                <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" HeightRequest="28" Margin="0,12" />
+
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Vacancies}"
+                                                     BindableLayout.ItemTemplate="{StaticResource VacancyDataTemplate}" />
+
+                                <Label Text="Не удалось загрузить вакансии." IsVisible="{Binding HasError}"
+                                       Style="{StaticResource FieldErrorStyle}" Margin="0,16" />
+
+                                <!-- CatalogEmptyState.vue -->
+                                <VerticalStackLayout IsVisible="{Binding IsEmpty}" Padding="16,48,16,64" Spacing="12" HorizontalOptions="Center">
+                                    <Label HorizontalTextAlignment="Center" FontFamily="GolosTextMedium" FontSize="22" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding HasActiveFilters}" Value="False">
+                                                <Setter Property="Text" Value="Пока нет вакансий" />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding HasActiveFilters}" Value="True">
+                                                <Setter Property="Text" Value="Вакансии не найдены" />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                    <Label HorizontalTextAlignment="Center" MaximumWidthRequest="380" FontSize="16" LineHeight="1.5" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}">
+                                        <Label.Triggers>
+                                            <DataTrigger TargetType="Label" Binding="{Binding HasActiveFilters}" Value="False">
+                                                <Setter Property="Text" Value="Здесь появятся новые предложения." />
+                                            </DataTrigger>
+                                            <DataTrigger TargetType="Label" Binding="{Binding HasActiveFilters}" Value="True">
+                                                <Setter Property="Text" Value="Попробуйте изменить запрос или сбросить фильтры." />
+                                            </DataTrigger>
+                                        </Label.Triggers>
+                                    </Label>
+                                </VerticalStackLayout>
+
+                                <Button Text="Показать ещё"
+                                        IsVisible="{Binding HasMore}"
+                                        Style="{StaticResource BtnGhostStyle}"
+                                        Command="{Binding ShowMoreCommand}"
+                                        HorizontalOptions="Start"
+                                        Margin="0,24,0,0" />
+                            </VerticalStackLayout>
+                        </Grid>
+                    </VerticalStackLayout>
+                </Grid>
+
+                <!-- ==================== ПРИГЛАШЕНИЕ К ПОДБОРУ (.invite) ==================== -->
+                <Grid Padding="{OnIdiom Phone='16,64,16,96', Desktop='32,96,32,128'}">
+                    <BoxView HeightRequest="1" VerticalOptions="Start" Margin="{OnIdiom Phone='-16,-64,-16,0', Desktop='-32,-96,-32,0'}" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+                    <Grid MaximumWidthRequest="1320" HorizontalOptions="Fill"
+                          ColumnDefinitions="{OnIdiom Phone='*', Desktop='5*,1*,5*,1*'}"
+                          RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                          RowSpacing="32">
+                        <!-- .invite__media 4:5 -->
+                        <Border Grid.Column="0" StrokeThickness="0" StrokeShape="RoundRectangle 8"
+                                HeightRequest="{OnIdiom Phone='360', Desktop='560'}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}">
+                            <Image Source="https://images.unsplash.com/photo-1758876016923-c4e2f72983bd?auto=format&amp;fit=crop&amp;w=1100&amp;q=72"
+                                   Aspect="AspectFill" SemanticProperties.Description="Человек пишет в блокноте за рабочим столом" />
+                        </Border>
+                        <!-- .invite__copy -->
+                        <VerticalStackLayout Grid.Row="{OnIdiom Phone='1', Desktop='0'}" Grid.Column="{OnIdiom Phone='0', Desktop='2'}"
+                                             VerticalOptions="Center">
+                            <Label Text="Подбор профессии" Style="{StaticResource EyebrowStyle}" Margin="0,0,0,16" />
+                            <Label Text="Не обязательно знать, кем вы хотите работать" Style="{StaticResource PageTitleStyle}" MaximumWidthRequest="460" HorizontalOptions="Start" />
+                            <Label Text="Напишите пару абзацев о себе — учёба, увлечения, что получается лучше всего. Мы предложим три направления, объясним каждое вашими же словами и покажем вакансии, с которых можно начать."
+                                   Style="{StaticResource LeadTextStyle}" Margin="0,16,0,0" />
+                            <Button Text="Подобрать профессию" Style="{StaticResource BtnAccentStyle}"
+                                    Command="{Binding NavigateToMatchCommand}" HorizontalOptions="Start" Margin="0,32,0,0" />
+                            <Label Text="Резюме не нужно. Текст хранится только на этом устройстве." FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" Margin="0,12,0,0" />
+                        </VerticalStackLayout>
+                    </Grid>
+                </Grid>
+
+                <controls:AppFooter />
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </Grid>
+</ContentPage>
