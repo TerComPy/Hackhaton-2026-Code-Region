@@ -35,7 +35,7 @@ onBeforeUnmount(() => { dialog.value?.close(); release(); });
 </script>
 <template>
   <Teleport to="body">
-    <dialog ref="dialog" class="connection-dialog" aria-modal="true" :aria-labelledby="titleId" :aria-describedby="descriptionId" @keydown="trapFocus" @cancel.prevent="emit('close')">
+    <dialog v-if="open" ref="dialog" class="connection-dialog" aria-modal="true" :aria-labelledby="titleId" :aria-describedby="descriptionId" @keydown="trapFocus" @cancel.prevent="emit('close')">
       <button class="connection-dialog__close" type="button" aria-label="Закрыть окно" @click="emit('close')">×</button>
       <h2 :id="titleId">Не удалось подключиться к серверу</h2>
       <p :id="descriptionId">Сервис временно недоступен. Попробуйте ещё раз</p>

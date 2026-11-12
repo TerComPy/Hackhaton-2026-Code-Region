@@ -39,6 +39,8 @@ async function prepare(page: Page, response: (route: Route, calls: { gets: numbe
   await page.route("**/api/**", async route => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
+    if (path === "/api/health") return route.fulfill({ json: { status: "ok" } });
+    if (path === "/api/ready") return route.fulfill({ json: { status: "ready", database: "ok" } });
     if (path === "/api/auth/me") return route.fulfill({ json: {
       user: { id: "fixture-account", profileId: "10", email: "fixture@example.invalid",
         displayName: "Fixture", role: "user" }
