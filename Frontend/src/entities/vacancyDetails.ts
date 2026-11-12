@@ -11,7 +11,7 @@ export function vacancySalary(job: Pick<Vacancy, "salary_min" | "salary_max" | "
   if (low == null && high == null) return 'Зарплата не указана';
   const amount = low != null && high != null ? `${decimal(low)} – ${decimal(high)}` : low != null ? `от ${decimal(low)}` : `до ${decimal(high!)}`;
   const periods: Record<string, string> = { month: 'мес.', hour: 'час', year: 'год', day: 'день', week: 'нед.' };
-  return `${amount} ${job.currency === 'RUB' ? '₽' : job.currency || ''}${job.salary_period ? ` / ${periods[job.salary_period] || job.salary_period}` : ''}${job.salary_gross === 1 ? ' до налогов' : job.salary_gross === 0 ? ' на руки' : ''}`;
+  return `${amount} ${job.currency === 'RUB' ? '₽' : job.currency || ''}${job.salary_period && periods[job.salary_period] ? ` / ${periods[job.salary_period]}` : ''}${job.salary_gross === 1 ? ' до налогов' : job.salary_gross === 0 ? ' на руки' : ''}`;
 }
 export function useVacancyDetails(id: () => string | undefined) {
   const session = useSession();
