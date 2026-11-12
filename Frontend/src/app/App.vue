@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import FooterOfficeMap from '../shared/FooterOfficeMap.vue';
 import { useFavorites } from "../entities/favorites";
 import { useSession } from "../entities/session";
 import ApiConnection from "../widgets/ApiConnection.vue";
@@ -238,14 +239,7 @@ watchEffect(() => {
       </div>
 
       <div class="footer__map">
-        <div
-          class="footer__map-view"
-          id="office-map"
-          role="region"
-          aria-label="Карта офиса Стартера в Донецке"
-        >
-          <p role="status">Загрузка карты…</p>
-        </div>
+        <FooterOfficeMap />
         <a
           class="link-arrow"
           href="https://yandex.ru/maps/?ll=37.8028%2C48.0159&amp;pt=37.8028%2C48.0159&amp;z=15"
