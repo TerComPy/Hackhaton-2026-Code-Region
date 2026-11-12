@@ -223,16 +223,14 @@ async function submit() {
       <div v-else class="match__placeholder">
         <img
           class="match__placeholder-image"
-          src="/images/branding/starter-match-cat-peek-800.webp"
-          srcset="/images/branding/starter-match-cat-peek-420.webp 420w, /images/branding/starter-match-cat-peek-800.webp 800w, /images/branding/starter-match-cat-peek-1200.webp 1200w"
+          src="/images/branding/starter-detective-800.webp"
+          srcset="/images/branding/starter-detective-400.webp 420w, /images/branding/starter-detective-800.webp 800w, /images/branding/starter-detective-1200.webp 1200w"
           sizes="(max-width: 960px) min(280px, 100vw - 32px), min(400px, 50vw - 48px)"
           alt=""
         />
         <h2>Давай найдём то, что по душе</h2>
       </div>
-    </div>
-      </div>
-    </div>
+    </div><!-- конец области результатов -->
   </section>
 </template>
 
