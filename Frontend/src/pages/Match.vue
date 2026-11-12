@@ -231,8 +231,6 @@ async function submit() {
         <h2>Давай найдём то, что по душе</h2>
       </div>
     </div>
-      </div>
-    </div>
   </section>
 </template>
 
