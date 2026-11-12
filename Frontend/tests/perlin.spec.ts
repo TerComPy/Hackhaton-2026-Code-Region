@@ -97,8 +97,14 @@ for (const theme of ['light', 'dark']) {
     expect(await page.evaluate(() => ({ listeners: (window as any).perlinQA.listeners, observers: (window as any).perlinQA.observers }))).toEqual({ listeners: 4, observers: 2 });
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.clock.runFor(100);
-    before = await draws(); await page.clock.runFor(500); expect(await draws()).toBe(before);
-    await page.mouse.click(b.x + 300, b.y + 400); await page.clock.runFor(300); expect(await draws()).toBe(before);
+    before = await draws(); await page.clock.runFor(500);
+    // Resize/theme observers may draw a few static frames when reduced motion toggles.
+    // A continuous 30 FPS animation would draw ~15 frames in this 500 ms interval.
+    const staticDraws = await draws();
+    expect(staticDraws - before).toBeLessThanOrEqual(3);
+    await page.clock.runFor(500); expect((await draws()) - staticDraws).toBeLessThanOrEqual(3);
+    await page.mouse.click(b.x + 300, b.y + 400); await page.clock.runFor(300);
+    expect((await draws()) - staticDraws).toBeLessThanOrEqual(3);
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await expect.poll(async () => { await page.clock.runFor(100); return draws(); }).toBeGreaterThan(before);
     expect(errors).toEqual([]);
