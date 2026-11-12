@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const PROMPT_VERSION = 'starter-simplify-v1';
+export const PROMPT_VERSION = 'starter-simplify-v2';
 export const AI_PROVIDER = 'openai-compatible';
 export const MAX_ATTEMPTS = 3;
 
@@ -54,8 +54,14 @@ export function sourceFields(job: SourceVacancy) {
 }
 
 function digitsIn(text: string): Set<string> {
-  return new Set((text.match(/\d(?:[\d \u00a0]*\d)?(?:[.,]\d+)?/g) ?? [])
-    .map(value => value.replace(/\D/g, '')));
+  // Group only thousands, never adjacent independent numbers. Preserve decimals.
+  const tokens = text.match(/\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?:[.,]\d+)?|\d+(?:[.,]\d+)?/g) ?? [];
+  return new Set(tokens.map(value => {
+    const normalized = value.replace(/[ \u00a0\u202f]/g, '').replace(',', '.');
+    const [whole, fraction = ''] = normalized.split('.');
+    const decimal = fraction.replace(/0+$/, '');
+    return whole!.replace(/^0+(?=\d)/, '') + (decimal ? '.' + decimal : '');
+  }));
 }
 
 export class AiValidationError extends Error {
@@ -65,7 +71,7 @@ export class AiValidationError extends Error {
 export function validateGrounding(value: unknown, vacancy: SourceVacancy): AiSummary {
   const summary = summarySchema.parse(value);
   const input = JSON.stringify(sourceFields(vacancy));
-  const output = [summary.simpleTitle, ...summary.whatYouDo, ...summary.requirements, ...summary.conditions].join(' ');
+  const output = [summary.simpleTitle, ...summary.whatYouDo, ...summary.requirements, ...summary.conditions].join('; ');
   const allowedNumbers = digitsIn(input);
   for (const number of digitsIn(output)) {
     if (!allowedNumbers.has(number)) throw new AiValidationError('UNSUPPORTED_NUMBER');

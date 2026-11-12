@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger.js';
 import { ZodError } from 'zod';
 import { AiProviderError, generateAiSummary, type ProviderOptions } from './provider.js';
 import { AiValidationError } from './schema.js';
@@ -32,6 +33,11 @@ export async function processAiJob(scope: AiScope, provider: ProviderOptions): P
       retryable = false;
     } else if (error instanceof ZodError) {
       code = 'AI_INVALID_SCHEMA';
+      const fields = new Set(['simpleTitle', 'whatYouDo', 'requirements', 'conditions', 'beginnerFriendly']);
+      logger.warn({ event: 'ai_schema_validation_failed', issues: error.issues.slice(0, 20).map(issue => ({
+        code: issue.code,
+        path: issue.path.map(part => typeof part === 'number' ? part : fields.has(String(part)) ? part : '*')
+      })) }, 'AI summary schema validation failed');
       retryable = false;
     }
     await failAiJob(job, code, retryable, retryAfter);
