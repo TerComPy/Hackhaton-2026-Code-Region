@@ -28,6 +28,10 @@ public static class MauiProgram
         WebViewHandler.Mapper.AppendToMapping("StarterWebSettings", (handler, view) =>
         {
 #if ANDROID
+#if DEBUG
+            // Отладка: chrome://inspect в Chrome на компьютере покажет консоль и сеть WebView
+            Android.Webkit.WebView.SetWebContentsDebuggingEnabled(true);
+#endif
             var webView = handler.PlatformView;
             var settings = webView.Settings;
             settings.JavaScriptEnabled = true;
@@ -48,12 +52,18 @@ public static class MauiProgram
             {
                 core.Settings.IsStatusBarEnabled = false;
                 core.Settings.AreDefaultContextMenusEnabled = true;
+#if DEBUG
+                // Отладка: F12 внутри окна приложения открывает DevTools
+                core.Settings.AreDevToolsEnabled = true;
+#endif
 
                 // Ссылки с target="_blank": свой сайт — в этом же окне, чужие — в браузере.
                 core.NewWindowRequested += (s, e) =>
                 {
                     e.Handled = true;
-                    if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri))
+                    // about:blank и прочие служебные адреса игнорируем (window.open подменён скриптом на странице)
+                    if (!Uri.TryCreate(e.Uri, UriKind.Absolute, out var uri) ||
+                        (uri.Scheme != Uri.UriSchemeHttps && uri.Scheme != Uri.UriSchemeHttp))
                         return;
 
                     if (SiteConfig.IsInternal(uri))

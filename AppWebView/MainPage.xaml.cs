@@ -55,6 +55,21 @@ public partial class MainPage : ContentPage
         if (SiteConfig.IsWebViewInternalScheme(uri))
             return;
 
+        // «Мост» от страницы: starterapp://open?url=... — открыть ссылку (вакансию работодателя и т.п.)
+        if (uri.Scheme == SiteConfig.BridgeScheme)
+        {
+            e.Cancel = true;
+            var target = SiteConfig.ParseBridgeTarget(uri);
+            if (target is null)
+                return;
+
+            if (SiteConfig.IsInternal(target))
+                MainThread.BeginInvokeOnMainThread(() => Web.Source = new UrlWebViewSource { Url = target.ToString() });
+            else
+                _ = OpenExternalAsync(target);
+            return;
+        }
+
         if (SiteConfig.IsInternal(uri))
         {
             _lastUrl = uri.ToString();
@@ -77,6 +92,7 @@ public partial class MainPage : ContentPage
                 _firstLoadDone = true;
                 SplashOverlay.IsVisible = false;
                 ErrorOverlay.IsVisible = false;
+                _ = InstallPopupShimAsync();
                 break;
 
             case WebNavigationResult.Failure:
@@ -87,6 +103,22 @@ public partial class MainPage : ContentPage
                 break;
 
             // Cancel — это наш собственный перехват внешней ссылки, ничего не делаем.
+        }
+    }
+
+    /// <summary>
+    /// Подменяем window.open на странице: «новые вкладки» и переходы к работодателю
+    /// уходят в системный браузер (WebView сам новые окна не открывает).
+    /// </summary>
+    private async Task InstallPopupShimAsync()
+    {
+        try
+        {
+            await Web.EvaluateJavaScriptAsync(SiteConfig.OneLine(SiteConfig.PopupShim));
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"[Starter] popup shim failed: {ex.Message}");
         }
     }
 
@@ -102,14 +134,25 @@ public partial class MainPage : ContentPage
     {
         try
         {
-            if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
-                await Browser.Default.OpenAsync(uri, BrowserLaunchMode.External);
-            else
-                await Launcher.Default.TryOpenAsync(uri);
+            // Navigating может прийти не из UI-потока — открываем браузер из главного
+            await MainThread.InvokeOnMainThreadAsync(async () =>
+            {
+                if (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+                {
+                    // Системный браузер; если не вышло — через Launcher (ACTION_VIEW / ShellExecute)
+                    if (!await Browser.Default.OpenAsync(uri, BrowserLaunchMode.External))
+                        await Launcher.Default.TryOpenAsync(uri);
+                }
+                else
+                {
+                    await Launcher.Default.TryOpenAsync(uri);
+                }
+            });
         }
-        catch
+        catch (Exception ex)
         {
             // Нет приложения для такой ссылки — просто игнорируем.
+            System.Diagnostics.Debug.WriteLine($"[Starter] open external failed: {uri} — {ex.Message}");
         }
     }
 
