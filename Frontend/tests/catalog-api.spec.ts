@@ -1,4 +1,4 @@
-﻿import { test, expect } from "@playwright/test";
+import { test, expect } from "@playwright/test";
 import { randomBytes } from "node:crypto";
 test("empty state excludes loading and API errors", async ({ page }) => {
   test.skip(!test.info().config.configFile?.endsWith("api.config.ts"));
@@ -21,14 +21,17 @@ test("empty state excludes loading and API errors", async ({ page }) => {
     const session = (document.querySelector('#app') as any).__vue_app__.config.globalProperties.$pinia._s.get('session');
     await session.authenticate('login', { email: 'test@example.invalid', password: 'test-password' });
   });
-  await expect(page.locator('#catalog')).toContainText('Загружаем вакансии');
+  await expect(page.locator('#catalog .job--skeleton')).toHaveCount(6);
+  await expect(page.locator('#catalog [role=status]')).toHaveText('Загружаем вакансии');
   await expect(empty).toHaveCount(0);
   await expect(empty.locator('h3')).toHaveText('Пока нет вакансий');
+  await expect(page.locator('.job--skeleton')).toHaveCount(0);
   await page.locator('#f-q').fill('empty');
   await expect(empty.locator('h3')).toHaveText('Вакансии не найдены');
   await page.route("**/api/vacancies?*", r => r.fulfill({ status: 500, json: {} }));
   await page.locator('#f-q').fill('failure');
   await expect(page.locator('#catalog [role=alert]')).toBeVisible();
+  await expect(page.locator('.job--skeleton')).toHaveCount(0);
   await expect(empty).toHaveCount(0);
 });
 test("real catalog: JWT, seed, filters, pagination, failures and retry", async ({ page }) => {
