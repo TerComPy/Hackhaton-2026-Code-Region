@@ -10,7 +10,7 @@ function mapOk(raw: unknown): NormalizedVacancy {
   return r.vacancy;
 }
 
-describe('mapTrudvsemVacancy вЂ” fixture', () => {
+describe('mapTrudvsemVacancy — fixture', () => {
   const raws = loadFixture().results.vacancies.map(x => x.vacancy);
   const mapped = raws.map((r, i) => mapTrudvsemVacancy(r, i));
 
@@ -50,7 +50,7 @@ describe('mapTrudvsemVacancy вЂ” fixture', () => {
   });
 });
 
-describe('mapTrudvsemVacancy вЂ” rules', () => {
+describe('mapTrudvsemVacancy — rules', () => {
   it('builds external_id as companycode:id and rejects records without them', () => {
     const raw = rawVacancy();
     delete raw.company.companycode;
@@ -68,21 +68,21 @@ describe('mapTrudvsemVacancy вЂ” rules', () => {
 
   it('scrubs contact data that employers put into free text', () => {
     const raw = rawVacancy();
-    raw.contact_person = 'РўРµСЃС‚РѕРІР° РђРЅРЅР° РџРµС‚СЂРѕРІРЅР°';
-    raw.duty = 'Р Р°Р±РѕС‚Р° СЃ РґРѕРєСѓРјРµРЅС‚Р°РјРё. Р—РІРѕРЅРёС‚Рµ РўРµСЃС‚РѕРІР° Рђ.Рџ. РїРѕ С‚РµР». +7 (900) 123-45-67 РёР»Рё РїРёС€РёС‚Рµ boss@example.invalid';
+    raw.contact_person = 'Тестова Анна Петровна';
+    raw.duty = 'Работа с документами. Звоните Тестова А.П. по тел. +7 (900) 123-45-67 или пишите boss@example.invalid';
     const v = mapOk(raw);
     for (const field of [v.description, v.responsibilities ?? '']) {
-      assert.ok(!/РўРµСЃС‚РѕРІР°|123-45-67|example\.invalid/.test(field), field);
-      assert.ok(field.includes('Р Р°Р±РѕС‚Р° СЃ РґРѕРєСѓРјРµРЅС‚Р°РјРё'));
+      assert.ok(!/Тестова|123-45-67|example\.invalid/.test(field), field);
+      assert.ok(field.includes('Работа с документами'));
     }
   });
 
-  it('does not invent salary: 0 в†’ null, unknown currency в†’ no amounts, min>max keeps min', () => {
+  it('does not invent salary: 0 → null, unknown currency → no amounts, min>max keeps min', () => {
     const zero = rawVacancy(); zero.salary_min = 0; zero.salary_max = 0;
     let v = mapOk(zero);
     assert.deepEqual([v.salaryMin, v.salaryMax, v.currency], [null, null, null]);
 
-    const weird = rawVacancy(); weird.currency = 'Сѓ.Рµ.';
+    const weird = rawVacancy(); weird.currency = 'у.е.';
     v = mapOk(weird);
     assert.deepEqual([v.salaryMin, v.salaryMax, v.currency], [null, null, null]);
 
@@ -96,30 +96,30 @@ describe('mapTrudvsemVacancy вЂ” rules', () => {
     assert.equal(mapOk(none).experienceMonthsMin, null);
     const zero = rawVacancy(); zero.requirement.experience = 0;
     assert.equal(mapOk(zero).experienceMonthsMin, 0);
-    const bad = rawVacancy(); bad.requirement.experience = 'РјРЅРѕРіРѕ';
+    const bad = rawVacancy(); bad.requirement.experience = 'много';
     assert.equal(mapOk(bad).experienceMonthsMin, null);
   });
 
   it('employment: full time is not a contract type; remote and temporary are explicit', () => {
-    assert.deepEqual(mapEmployment('РџРѕР»РЅР°СЏ Р·Р°РЅСЏС‚РѕСЃС‚СЊ'), { employmentType: 'full_time', workFormat: 'unknown', contractType: 'unknown' });
-    assert.deepEqual(mapEmployment('Р§Р°СЃС‚РёС‡РЅР°СЏ Р·Р°РЅСЏС‚РѕСЃС‚СЊ').employmentType, 'part_time');
-    assert.deepEqual(mapEmployment('Р”РёСЃС‚Р°РЅС†РёРѕРЅРЅР°СЏ (СѓРґР°Р»РµРЅРЅР°СЏ) СЂР°Р±РѕС‚Р°').workFormat, 'remote');
-    assert.deepEqual(mapEmployment('Р’СЂРµРјРµРЅРЅР°СЏ СЂР°Р±РѕС‚Р°').contractType, 'fixed_term');
+    assert.deepEqual(mapEmployment('Полная занятость'), { employmentType: 'full_time', workFormat: 'unknown', contractType: 'unknown' });
+    assert.deepEqual(mapEmployment('Частичная занятость').employmentType, 'part_time');
+    assert.deepEqual(mapEmployment('Дистанционная (удаленная) работа').workFormat, 'remote');
+    assert.deepEqual(mapEmployment('Временная работа').contractType, 'fixed_term');
     assert.deepEqual(mapEmployment(null), { employmentType: 'unknown', workFormat: 'unknown', contractType: 'unknown' });
   });
 
-  it('schedule: "РџРѕР»РЅС‹Р№ СЂР°Р±РѕС‡РёР№ РґРµРЅСЊ" does not prove 5/2', () => {
-    assert.equal(mapSchedule('РџРѕР»РЅС‹Р№ СЂР°Р±РѕС‡РёР№ РґРµРЅСЊ', null, []), 'unknown');
-    assert.equal(mapSchedule('РџРѕР»РЅС‹Р№ СЂР°Р±РѕС‡РёР№ РґРµРЅСЊ', 'РіСЂР°С„РёРє 5/2', []), 'five_two');
-    assert.equal(mapSchedule('РЎРјРµРЅРЅР°СЏ СЂР°Р±РѕС‚Р°', null, []), 'shift');
-    assert.equal(mapSchedule('РџРѕР»РЅС‹Р№ СЂР°Р±РѕС‡РёР№ РґРµРЅСЊ', null, ['РџРѕ РіСЂР°С„РёРєСѓ СЃРјРµРЅРЅРѕСЃС‚Рё']), 'shift');
-    assert.equal(mapSchedule('Р РµР¶РёРј РіРёР±РєРѕРіРѕ СЂР°Р±РѕС‡РµРіРѕ РІСЂРµРјРµРЅРё', null, []), 'flexible');
-    assert.equal(mapSchedule('РќРµРЅРѕСЂРјРёСЂРѕРІР°РЅРЅС‹Р№ СЂР°Р±РѕС‡РёР№ РґРµРЅСЊ', null, []), 'other');
+  it('schedule: "Полный рабочий день" does not prove 5/2', () => {
+    assert.equal(mapSchedule('Полный рабочий день', null, []), 'unknown');
+    assert.equal(mapSchedule('Полный рабочий день', 'график 5/2', []), 'five_two');
+    assert.equal(mapSchedule('Сменная работа', null, []), 'shift');
+    assert.equal(mapSchedule('Полный рабочий день', null, ['По графику сменности']), 'shift');
+    assert.equal(mapSchedule('Режим гибкого рабочего времени', null, []), 'flexible');
+    assert.equal(mapSchedule('Ненормированный рабочий день', null, []), 'other');
   });
 
   it('city is set only for federal cities; coordinates are validated', () => {
     const spb = rawVacancy(); spb.region.region_code = '7800000000000';
-    assert.equal(mapOk(spb).city, 'РЎР°РЅРєС‚-РџРµС‚РµСЂР±СѓСЂРі');
+    assert.equal(mapOk(spb).city, 'Санкт-Петербург');
     const other = rawVacancy(); other.region.region_code = '6600000000000';
     assert.equal(mapOk(other).city, null);
     const badGeo = rawVacancy(); badGeo.addresses.address[0].lat = '123.4';
@@ -128,9 +128,9 @@ describe('mapTrudvsemVacancy вЂ” rules', () => {
   });
 
   it('deduplicates skills and marks the list complete only when the array is present', () => {
-    const raw = rawVacancy(); raw.skills = ['Excel', 'excel ', 'Р Р°Р±РѕС‚Р° РІ РєРѕРјР°РЅРґРµ'];
+    const raw = rawVacancy(); raw.skills = ['Excel', 'excel ', 'Работа в команде'];
     const v = mapOk(raw);
-    assert.deepEqual(v.skills, ['Excel', 'Р Р°Р±РѕС‚Р° РІ РєРѕРјР°РЅРґРµ']);
+    assert.deepEqual(v.skills, ['Excel', 'Работа в команде']);
     assert.equal(v.skillsComplete, true);
     delete raw.skills;
     assert.equal(mapOk(raw).skillsComplete, false);
@@ -167,11 +167,11 @@ describe('contact scrubbing across public text columns', () => {
   });
 });
 
-it('preserves Russian titles and descriptions without transcoding', () => {
-  const raw = rawVacancy();
-  raw['job-name'] = '???????-??????????? ??';
-  raw.duty = 'Разработка';
-  const vacancy = mapOk(JSON.parse(JSON.stringify(raw)));
-  assert.equal(vacancy.title, raw['job-name']);
-  assert.ok(vacancy.description.includes(raw.duty));
+it('preserves Cyrillic from JSON normalization', () => {
+ const raw = rawVacancy();
+ raw['job-name'] = '\u0418\u043d\u0436\u0435\u043d\u0435\u0440 \u0401\u0436';
+ raw.duty = '\u0420\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u0430';
+ const v = mapOk(JSON.parse(JSON.stringify(raw)));
+ assert.equal(v.title, raw['job-name']);
+ assert.ok(v.description.includes(raw.duty));
 });
