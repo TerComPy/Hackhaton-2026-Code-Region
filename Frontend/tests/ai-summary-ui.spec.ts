@@ -139,3 +139,27 @@ test("a session change invalidates the cached AI summary", async ({ page }) => {
   await expect(page.locator(".sheet__api-flip")).toHaveAttribute("data-mode", "original");
   await expect(page.locator(".sheet__simple-title")).toHaveCount(0);
 });
+
+test('generation shimmer blocks duplicates and respects reduced motion', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  let done = false;
+  const calls = await prepare(page, (route, count) => route.fulfill({ json: reply(
+    route.request().method() === 'POST' ? 'pending' : count.gets === 1 ? 'unavailable' : done ? 'done' : 'processing'
+  ) }));
+  const button = page.locator('button[data-mode=plain]');
+  await expect(button).toBeEnabled();
+  await expect(button).toHaveAttribute('aria-busy', 'false');
+  await button.click();
+  await expect(button).toBeDisabled();
+  await expect(button).toHaveAttribute('aria-busy', 'true');
+  await expect(button).toHaveCSS('animation-name', 'none');
+  await expect(page.locator('.sheet__ai-note')).toHaveClass(/ai-shimmer/);
+  await button.evaluate((node: HTMLButtonElement) => { node.click(); node.click(); });
+  expect(calls.posts).toBe(1);
+  await expect(page.locator('button[data-mode=original]')).toBeEnabled();
+  await expect(page.locator('.sheet__api-flip')).toHaveAttribute('data-mode', 'original');
+  done = true;
+  await expect(button).toBeEnabled({ timeout: 12000 });
+  await expect(button).toHaveAttribute('aria-busy', 'false');
+  await expect(page.locator('.sheet__api-flip')).toHaveAttribute('data-mode', 'plain');
+});

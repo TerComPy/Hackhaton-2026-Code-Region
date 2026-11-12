@@ -1,4 +1,4 @@
-import { onBeforeUnmount, ref, watch } from "vue";
+import { computed, onBeforeUnmount, ref, watch } from "vue";
 import {
   ApiError, type AiSummary, type AiSummaryResponse, type AiSummaryStatus
 } from "../shared/api";
@@ -44,6 +44,8 @@ export function useAiSummary(id: () => string | undefined, active: () => boolean
   const status = ref<AiSummaryStatus>("unavailable");
   const loading = ref(false);
   const polling = ref(false);
+  const generating = ref(false);
+  const busy = computed(() => generating.value || polling.value);
   const error = ref("");
   let generation = 0;
   let request: AbortController | undefined;
@@ -59,6 +61,7 @@ export function useAiSummary(id: () => string | undefined, active: () => boolean
     clearTimeout(timer);
     timer = undefined;
     loading.value = false;
+    generating.value = false;
     polling.value = false;
   }
   function reset() {
@@ -84,6 +87,7 @@ export function useAiSummary(id: () => string | undefined, active: () => boolean
       summary.value = null;
       mode.value = "original";
       polling.value = data.status === "pending" || data.status === "processing";
+      if (data.status === "unavailable" && generating.value) error.value = friendlyError(new Error());
       if (data.status === "failed") error.value = "ИИ не смог обработать вакансию. Можно повторить попытку.";
     }
   }
@@ -123,6 +127,7 @@ export function useAiSummary(id: () => string | undefined, active: () => boolean
     } finally {
       if (serial === generation) {
         loading.value = false;
+        generating.value = false;
         request = undefined;
       }
     }
@@ -142,12 +147,15 @@ export function useAiSummary(id: () => string | undefined, active: () => boolean
     error.value = "";
     deadline = Date.now() + MAX_POLL_MS;
     // Existing jobs should be polled, not queued again.
+    generating.value = true;
     void fetchStatus(status.value !== "pending" && status.value !== "processing");
   }
   function retry() {
-    if (!available() || loading.value) return;
+    if (!available() || loading.value || busy.value) return;
+    wantsPlain = true;
     error.value = "";
     deadline = Date.now() + MAX_POLL_MS;
+    generating.value = true;
     void fetchStatus(status.value !== "pending" && status.value !== "processing");
   }
   watch(
@@ -160,6 +168,6 @@ export function useAiSummary(id: () => string | undefined, active: () => boolean
     { immediate: true }
   );
   onBeforeUnmount(() => { stopped = true; cancel(); });
-  return { mode, summary, status, loading, polling, error,
+  return { mode, summary, status, loading, polling, busy, error,
     showPlain, showOriginal, retry, cancel };
 }

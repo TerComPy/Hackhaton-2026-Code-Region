@@ -161,12 +161,13 @@ const labels = {
               <dl class="facts"><div><dt>График</dt><dd>{{ vacancy.schedule_text || schedules[vacancy.schedule_type || 'unknown'] || 'Не указано' }}</dd></div></dl>
               <div v-if="vacancy.status === 'active'" class="seg" role="group" aria-label="Режим описания вакансии">
                 <button type="button" class="seg__btn" data-mode="plain"
+                  :disabled="ai.busy" :aria-busy="ai.busy" :class="{ 'ai-shimmer': ai.busy }"
                   :aria-pressed="ai.mode === 'plain'" @click="ai.showPlain()">Простыми словами</button>
                 <button type="button" class="seg__btn" data-mode="original"
                   :aria-pressed="ai.mode === 'original'" @click="ai.showOriginal()">Как у работодателя</button>
               </div>
-              <p v-if="vacancy.status === 'active' && (ai.polling || ai.loading)" class="sheet__ai-note" role="status" aria-live="polite">
-                {{ ai.polling ? 'ИИ готовит понятное описание. Оригинал доступен, пока идёт обработка.' : 'Проверяем наличие ИИ-пересказа…' }}
+              <p v-if="vacancy.status === 'active' && (ai.polling || ai.loading)" class="sheet__ai-note" :class="{ 'ai-shimmer': ai.busy }" role="status" aria-live="polite">
+                {{ ai.busy ? 'ИИ готовит понятное описание. Оригинал доступен, пока идёт обработка.' : 'Проверяем наличие ИИ-пересказа…' }}
               </p>
               <div v-if="vacancy.status === 'active' && ai.error" class="sheet__ai-feedback" role="alert">
                 <p>{{ ai.error }}</p>
@@ -239,6 +240,21 @@ const labels = {
 </template>
 
 <style scoped>
+.ai-shimmer {
+  background-image: linear-gradient(100deg, transparent 25%, rgb(255 132 48 / 24%) 50%, transparent 75%);
+  background-size: 250% 100%;
+  animation: ai-shimmer 2.4s ease-in-out infinite;
+}
+.seg__btn.ai-shimmer:disabled { cursor: progress; opacity: 1; }
+.sheet__ai-note.ai-shimmer { border-radius: 6px; padding: 8px; }
+@keyframes ai-shimmer {
+  from { background-position: 150% 0; }
+  to { background-position: -150% 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ai-shimmer { animation: none; background-position: 50% 0; box-shadow: inset 0 -2px rgb(255 132 48 / 65%); }
+}
+
 .sheet__original section { margin-top: 24px; }
 .sheet__original h3 { margin-bottom: 8px; }
 .sheet__original p { white-space: pre-wrap; overflow-wrap: anywhere; }
