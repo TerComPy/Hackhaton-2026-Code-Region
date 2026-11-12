@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { randomBytes } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { once } from 'node:events';
+import { createServer } from 'node:http';
 import mysql from 'mysql2/promise';
 import { SignJWT, jwtVerify } from 'jose';
 const revision = '4ce04c4870c43a65fe1f0265f0c75d3f4265c603';
@@ -17,7 +18,8 @@ const appUser = `pr2_${randomBytes(5).toString('hex')}`;
 const appPassword = randomBytes(24).toString('hex');
 const config = { host: process.env.TEST_MYSQL_HOST || '127.0.0.1', port: Number(process.env.TEST_MYSQL_PORT || 33316), user: process.env.TEST_MYSQL_USER || 'root', password: process.env.TEST_MYSQL_PASSWORD || '', supportBigNumbers: true, bigNumberStrings: true, dateStrings: true, timezone: 'Z' };
 const admin = await mysql.createConnection({ ...config, multipleStatements: true });
-let server, db, originalTimezone, checks = 0;
+let server, modelServer, db, originalTimezone, checks = 0;
+let modelFailure = false;
 function ok(label, value = true) { assert.ok(value, label); checks++; console.log(`PASS ${label}`); }
 try {
   const [[version]] = await admin.query('SELECT VERSION() AS version');
@@ -44,6 +46,22 @@ try {
   Object.assign(process.env, { NODE_ENV: 'test', CORS_ORIGIN: 'http://localhost', MYSQL_HOST: config.host,
     MYSQL_PORT: String(config.port), MYSQL_USER: appUser, MYSQL_PASSWORD: appPassword, MYSQL_DATABASE: name,
     JWT_SECRET: randomBytes(32).toString('hex'), JWT_ISSUER: 'starter-api', JWT_AUDIENCE: 'starter-client' });
+  // Local OpenAI-compatible stub: exercises the actual HTTP route with canonical MySQL.
+  const story = 'Я люблю создавать сайты, разговаривать с людьми и помогать разбираться в сложных задачах.';
+  const aiDirections = [
+    { name: 'Веб-разработка', what: 'Создание сайтов для разных пользователей.', why: 'Интерес к созданию сайтов может помочь начать.', evidence: ['создавать сайты'], searchTerms: ['разработчик'] },
+    { name: 'Поддержка пользователей', what: 'Помощь людям при технических вопросах.', why: 'Любовь к общению может пригодиться в поддержке.', evidence: ['разговаривать с людьми'], searchTerms: ['оператор'] },
+    { name: 'Обучение', what: 'Объяснение тем начинающим специалистам.', why: 'Желание помогать в сложных задачах близко к обучению.', evidence: ['помогать разбираться'], searchTerms: ['преподаватель'] }
+  ];
+  modelServer = createServer((_req, res) => {
+    if (modelFailure) { res.writeHead(503); res.end('unavailable'); return; }
+    res.setHeader('content-type', 'application/json');
+    res.end(JSON.stringify({ choices: [{ message: { content: JSON.stringify({ directions: aiDirections }) } }] }));
+  });
+  modelServer.listen(0, '127.0.0.1'); await once(modelServer, 'listening');
+  process.env.OPENAI_BASE_URL = 'http://127.0.0.1:' + modelServer.address().port + '/v1';
+  process.env.OPENAI_API_KEY = 'ci-fixture-key-only';
+  process.env.OPENAI_MODEL = 'ci-fixture-model';
   const { logger } = await import('../dist/lib/logger.js'); logger.level = 'silent';
   const { app } = await import('../dist/app.js');
   ({ db } = await import('../dist/config/db.js'));
@@ -62,6 +80,19 @@ try {
   await admin.query('ALTER TABLE user_profiles AUTO_INCREMENT = 9007199254740993');
   const a = await http('/auth/register', 201, null, 'POST', credentials(' A@example.invalid '));
   const b = await http('/auth/register', 201, null, 'POST', credentials('b@example.invalid'));
+
+  await http('/match', 401, null, 'POST', { about: story });
+  await http('/match', 400, a.accessToken, 'POST', { about: 'too short' });
+  const matchedDirections = await http('/match', 200, a.accessToken, 'POST', { about: story });
+  ok('AI matching returns exactly three grounded directions', matchedDirections.directions.length === 3
+    && matchedDirections.directions[0].evidence[0] === 'создавать сайты');
+  ok('AI matching returns only active MySQL vacancies as strings', matchedDirections.directions.every(d =>
+    Array.isArray(d.vacancies) && d.vacancies.every(v => typeof v.id === 'string' && v.status === 'active')));
+  await http('/match', 429, a.accessToken, 'POST', { about: story });
+  modelFailure = true;
+  await http('/match', 503, b.accessToken, 'POST', { about: story });
+  modelFailure = false;
+
   ok('BIGINT profile IDs preserve precision', a.user.profileId === '9007199254740993' && b.user.profileId === '9007199254740994');
   const [[account]] = await admin.query('SELECT * FROM users WHERE id=?', [a.user.id]);
   ok('Argon2id and default role', account.password_hash.startsWith('$argon2id$') && account.role === 'user');
@@ -140,6 +171,7 @@ try {
   console.log(`PASS ${checks} assertions/HTTP checks on MySQL ${version.version}. Database retained: ${name}`);
 } finally {
   if(server) await new Promise(resolve=>server.close(resolve));
+  if(modelServer) await new Promise(resolve=>modelServer.close(resolve));
   if(db) await db.end();
   if(originalTimezone !== undefined) await admin.query('SET GLOBAL time_zone = ?', [originalTimezone]);
   await admin.end();

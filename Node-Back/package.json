@@ -19,7 +19,8 @@
     "import:runs": "tsx src/modules/import/cli/trudvsem.ts --list-runs",
     "ai:worker": "tsx src/modules/ai/cli/worker.ts",
     "test:ai": "tsx --test test/ai/provider.test.ts",
-    "test:ai:integration": "tsx test/ai/db-integration.ts"
+    "test:ai:integration": "tsx test/ai/db-integration.ts",
+    "test:match": "tsx --test test/matching/*.test.ts"
   },
   "engines": {
     "node": ">=22"

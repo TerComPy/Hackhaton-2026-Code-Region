@@ -10,6 +10,7 @@ import { profileRouter } from './routes/profile.js';
 import { vacanciesRouter } from './routes/vacancies.js';
 import { aiSummaryRouter } from './routes/ai-summary.js';
 import { favoritesRouter } from './routes/favorites.js';
+import { matchingRouter } from './routes/matching.js';
 import { errorHandler, notFound } from './middleware/error-handler.js';
 
 export const app = express();
@@ -24,6 +25,7 @@ app.use('/api/profile', profileRouter);
 app.use('/api/vacancies', aiSummaryRouter);
 app.use('/api/vacancies', vacanciesRouter);
 app.use('/api/favorites', favoritesRouter);
+app.use('/api/match', matchingRouter);
 app.use(notFound);
 app.use(errorHandler);
 

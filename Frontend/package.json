@@ -10,7 +10,8 @@
     "test:smoke": "playwright test",
     "test:api-mode": "playwright test --config playwright.api.config.ts",
     "test:http": "playwright test tests/api.spec.ts tests/http-foundation.spec.ts --project=desktop",
-    "test:ai-ui": "playwright test --config playwright.ai.config.ts"
+    "test:ai-ui": "playwright test --config playwright.ai.config.ts",
+    "test:match-ui": "playwright test --config playwright.match.config.ts"
   },
   "dependencies": {
     "vue": "^3.5.0",
