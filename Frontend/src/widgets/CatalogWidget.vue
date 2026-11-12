@@ -7,6 +7,7 @@ import { catalog } from "../entities/catalog";
 import { dataMode } from "../shared/api";
 import { useVacancyCatalog } from "../entities/vacancyCatalog";
 import ApiJobList from "./ApiJobList.vue";
+import CatalogSkeleton from "./CatalogSkeleton.vue";
 const remote = useVacancyCatalog();
 const isApi = dataMode === "api";
 import JobList from "./JobList.vue";
@@ -35,7 +36,7 @@ watch(
     <div class="wrap">
       <div class="section-head">
         <h2>Каталог</h2>
-        <p aria-live="polite">
+        <p v-if="!isApi || !remote.loading || remote.items.length" aria-live="polite">
           {{ isApi ? `Загружено: ${remote.items.length} · API` : `${store.filtered.length} вакансий · Демо (mock)` }}
         </p>
       </div>
@@ -126,7 +127,7 @@ watch(
             <ApiJobList :jobs="remote.items" />
             <CatalogGuestState v-if="!remote.loading && !remote.error && !remote.authenticated" />
             <template v-else>
-              <p v-if="remote.loading" class="state" role="status">Загружаем вакансии…</p>
+              <CatalogSkeleton v-if="remote.loading && remote.authenticated" />
               <div v-else-if="remote.error" class="state" role="alert">{{ remote.error }} <button class="btn btn--ghost" @click="remote.load()">Повторить</button></div>
               <CatalogEmptyState v-else-if="!remote.items.length" :filtered="hasActiveFilters" />
               <button v-else-if="remote.hasMore" class="btn btn--ghost catalog__more" @click="remote.load()">Показать ещё</button>
