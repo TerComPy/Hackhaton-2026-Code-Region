@@ -97,8 +97,23 @@
                 </VerticalStackLayout>
             </Grid>
 
-            <!-- .footer__map: вместо встроенной карты — ссылка -->
-            <HorizontalStackLayout Spacing="4" Margin="0,32,0,0">
+            <!-- .footer__map (FooterOfficeMap.vue): карта офиса в Донецке, при ошибке — подсказка и ссылка -->
+            <Border Margin="0,32,0,0"
+                    HeightRequest="{OnIdiom Phone='220', Desktop='260'}"
+                    StrokeThickness="1" StrokeShape="RoundRectangle 8"
+                    Stroke="{AppThemeBinding Light={StaticResource LineStrongLight}, Dark={StaticResource LineStrongDark}}"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}"
+                    SemanticProperties.Description="Карта офиса Стартера в Донецке">
+                <Grid>
+                    <WebView x:Name="OfficeMap"
+                             Source="https://yandex.ru/map-widget/v1/?ll=37.8028%2C48.0159&amp;z=15&amp;pt=37.8028,48.0159,pm2rdm"
+                             Navigated="OnMapNavigated" />
+                    <Label x:Name="MapFallback" IsVisible="False" Margin="16"
+                           Text="Не удалось загрузить карту. Откройте её в Яндекс Картах по ссылке ниже."
+                           FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                </Grid>
+            </Border>
+            <HorizontalStackLayout Spacing="4" Margin="0,12,0,0">
                 <HorizontalStackLayout.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding OpenUrlCommand}"
                                           CommandParameter="https://yandex.ru/maps/?ll=37.8028%2C48.0159&amp;pt=37.8028%2C48.0159&amp;z=15" />

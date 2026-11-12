@@ -10,6 +10,7 @@ public partial class SavedViewModel : ObservableObject
     private readonly IVacancyService _vacancyService;
     private readonly IFavoritesService _favoritesService;
     private readonly IMatchService _matchService;
+    private readonly IAuthService _authService;
 
     [ObservableProperty]
     private string _countText = string.Empty;
@@ -20,16 +21,28 @@ public partial class SavedViewModel : ObservableObject
     [ObservableProperty]
     private bool _isLoading;
 
+    /// <summary>Saved.vue (API): гостю — «Войдите в аккаунт, чтобы увидеть избранное.»</summary>
+    [ObservableProperty]
+    private bool _isGuest;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasError))]
+    private string _loadError = string.Empty;
+    public bool HasError => !string.IsNullOrEmpty(LoadError);
+
     public ObservableCollection<VacancyItemViewModel> SavedVacancies { get; } = new();
 
     public SavedViewModel(
         IVacancyService vacancyService,
         IFavoritesService favoritesService,
-        IMatchService matchService)
+        IMatchService matchService,
+        IAuthService authService)
     {
         _vacancyService = vacancyService;
         _favoritesService = favoritesService;
         _matchService = matchService;
+        _authService = authService;
+        _authService.AuthStateChanged += (s, e) => MainThread.BeginInvokeOnMainThread(() => _ = LoadSavedAsync());
 
         _favoritesService.FavoritesChanged += (s, e) => _ = LoadSavedAsync();
         _ = LoadSavedAsync();
@@ -37,7 +50,18 @@ public partial class SavedViewModel : ObservableObject
 
     public async Task LoadSavedAsync()
     {
+        var api = _vacancyService is AppNative.Services.Api.ApiVacancyService;
+        IsGuest = api && !_authService.IsSignedIn;
+        LoadError = string.Empty;
+        if (IsGuest)
+        {
+            SavedVacancies.Clear();
+            IsEmpty = false;
+            CountText = "0 сохранено";
+            return;
+        }
         IsLoading = true;
+        IsEmpty = false;
         try
         {
             var favIds = _favoritesService.GetFavoriteIds().ToHashSet();
@@ -61,10 +85,23 @@ public partial class SavedViewModel : ObservableObject
             IsEmpty = SavedVacancies.Count == 0;
             CountText = $"{SavedVacancies.Count} сохранено"; // как Saved.vue
         }
+        catch (Exception)
+        {
+            LoadError = "Не удалось загрузить избранное. Повторите попытку.";
+        }
         finally
         {
             IsLoading = false;
         }
+    }
+
+    [RelayCommand]
+    public Task RetryAsync() => LoadSavedAsync();
+
+    [RelayCommand]
+    public async Task NavigateToAccountAsync()
+    {
+        await Shell.Current.GoToAsync("//account");
     }
 
     [RelayCommand]

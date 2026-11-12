@@ -79,6 +79,13 @@ public class ApiAuthService : IAuthService
         }
     }
 
+    public void UpdateDisplayName(string name)
+    {
+        if (CurrentUser == null || string.IsNullOrWhiteSpace(name)) return;
+        CurrentUser.Name = name;
+        Preferences.Default.Set(UserKey, JsonSerializer.Serialize(CurrentUser));
+    }
+
     public void Logout()
     {
         var wasSignedIn = IsSignedIn;

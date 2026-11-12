@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- CatalogSkeleton.vue: 6 серых строк каталога, пока вакансии грузятся из API (пульсация — в коде) -->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AppNative.Views.Controls.CatalogSkeleton"
+             SemanticProperties.Description="Загружаем вакансии">
+    <VerticalStackLayout x:Name="Rows">
+        <Grid>
+            <Grid ColumnDefinitions="{OnIdiom Phone='72,*', Desktop='104,*,Auto'}"
+                  RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                  ColumnSpacing="{OnIdiom Phone='16', Desktop='24'}" RowSpacing="12"
+                  Padding="{OnIdiom Phone='0,16', Desktop='0,24'}">
+                <BoxView WidthRequest="{OnIdiom Phone='72', Desktop='104'}" HeightRequest="{OnIdiom Phone='72', Desktop='104'}" CornerRadius="6" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                <VerticalStackLayout Grid.Column="1" Spacing="10">
+                    <BoxView WidthRequest="130" HeightRequest="14" CornerRadius="4" HorizontalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="22" CornerRadius="4" Margin="0,0,60,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="18" CornerRadius="4" Margin="0,0,120,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <HorizontalStackLayout Spacing="6" Margin="0,6,0,0">
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+                <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}" Grid.Column="{OnIdiom Phone='1', Desktop='2'}"
+                      ColumnDefinitions="{OnIdiom Phone='*,Auto', Desktop='Auto'}" RowDefinitions="{OnIdiom Phone='Auto', Desktop='Auto,*'}" RowSpacing="12">
+                    <BoxView WidthRequest="120" HeightRequest="24" CornerRadius="4" HorizontalOptions="{OnIdiom Phone=Start, Desktop=End}" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView Grid.Row="{OnIdiom Phone='0', Desktop='1'}" Grid.Column="{OnIdiom Phone='1', Desktop='0'}" WidthRequest="40" HeightRequest="40" CornerRadius="8" HorizontalOptions="End" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                </Grid>
+            </Grid>
+            <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+        </Grid>
+        <Grid>
+            <Grid ColumnDefinitions="{OnIdiom Phone='72,*', Desktop='104,*,Auto'}"
+                  RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                  ColumnSpacing="{OnIdiom Phone='16', Desktop='24'}" RowSpacing="12"
+                  Padding="{OnIdiom Phone='0,16', Desktop='0,24'}">
+                <BoxView WidthRequest="{OnIdiom Phone='72', Desktop='104'}" HeightRequest="{OnIdiom Phone='72', Desktop='104'}" CornerRadius="6" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                <VerticalStackLayout Grid.Column="1" Spacing="10">
+                    <BoxView WidthRequest="130" HeightRequest="14" CornerRadius="4" HorizontalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="22" CornerRadius="4" Margin="0,0,60,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="18" CornerRadius="4" Margin="0,0,120,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <HorizontalStackLayout Spacing="6" Margin="0,6,0,0">
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+                <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}" Grid.Column="{OnIdiom Phone='1', Desktop='2'}"
+                      ColumnDefinitions="{OnIdiom Phone='*,Auto', Desktop='Auto'}" RowDefinitions="{OnIdiom Phone='Auto', Desktop='Auto,*'}" RowSpacing="12">
+                    <BoxView WidthRequest="120" HeightRequest="24" CornerRadius="4" HorizontalOptions="{OnIdiom Phone=Start, Desktop=End}" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView Grid.Row="{OnIdiom Phone='0', Desktop='1'}" Grid.Column="{OnIdiom Phone='1', Desktop='0'}" WidthRequest="40" HeightRequest="40" CornerRadius="8" HorizontalOptions="End" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                </Grid>
+            </Grid>
+            <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+        </Grid>
+        <Grid>
+            <Grid ColumnDefinitions="{OnIdiom Phone='72,*', Desktop='104,*,Auto'}"
+                  RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                  ColumnSpacing="{OnIdiom Phone='16', Desktop='24'}" RowSpacing="12"
+                  Padding="{OnIdiom Phone='0,16', Desktop='0,24'}">
+                <BoxView WidthRequest="{OnIdiom Phone='72', Desktop='104'}" HeightRequest="{OnIdiom Phone='72', Desktop='104'}" CornerRadius="6" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                <VerticalStackLayout Grid.Column="1" Spacing="10">
+                    <BoxView WidthRequest="130" HeightRequest="14" CornerRadius="4" HorizontalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="22" CornerRadius="4" Margin="0,0,60,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="18" CornerRadius="4" Margin="0,0,120,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <HorizontalStackLayout Spacing="6" Margin="0,6,0,0">
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+                <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}" Grid.Column="{OnIdiom Phone='1', Desktop='2'}"
+                      ColumnDefinitions="{OnIdiom Phone='*,Auto', Desktop='Auto'}" RowDefinitions="{OnIdiom Phone='Auto', Desktop='Auto,*'}" RowSpacing="12">
+                    <BoxView WidthRequest="120" HeightRequest="24" CornerRadius="4" HorizontalOptions="{OnIdiom Phone=Start, Desktop=End}" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView Grid.Row="{OnIdiom Phone='0', Desktop='1'}" Grid.Column="{OnIdiom Phone='1', Desktop='0'}" WidthRequest="40" HeightRequest="40" CornerRadius="8" HorizontalOptions="End" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                </Grid>
+            </Grid>
+            <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+        </Grid>
+        <Grid>
+            <Grid ColumnDefinitions="{OnIdiom Phone='72,*', Desktop='104,*,Auto'}"
+                  RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                  ColumnSpacing="{OnIdiom Phone='16', Desktop='24'}" RowSpacing="12"
+                  Padding="{OnIdiom Phone='0,16', Desktop='0,24'}">
+                <BoxView WidthRequest="{OnIdiom Phone='72', Desktop='104'}" HeightRequest="{OnIdiom Phone='72', Desktop='104'}" CornerRadius="6" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                <VerticalStackLayout Grid.Column="1" Spacing="10">
+                    <BoxView WidthRequest="130" HeightRequest="14" CornerRadius="4" HorizontalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="22" CornerRadius="4" Margin="0,0,60,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="18" CornerRadius="4" Margin="0,0,120,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <HorizontalStackLayout Spacing="6" Margin="0,6,0,0">
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+                <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}" Grid.Column="{OnIdiom Phone='1', Desktop='2'}"
+                      ColumnDefinitions="{OnIdiom Phone='*,Auto', Desktop='Auto'}" RowDefinitions="{OnIdiom Phone='Auto', Desktop='Auto,*'}" RowSpacing="12">
+                    <BoxView WidthRequest="120" HeightRequest="24" CornerRadius="4" HorizontalOptions="{OnIdiom Phone=Start, Desktop=End}" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView Grid.Row="{OnIdiom Phone='0', Desktop='1'}" Grid.Column="{OnIdiom Phone='1', Desktop='0'}" WidthRequest="40" HeightRequest="40" CornerRadius="8" HorizontalOptions="End" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                </Grid>
+            </Grid>
+            <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+        </Grid>
+        <Grid>
+            <Grid ColumnDefinitions="{OnIdiom Phone='72,*', Desktop='104,*,Auto'}"
+                  RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                  ColumnSpacing="{OnIdiom Phone='16', Desktop='24'}" RowSpacing="12"
+                  Padding="{OnIdiom Phone='0,16', Desktop='0,24'}">
+                <BoxView WidthRequest="{OnIdiom Phone='72', Desktop='104'}" HeightRequest="{OnIdiom Phone='72', Desktop='104'}" CornerRadius="6" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                <VerticalStackLayout Grid.Column="1" Spacing="10">
+                    <BoxView WidthRequest="130" HeightRequest="14" CornerRadius="4" HorizontalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="22" CornerRadius="4" Margin="0,0,60,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="18" CornerRadius="4" Margin="0,0,120,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <HorizontalStackLayout Spacing="6" Margin="0,6,0,0">
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+                <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}" Grid.Column="{OnIdiom Phone='1', Desktop='2'}"
+                      ColumnDefinitions="{OnIdiom Phone='*,Auto', Desktop='Auto'}" RowDefinitions="{OnIdiom Phone='Auto', Desktop='Auto,*'}" RowSpacing="12">
+                    <BoxView WidthRequest="120" HeightRequest="24" CornerRadius="4" HorizontalOptions="{OnIdiom Phone=Start, Desktop=End}" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView Grid.Row="{OnIdiom Phone='0', Desktop='1'}" Grid.Column="{OnIdiom Phone='1', Desktop='0'}" WidthRequest="40" HeightRequest="40" CornerRadius="8" HorizontalOptions="End" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                </Grid>
+            </Grid>
+            <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+        </Grid>
+        <Grid>
+            <Grid ColumnDefinitions="{OnIdiom Phone='72,*', Desktop='104,*,Auto'}"
+                  RowDefinitions="{OnIdiom Phone='Auto,Auto', Desktop='Auto'}"
+                  ColumnSpacing="{OnIdiom Phone='16', Desktop='24'}" RowSpacing="12"
+                  Padding="{OnIdiom Phone='0,16', Desktop='0,24'}">
+                <BoxView WidthRequest="{OnIdiom Phone='72', Desktop='104'}" HeightRequest="{OnIdiom Phone='72', Desktop='104'}" CornerRadius="6" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                <VerticalStackLayout Grid.Column="1" Spacing="10">
+                    <BoxView WidthRequest="130" HeightRequest="14" CornerRadius="4" HorizontalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="22" CornerRadius="4" Margin="0,0,60,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView HeightRequest="18" CornerRadius="4" Margin="0,0,120,0" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <HorizontalStackLayout Spacing="6" Margin="0,6,0,0">
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                        <BoxView WidthRequest="{OnIdiom Phone='64', Desktop='76'}" HeightRequest="24" CornerRadius="12" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    </HorizontalStackLayout>
+                </VerticalStackLayout>
+                <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}" Grid.Column="{OnIdiom Phone='1', Desktop='2'}"
+                      ColumnDefinitions="{OnIdiom Phone='*,Auto', Desktop='Auto'}" RowDefinitions="{OnIdiom Phone='Auto', Desktop='Auto,*'}" RowSpacing="12">
+                    <BoxView WidthRequest="120" HeightRequest="24" CornerRadius="4" HorizontalOptions="{OnIdiom Phone=Start, Desktop=End}" VerticalOptions="Start" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                    <BoxView Grid.Row="{OnIdiom Phone='0', Desktop='1'}" Grid.Column="{OnIdiom Phone='1', Desktop='0'}" WidthRequest="40" HeightRequest="40" CornerRadius="8" HorizontalOptions="End" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}" />
+                </Grid>
+            </Grid>
+            <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+        </Grid>
+    </VerticalStackLayout>
+</ContentView>

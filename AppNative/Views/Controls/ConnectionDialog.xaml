@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- Окно «Не удалось подключиться к серверу» = ConnectionErrorDialog.vue (затемнение + карточка 480px, радиус 24). -->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AppNative.ViewModels"
+             x:Class="AppNative.Views.Controls.ConnectionDialog"
+             x:DataType="vm:AppShellViewModel"
+             IsVisible="{Binding ConnectionOpen}">
+
+    <Grid BackgroundColor="#AA080807">
+        <Border MaximumWidthRequest="480"
+                Margin="16"
+                Padding="32,48,32,32"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                StrokeThickness="1"
+                StrokeShape="RoundRectangle 24"
+                Stroke="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}"
+                BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
+            <Grid>
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Не удалось подключиться к серверу"
+                           FontFamily="GolosTextMedium" FontSize="{OnIdiom Phone=24, Desktop=30}" LineHeight="1.2"
+                           TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                    <Label Text="Сервис временно недоступен. Попробуйте ещё раз"
+                           FontSize="16" LineHeight="1.5"
+                           TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                    <Label Text="{Binding ConnectionCode}" FontSize="13"
+                           TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                    <Button Text="{Binding RetryText}"
+                            Style="{StaticResource BtnAccentStyle}"
+                            Command="{Binding RetryConnectionCommand}"
+                            HorizontalOptions="Fill"
+                            Margin="0,12,0,0" />
+                </VerticalStackLayout>
+                <Button Text="×"
+                        Command="{Binding CloseConnectionCommand}"
+                        WidthRequest="36" HeightRequest="36" MinimumHeightRequest="36"
+                        Padding="0" CornerRadius="18" BorderWidth="0" FontSize="28"
+                        BackgroundColor="Transparent"
+                        TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}"
+                        HorizontalOptions="End" VerticalOptions="Start"
+                        Margin="0,-38,-20,0"
+                        SemanticProperties.Description="Закрыть окно" />
+            </Grid>
+        </Border>
+    </Grid>
+</ContentView>

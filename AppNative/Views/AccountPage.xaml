@@ -57,7 +57,7 @@
                                     <VerticalStackLayout Spacing="8" IsVisible="{Binding IsRegisterMode}">
                                         <Label Text="Как вас зовут" Style="{StaticResource FieldLabelStyle}" />
                                         <Border Style="{StaticResource AuthInputStyle}">
-                                            <Entry Text="{Binding Name}" Placeholder="Ваше имя" MaxLength="80" />
+                                            <Entry Text="{Binding Name}" Placeholder="Ваше имя" MaxLength="150" />
                                         </Border>
                                     </VerticalStackLayout>
 
@@ -174,13 +174,41 @@
                                          Margin="0,0,0,-32" Color="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
                             </Grid>
 
-                            <Label Text="{Binding SavedStatsText}" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" Margin="0,16,0,0" />
+                            <!-- .profile-editor (режим API): имя и город, PATCH /api/profile -->
+                            <VerticalStackLayout IsVisible="{Binding HasProfileEditor}" Spacing="12" Margin="0,16,0,0" MaximumWidthRequest="520" HorizontalOptions="Start">
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="Имя" Style="{StaticResource FieldLabelStyle}" />
+                                    <Border Style="{StaticResource AuthInputStyle}">
+                                        <Entry Text="{Binding ProfileName}" MaxLength="150" IsEnabled="{Binding ProfileIdle}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                                <VerticalStackLayout Spacing="8">
+                                    <Label Text="Город" Style="{StaticResource FieldLabelStyle}" />
+                                    <Border Style="{StaticResource AuthInputStyle}">
+                                        <Entry Text="{Binding ProfileCity}" MaxLength="150" IsEnabled="{Binding ProfileIdle}"
+                                               ReturnCommand="{Binding SaveProfileCommand}" />
+                                    </Border>
+                                </VerticalStackLayout>
+                                <Label Text="{Binding ProfileStatus}" IsVisible="{Binding ProfileStatus, Converter={StaticResource StringNotEmptyConverter}}"
+                                       FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                                <Label Text="{Binding ProfileError}" IsVisible="{Binding ProfileError, Converter={StaticResource StringNotEmptyConverter}}"
+                                       Style="{StaticResource FieldErrorStyle}" />
+                                <FlexLayout Wrap="Wrap">
+                                    <Button Text="Сохранить профиль" Style="{StaticResource BtnAccentStyle}" Command="{Binding SaveProfileCommand}"
+                                            IsEnabled="{Binding ProfileIdle}" Margin="0,0,8,8" />
+                                    <Button Text="Обновить профиль" Style="{StaticResource BtnGhostStyle}" Command="{Binding LoadProfileCommand}"
+                                            IsEnabled="{Binding ProfileIdle}" Margin="0,0,8,8" />
+                                </FlexLayout>
+                            </VerticalStackLayout>
+
+                            <Label Text="{Binding SavedStatsText}" IsVisible="{Binding ShowSavedStats}" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" Margin="0,16,0,0" />
                             <Label Text="{Binding AboutStatsText}" FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
-                            <HorizontalStackLayout Spacing="24">
-                                <Label Text="Обновить подбор" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}">
+                            <!-- .member__quick-links -->
+                            <HorizontalStackLayout Spacing="32" Margin="0,8,0,0">
+                                <Label Text="Обновить подбор" Padding="0,12" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}">
                                     <Label.GestureRecognizers><TapGestureRecognizer Command="{Binding NavigateToMatchCommand}" /></Label.GestureRecognizers>
                                 </Label>
-                                <Label Text="Избранное" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}">
+                                <Label Text="Избранное" Padding="0,12" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}">
                                     <Label.GestureRecognizers><TapGestureRecognizer Command="{Binding NavigateToSavedCommand}" /></Label.GestureRecognizers>
                                 </Label>
                             </HorizontalStackLayout>

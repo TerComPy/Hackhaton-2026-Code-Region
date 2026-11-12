@@ -25,6 +25,20 @@
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding SavedVacancies}"
                                              BindableLayout.ItemTemplate="{StaticResource VacancyDataTemplate}" />
 
+                        <!-- Saved.vue (API): гость / загрузка / ошибка -->
+                        <VerticalStackLayout IsVisible="{Binding IsGuest}" Padding="0,48" Spacing="16" HorizontalOptions="Start">
+                            <Label Text="Войдите в аккаунт, чтобы увидеть избранное." FontSize="16" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                            <Button Text="Войти в аккаунт" Style="{StaticResource BtnGhostStyle}" Command="{Binding NavigateToAccountCommand}" HorizontalOptions="Start" />
+                        </VerticalStackLayout>
+                        <HorizontalStackLayout IsVisible="{Binding IsLoading}" Padding="0,32" Spacing="8">
+                            <ActivityIndicator IsRunning="{Binding IsLoading}" WidthRequest="16" HeightRequest="16" VerticalOptions="Center" />
+                            <Label Text="Загружаем избранное…" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" VerticalOptions="Center" />
+                        </HorizontalStackLayout>
+                        <VerticalStackLayout IsVisible="{Binding HasError}" Padding="0,32" Spacing="12" HorizontalOptions="Start">
+                            <Label Text="{Binding LoadError}" Style="{StaticResource FieldErrorStyle}" />
+                            <Button Text="Повторить" Style="{StaticResource BtnGhostStyle}" Command="{Binding RetryCommand}" HorizontalOptions="Start" />
+                        </VerticalStackLayout>
+
                         <!-- .state -->
                         <VerticalStackLayout IsVisible="{Binding IsEmpty}" Padding="0,64" MaximumWidthRequest="460" HorizontalOptions="Start">
                             <!-- маскот Стартера машет: пока пусто -->
@@ -43,5 +57,7 @@
                 <controls:AppFooter />
             </VerticalStackLayout>
         </ScrollView>
+        <!-- «Не удалось подключиться к серверу» (ConnectionErrorDialog.vue) -->
+        <controls:ConnectionDialog Grid.RowSpan="2" />
     </Grid>
 </ContentPage>

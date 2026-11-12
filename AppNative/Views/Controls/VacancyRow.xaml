@@ -26,7 +26,20 @@
                     HeightRequest="{OnIdiom Phone='72', Desktop='104'}"
                     VerticalOptions="Start"
                     BackgroundColor="{AppThemeBinding Light={StaticResource BgRaiseLight}, Dark={StaticResource BgRaiseDark}}">
-                <Image Source="{Binding Vacancy.PhotoUrl}" Aspect="AspectFill" />
+                <Grid>
+                    <Image Source="{Binding Vacancy.PhotoUrl}" Aspect="AspectFill" IsVisible="{Binding Vacancy.HasPhoto}" />
+                    <!-- .vacancy-placeholder (ApiJobList.vue): у вакансий из базы нет фото -->
+                    <Grid IsVisible="{Binding Vacancy.IsLive}">
+                        <Grid.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#E9EADF" Offset="0" />
+                                <GradientStop Color="#DCE4D7" Offset="1" />
+                            </LinearGradientBrush>
+                        </Grid.Background>
+                        <Image Source="i_briefcase.png" WidthRequest="{OnIdiom Phone='32', Desktop='40'}" HeightRequest="{OnIdiom Phone='32', Desktop='40'}"
+                               HorizontalOptions="Center" VerticalOptions="Center" SemanticProperties.Description="Без изображения" />
+                    </Grid>
+                </Grid>
             </Border>
 
             <!-- .job__body -->
@@ -56,18 +69,20 @@
                         </FormattedString>
                     </Label.FormattedText>
                 </Label>
+                <ContentView IsVisible="{Binding Vacancy.ShowSummary}">
                 <Label Text="{Binding Vacancy.Summary}"
                        IsVisible="{OnIdiom Phone=False, Desktop=True}"
                        FontSize="15" LineHeight="1.45"
                        MaximumWidthRequest="620" HorizontalOptions="Start"
                        Margin="0,2,0,0"
                        TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                </ContentView>
                 <!-- .job__tags: «Подходит вам», опыт, формат -->
                 <FlexLayout Wrap="Wrap" Margin="0,8,0,0">
                     <Border Style="{StaticResource TagFitStyle}" Margin="0,0,6,6" IsVisible="{Binding IsFit}">
                         <Label Text="Подходит вам" Style="{StaticResource TagFitLabelStyle}" />
                     </Border>
-                    <Border Style="{StaticResource TagStyle}" Margin="0,0,6,6">
+                    <Border Style="{StaticResource TagStyle}" Margin="0,0,6,6" IsVisible="{Binding Vacancy.ShowExperienceTag}">
                         <Label Text="{Binding Vacancy.Experience}" Style="{StaticResource TagLabelStyle}" />
                     </Border>
                     <Border Style="{StaticResource TagStyle}" Margin="0,0,6,6">

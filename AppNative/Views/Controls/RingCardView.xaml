@@ -14,7 +14,7 @@
 
         <Grid>
             <!-- Фотография профессии -->
-            <Image Source="{Binding PhotoUrl}"
+            <Image Source="{Binding RingPhotoUrl}"
                    Aspect="AspectFill" />
 
             <!-- Градиентное затемнение снизу для читаемости текста -->

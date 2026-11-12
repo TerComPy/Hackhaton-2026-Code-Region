@@ -26,12 +26,13 @@ namespace AppNative
                 });
 
             // Services — бэкенд СТАРТЕР (адрес в Services/Api/ApiConfig.cs).
-            // Вернуть полностью офлайн-демо: заменить Api* на Mock* (MockVacancyService, MockFavoritesService, MockAuthService, MockMatchService).
+            // Вернуть полностью офлайн-демо: заменить Api* на Mock* (MockVacancyService, MockFavoritesService, MockAuthService, MockMatchService, MockProfileService).
             builder.Services.AddSingleton<ApiClient>();
             builder.Services.AddSingleton<IAuthService, ApiAuthService>();
             builder.Services.AddSingleton<IVacancyService, ApiVacancyService>();
             builder.Services.AddSingleton<IFavoritesService, ApiFavoritesService>();
             builder.Services.AddSingleton<IMatchService, ApiMatchService>();
+            builder.Services.AddSingleton<IProfileService, ApiProfileService>();
 
             // ViewModels
             builder.Services.AddSingleton<AppShellViewModel>();

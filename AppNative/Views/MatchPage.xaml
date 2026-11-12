@@ -83,7 +83,7 @@
                             <!-- Пустое состояние с котом Стартером -->
                             <VerticalStackLayout IsVisible="{Binding ShowPlaceholder}" Spacing="22" Padding="0,48"
                                                  HorizontalOptions="Center" VerticalOptions="Center">
-                                <Image Source="mascot_map.png" WidthRequest="{OnIdiom Phone=260, Desktop=360}" Aspect="AspectFit" HorizontalOptions="Center" />
+                                <Image Source="mascot_detective.png" WidthRequest="{OnIdiom Phone=260, Desktop=360}" Aspect="AspectFit" HorizontalOptions="Center" />
                                 <Label Text="Давай найдём то, что по душе" FontFamily="GolosTextMedium" FontSize="22"
                                        HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
                             </VerticalStackLayout>
@@ -155,5 +155,7 @@
                 <controls:AppFooter />
             </VerticalStackLayout>
         </ScrollView>
+        <!-- «Не удалось подключиться к серверу» (ConnectionErrorDialog.vue) -->
+        <controls:ConnectionDialog Grid.RowSpan="2" />
     </Grid>
 </ContentPage>
