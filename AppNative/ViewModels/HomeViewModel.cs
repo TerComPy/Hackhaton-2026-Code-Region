@@ -110,7 +110,16 @@ public partial class HomeViewModel : ObservableObject
     partial void OnSourceSuperJobChanged(bool value) => QueueApply();
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowSkeleton))]
+    [NotifyPropertyChangedFor(nameof(ShowCount))]
+    [NotifyPropertyChangedFor(nameof(ShowList))]
     private bool _isLoading = true;
+
+    /// <summary>CatalogWidget.vue: скелетон только для API и вошедшего пользователя.</summary>
+    public bool ShowSkeleton => IsLoading && _vacancyService.IsLive;
+    public bool ShowList => !ShowSkeleton;
+    /// <summary>Счётчик скрыт, пока API грузит первую порцию.</summary>
+    public bool ShowCount => !ShowSkeleton || Vacancies.Count > 0;
 
     [ObservableProperty]
     private bool _hasError;
@@ -245,6 +254,16 @@ public partial class HomeViewModel : ObservableObject
         await Shell.Current.GoToAsync($"vacancy?id={vacancy.Id}");
     }
 
+    /// <summary>Гость: вместо списка — CatalogGuestState («Войти и посмотреть вакансии»).</summary>
+    [ObservableProperty]
+    private bool _isGuestCatalog;
+
+    [RelayCommand]
+    public async Task NavigateToAccountAsync()
+    {
+        await Shell.Current.GoToAsync("//account");
+    }
+
     [RelayCommand]
     public async Task NavigateToMatchAsync()
     {
@@ -297,12 +316,13 @@ public partial class HomeViewModel : ObservableObject
             _limit = PageSize;
             FillVisible();
 
-            IsEmpty = list.Count == 0;
+            IsGuestCatalog = !_vacancyService.IsLive && _vacancyService is AppNative.Services.Api.ApiVacancyService;
+            IsEmpty = list.Count == 0 && !IsGuestCatalog;
             HasActiveFilters = activeCount > 0;
             // Как в CatalogWidget.vue: «Загружено: N · API» / «N вакансий · Демо (mock)»
-            ResultCountText = _vacancyService.IsLive
+            ResultCountText = _vacancyService.IsLive || IsGuestCatalog
                 ? $"Загружено: {list.Count} · API"
-                : $"{list.Count} вакансий · Демо — войдите, чтобы увидеть реальные";
+                : $"{list.Count} вакансий · Демо (mock)";
         }
         catch
         {

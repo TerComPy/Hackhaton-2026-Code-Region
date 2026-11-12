@@ -31,4 +31,12 @@ public partial class AppFooter : ContentView
         // Как и шапка, футер работает от общего AppShellViewModel, а не от VM страницы.
         BindingContext = IPlatformApplication.Current?.Services.GetService<AppShellViewModel>();
     }
+
+    /// <summary>Нет сети / виджет не загрузился — прячем карту и показываем подсказку (как FooterOfficeMap.vue).</summary>
+    private void OnMapNavigated(object? sender, WebNavigatedEventArgs e)
+    {
+        var failed = e.Result != WebNavigationResult.Success;
+        OfficeMap.IsVisible = !failed;
+        MapFallback.IsVisible = failed;
+    }
 }

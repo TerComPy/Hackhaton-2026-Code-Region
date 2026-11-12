@@ -6,7 +6,7 @@ namespace AppNative.Services.Api;
 
 /// <summary>
 /// Каталог из /api/vacancies. Как веб в режиме API: каталог доступен после входа.
-/// Гостю и в «кольце» профессий показываем демо-вакансии (отрицательные id, чтобы не пересекаться с реальными).
+/// В «кольце» профессий — демо-карточки (отрицательные id, чтобы не пересекаться с реальными).
 /// </summary>
 public class ApiVacancyService : IVacancyService
 {
@@ -34,8 +34,9 @@ public class ApiVacancyService : IVacancyService
 
     public async Task<List<Vacancy>> GetVacanciesAsync(VacancyFilterOptions? filters = null, HashSet<string>? fitDirections = null)
     {
+        // Как CatalogWidget.vue: гостю каталог не показываем (CatalogGuestState — «войдите»)
         if (!_auth.IsSignedIn)
-            return (await _demo.GetVacanciesAsync(filters, fitDirections)).Select(Demo).ToList();
+            return new List<Vacancy>();
 
         filters ??= new VacancyFilterOptions();
         var q = new List<string> { "pageSize=60" };
@@ -104,13 +105,10 @@ public class ApiVacancyService : IVacancyService
     /// <summary>Запись перехода к работодателю (POST outbound-click) — вернёт оригинальную ссылку.</summary>
     public async Task<string?> GetOutboundUrlAsync(int id)
     {
-        if (id < 0 || !_auth.IsSignedIn) return null;
-        try
-        {
-            var root = await _api.PostAsync($"/api/vacancies/{id}/outbound-click");
-            return root?.Str("originalUrl");
-        }
-        catch (ApiException) { return null; }
+        if (id < 0) return null; // демо — ссылка поиска из карточки
+        // Ошибки (404 архив, 401 сессия) пробрасываем — карточка покажет текст, как на сайте
+        var root = await _api.PostAsync($"/api/vacancies/{id}/outbound-click");
+        return root?.Str("originalUrl");
     }
 
     public Task<List<JobSource>> GetSourcesAsync() => _demo.GetSourcesAsync();

@@ -10,6 +10,38 @@ public partial class AccountViewModel : ObservableObject
     private readonly IAuthService _authService;
     private readonly IFavoritesService _favoritesService;
     private readonly IMatchService _matchService;
+    private readonly IProfileService _profileService;
+    private int _profileGeneration;
+
+    // ---------- Редактор профиля (Account.vue + entities/userProfile.ts, режим API) ----------
+    [ObservableProperty] private bool _hasProfileEditor;
+    /// <summary>«N сохранённых вакансий» — только в демо, как на сайте.</summary>
+    public bool ShowSavedStats => !HasProfileEditor;
+    partial void OnHasProfileEditorChanged(bool value) => OnPropertyChanged(nameof(ShowSavedStats));
+
+    [ObservableProperty] private string _profileName = string.Empty;
+    [ObservableProperty] private string _profileCity = string.Empty;
+    partial void OnProfileNameChanged(string value) => ProfileSuccess = string.Empty;
+    partial void OnProfileCityChanged(string value) => ProfileSuccess = string.Empty;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProfileIdle))]
+    [NotifyPropertyChangedFor(nameof(ProfileStatus))]
+    private bool _profileLoading;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProfileIdle))]
+    [NotifyPropertyChangedFor(nameof(ProfileStatus))]
+    private bool _profileSaving;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ProfileStatus))]
+    private string _profileSuccess = string.Empty;
+
+    [ObservableProperty] private string _profileError = string.Empty;
+
+    public bool ProfileIdle => !ProfileLoading && !ProfileSaving;
+    public string ProfileStatus => ProfileLoading ? "Загружаем профиль…" : ProfileSaving ? "Сохраняем…" : ProfileSuccess;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(AuthTitle))]
@@ -86,11 +118,13 @@ public partial class AccountViewModel : ObservableObject
     public AccountViewModel(
         IAuthService authService,
         IFavoritesService favoritesService,
-        IMatchService matchService)
+        IMatchService matchService,
+        IProfileService profileService)
     {
         _authService = authService;
         _favoritesService = favoritesService;
         _matchService = matchService;
+        _profileService = profileService;
 
         _authService.AuthStateChanged += (s, e) => RefreshUser();
         _favoritesService.FavoritesChanged += (s, e) => RefreshStats();
@@ -103,6 +137,15 @@ public partial class AccountViewModel : ObservableObject
     {
         IsSignedIn = _authService.IsSignedIn;
         CurrentUser = _authService.CurrentUser;
+
+        // Новая сессия — сбрасываем редактор и подтягиваем профиль с сервера
+        _profileGeneration++;
+        ProfileLoading = ProfileSaving = false;
+        ProfileError = ProfileSuccess = string.Empty;
+        HasProfileEditor = IsSignedIn && _profileService.IsAvailable;
+        ProfileName = HasProfileEditor ? CurrentUser?.Name ?? string.Empty : string.Empty;
+        ProfileCity = string.Empty;
+        if (HasProfileEditor) _ = LoadProfileAsync();
 
         if (CurrentUser != null && IsSignedIn)
         {
@@ -164,7 +207,7 @@ public partial class AccountViewModel : ObservableObject
         var email = Email.Trim();
         bool emailOk = System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^\s@]+@[^\s@]+\.[^\s@]+$");
         // Account.vue (режим API): та же проверка и то же сообщение
-        if ((IsRegisterMode && string.IsNullOrWhiteSpace(Name)) || !emailOk || Password.Length < 8 || Password.Length > 128)
+        if ((IsRegisterMode && (string.IsNullOrWhiteSpace(Name) || Name.Trim().Length > 150)) || !emailOk || Password.Length < 8 || Password.Length > 128)
         {
             GeneralError = "Проверьте email, имя и пароль (от 8 до 128 символов).";
             return;
@@ -187,6 +230,57 @@ public partial class AccountViewModel : ObservableObject
             IsBusy = false;
             Password = string.Empty; // пароль нигде не храним
             IsPasswordHidden = true;
+        }
+    }
+
+    [RelayCommand]
+    public Task LoadProfileAsync() => ProfileRequestAsync(save: false);
+
+    [RelayCommand]
+    public Task SaveProfileAsync() => ProfileRequestAsync(save: true);
+
+    private async Task ProfileRequestAsync(bool save)
+    {
+        if (!HasProfileEditor || !ProfileIdle) return;
+        var name = ProfileName.Trim();
+        var city = ProfileCity.Trim();
+        if (save && (name.Length == 0 || name.Length > 150 || city.Length > 150))
+        {
+            ProfileError = "Укажите имя от 1 до 150 символов и город до 150 символов.";
+            ProfileSuccess = string.Empty;
+            return;
+        }
+        var version = _profileGeneration;
+        ProfileError = ProfileSuccess = string.Empty;
+        if (save) ProfileSaving = true; else ProfileLoading = true;
+        try
+        {
+            var data = save
+                ? await _profileService.UpdateAsync(name, city.Length == 0 ? null : city)
+                : await _profileService.GetAsync();
+            if (version != _profileGeneration) return;
+            ProfileName = data.DisplayName;
+            ProfileCity = data.City;
+            // имя в шапке .member__head
+            CurrentUser = null;
+            CurrentUser = _authService.CurrentUser;
+            if (save) ProfileSuccess = "Профиль сохранён.";
+        }
+        catch (AppNative.Services.Api.ApiException ex)
+        {
+            if (version != _profileGeneration) return;
+            ProfileError = ex.Status == System.Net.HttpStatusCode.BadRequest
+                ? "Проверьте имя и город (до 150 символов)."
+                : "Не удалось сохранить или загрузить профиль. Повторите попытку.";
+        }
+        catch (Exception)
+        {
+            if (version != _profileGeneration) return;
+            ProfileError = "Не удалось сохранить или загрузить профиль. Повторите попытку.";
+        }
+        finally
+        {
+            if (version == _profileGeneration) ProfileLoading = ProfileSaving = false;
         }
     }
 

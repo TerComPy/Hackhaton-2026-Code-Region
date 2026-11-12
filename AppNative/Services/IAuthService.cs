@@ -13,4 +13,7 @@ public interface IAuthService
 
     /// <summary>Понятная причина последней неудачи входа/регистрации (API). У демо — пусто.</summary>
     string LastError => string.Empty;
+
+    /// <summary>После PATCH /api/profile — новое имя в шапке профиля (у демо — ничего).</summary>
+    void UpdateDisplayName(string name) { }
 }

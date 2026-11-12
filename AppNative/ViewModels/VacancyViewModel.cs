@@ -40,6 +40,36 @@ public partial class VacancyViewModel : ObservableObject
     private bool _isLive;
 
     [ObservableProperty] private string _aiNote = string.Empty;
+
+    /// <summary>ИИ генерирует пересказ (ai.busy во фронтенде): кнопка «Простыми словами» неактивна.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanShowPlain))]
+    private bool _aiBusy;
+    public bool CanShowPlain => !AiBusy;
+
+    // ---------- Загрузка и переход к работодателю (vacancyDetails.ts) ----------
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasLoadError))]
+    private string _loadError = string.Empty;
+    public bool HasLoadError => !string.IsNullOrEmpty(LoadError);
+
+    [ObservableProperty] private bool _isLoading;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(OpenButtonText))]
+    [NotifyPropertyChangedFor(nameof(CanOpen))]
+    private bool _outboundBusy;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasOutboundError))]
+    private string _outboundError = string.Empty;
+    public bool HasOutboundError => !string.IsNullOrEmpty(OutboundError);
+
+    private bool _outboundUnavailable;
+    public bool CanOpen => !OutboundBusy && (!IsLive || (Vacancy?.IsActive == true && !_outboundUnavailable));
+    /// <summary>Переключатель «Простыми словами / Оригинал» — у демо и активных вакансий.</summary>
+    public bool ShowSeg => !IsLive || Vacancy?.IsActive == true;
+    public bool ShowArchivedNote => IsLive && Vacancy?.IsArchived == true;
     [ObservableProperty] private string _aiError = string.Empty;
     [ObservableProperty] private string _aiSimpleTitle = string.Empty;
     [ObservableProperty] private bool _aiBeginner;
@@ -49,7 +79,9 @@ public partial class VacancyViewModel : ObservableObject
     public string OriginalHead1 => IsLive ? "Обязанности" : "Что делать";
     public string OriginalHead2 => IsLive ? "Требования" : "Что нужно";
     public string OriginalHead3 => IsLive ? "Описание" : "Условия";
-    public string OpenButtonText => IsLive ? "Открыть у работодателя" : $"Открыть на {Vacancy?.Source}";
+    public string OpenButtonText => IsLive
+        ? (OutboundBusy ? "Открываем…" : "Открыть у работодателя")
+        : $"Открыть на {Vacancy?.Source}";
     public string FootNote => IsLive
         ? "Переход к работодателю не является откликом на вакансию."
         : "Демо-вакансия: ссылка открывает поиск похожих объявлений.";
@@ -81,19 +113,39 @@ public partial class VacancyViewModel : ObservableObject
         _aiCts?.Cancel();
         _ai = null;
         _wantsPlain = false;
-        AiNote = AiError = AiSimpleTitle = string.Empty;
-        AiBeginner = false;
+        AiNote = AiError = AiSimpleTitle = LoadError = OutboundError = string.Empty;
+        AiBeginner = AiBusy = _outboundUnavailable = false;
+        IsLoading = true;
         try
         {
             Vacancy = await _vacancyService.GetVacancyByIdAsync(value);
+            if (Vacancy == null) LoadError = "Вакансия не найдена или удалена.";
+        }
+        catch (AppNative.Services.Api.ApiException ex)
+        {
+            Vacancy = null;
+            LoadError = ex.Status switch
+            {
+                System.Net.HttpStatusCode.Unauthorized => "Сессия недействительна. Войдите повторно.",
+                System.Net.HttpStatusCode.NotFound => "Вакансия не найдена или удалена.",
+                _ => "Не удалось загрузить вакансию. Повторите попытку."
+            };
         }
         catch (Exception)
         {
-            Vacancy = null; // нет сети / вакансия снята — страница останется пустой, закрыть можно ✕
+            Vacancy = null;
+            LoadError = "Не удалось загрузить вакансию. Повторите попытку.";
+        }
+        finally
+        {
+            IsLoading = false;
         }
         IsLive = Vacancy?.IsLive == true;
         OnPropertyChanged(nameof(OpenButtonText));
-        if (IsLive)
+        OnPropertyChanged(nameof(CanOpen));
+        OnPropertyChanged(nameof(ShowSeg));
+        OnPropertyChanged(nameof(ShowArchivedNote));
+        if (IsLive && Vacancy?.IsActive == true)
         {
             // Как на сайте: сначала оригинал; готовый пересказ только читаем (модель не тратим)
             IsPlainMode = false;
@@ -154,6 +206,7 @@ public partial class VacancyViewModel : ObservableObject
         if (_ai?.IsDone == true) { IsPlainMode = true; return; }
         if (_aiCts != null) return; // уже ждём
         AiError = string.Empty;
+        AiBusy = true;
         // Уже в очереди — только опрашиваем, иначе ставим в очередь
         _ = FetchAiAsync(enqueue: _ai?.IsInProgress != true);
     }
@@ -162,7 +215,9 @@ public partial class VacancyViewModel : ObservableObject
     public void RetryAi()
     {
         if (_aiCts != null) return;
+        _wantsPlain = true;
         AiError = string.Empty;
+        AiBusy = true;
         _ = FetchAiAsync(enqueue: _ai?.IsInProgress != true);
     }
 
@@ -180,6 +235,7 @@ public partial class VacancyViewModel : ObservableObject
             while (!cts.IsCancellationRequested && state is { IsInProgress: true })
             {
                 ApplyAi(state);
+                AiBusy = true;
                 AiNote = "ИИ готовит понятное описание. Оригинал доступен, пока идёт обработка.";
                 if (DateTime.UtcNow > deadline)
                 {
@@ -192,6 +248,7 @@ public partial class VacancyViewModel : ObservableObject
             if (cts.IsCancellationRequested || Vacancy?.Id != id) return;
             ApplyAi(state);
             if (state?.Status == "failed") AiError = "ИИ не смог обработать вакансию. Можно повторить попытку.";
+            else if (enqueue && state?.IsDone != true) AiError = "Не удалось получить пересказ. Оригинал вакансии доступен.";
         }
         catch (TaskCanceledException) { }
         catch (AppNative.Services.Api.ApiException ex)
@@ -207,7 +264,7 @@ public partial class VacancyViewModel : ObservableObject
         }
         finally
         {
-            if (_aiCts == cts) { _aiCts = null; AiNote = string.Empty; }
+            if (_aiCts == cts) { _aiCts = null; AiNote = string.Empty; AiBusy = false; }
         }
     }
 
@@ -239,17 +296,54 @@ public partial class VacancyViewModel : ObservableObject
     [RelayCommand]
     public async Task OpenExternalAsync()
     {
-        if (Vacancy == null) return;
+        if (Vacancy == null || !CanOpen) return;
         // API: фиксируем переход (outbound-click) и берём оригинальную ссылку; демо — ссылка поиска
-        var url = await _vacancyService.GetOutboundUrlAsync(Vacancy.Id) ?? Vacancy.Url;
-        if (string.IsNullOrWhiteSpace(url)) return;
+        string? url;
+        OutboundBusy = true;
+        OutboundError = string.Empty;
         try
         {
-            await Launcher.Default.OpenAsync(new Uri(url));
+            url = await _vacancyService.GetOutboundUrlAsync(Vacancy.Id) ?? Vacancy.Url;
+        }
+        catch (AppNative.Services.Api.ApiException ex)
+        {
+            if (ex.Status == System.Net.HttpStatusCode.NotFound)
+            {
+                _outboundUnavailable = true;
+                OutboundError = "Переход недоступен: вакансия удалена или находится в архиве.";
+            }
+            else
+            {
+                OutboundError = ex.Status == System.Net.HttpStatusCode.Unauthorized
+                    ? "Сессия недействительна. Войдите повторно."
+                    : "Не удалось открыть вакансию. Повторите попытку.";
+            }
+            return;
+        }
+        catch (Exception)
+        {
+            OutboundError = "Не удалось открыть вакансию. Повторите попытку.";
+            return;
+        }
+        finally
+        {
+            OutboundBusy = false;
+            OnPropertyChanged(nameof(CanOpen));
+        }
+        // Как safeExternalUrl на сайте: только http/https
+        if (string.IsNullOrWhiteSpace(url) || !Uri.TryCreate(url, UriKind.Absolute, out var uri)
+            || (uri.Scheme != Uri.UriSchemeHttp && uri.Scheme != Uri.UriSchemeHttps))
+        {
+            OutboundError = "Не удалось открыть вакансию. Повторите попытку.";
+            return;
+        }
+        try
+        {
+            await Launcher.Default.OpenAsync(uri);
         }
         catch
         {
-            // ignore
+            OutboundError = "Не удалось открыть вакансию. Повторите попытку.";
         }
     }
 

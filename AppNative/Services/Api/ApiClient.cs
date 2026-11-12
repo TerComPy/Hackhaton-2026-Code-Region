@@ -56,6 +56,9 @@ public class ApiClient
     public Task<JsonElement?> PutAsync(string path, CancellationToken ct = default) =>
         SendAsync(HttpMethod.Put, path, null, ct);
 
+    public Task<JsonElement?> PatchAsync(string path, object? body, CancellationToken ct = default) =>
+        SendAsync(HttpMethod.Patch, path, body, ct);
+
     public Task<JsonElement?> DeleteAsync(string path, CancellationToken ct = default) =>
         SendAsync(HttpMethod.Delete, path, null, ct);
 

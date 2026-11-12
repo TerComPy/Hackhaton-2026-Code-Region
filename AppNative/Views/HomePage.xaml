@@ -150,7 +150,7 @@
                             </ScrollView>
                             <!-- .ring-hint -->
                             <!-- .ring-hint__demo (режим API) -->
-                            <Label Text="Демонстрация профессий · вымышленные вакансии"
+                            <Label Text="Знакомьтесь с профессиями — найдите своё направление"
                                    FontFamily="JetBrainsMonoRegular" FontSize="12"
                                    TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}"
                                    HorizontalTextAlignment="Center" Margin="0,0,0,-12" />
@@ -421,7 +421,7 @@
                         <!-- .section-head -->
                         <FlexLayout Wrap="Wrap" JustifyContent="SpaceBetween" AlignItems="End" Margin="0,0,0,32">
                             <Label Text="Каталог" Style="{StaticResource PageTitleStyle}" Margin="0,0,24,0" />
-                            <Label Text="{Binding ResultCountText}" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                            <Label Text="{Binding ResultCountText}" IsVisible="{Binding ShowCount}" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
                         </FlexLayout>
 
                         <Grid ColumnDefinitions="{OnIdiom Phone='*', Desktop='240,*'}"
@@ -544,9 +544,11 @@
                                 </Grid>
                                 <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
 
-                                <ActivityIndicator IsRunning="{Binding IsLoading}" IsVisible="{Binding IsLoading}" HeightRequest="28" Margin="0,12" />
+                                <!-- CatalogSkeleton.vue — при загрузке из API; демо грузится мгновенно -->
+                                <controls:CatalogSkeleton IsVisible="{Binding ShowSkeleton}" />
 
-                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Vacancies}"
+                                <VerticalStackLayout IsVisible="{Binding ShowList}"
+                                                     BindableLayout.ItemsSource="{Binding Vacancies}"
                                                      BindableLayout.ItemTemplate="{StaticResource VacancyDataTemplate}" />
 
                                 <!-- ошибка API: уставший маскот + «Повторить», как .state на сайте -->
@@ -554,6 +556,17 @@
                                     <Image Source="mascot_tired.png" WidthRequest="200" Aspect="AspectFit" HorizontalOptions="Center" />
                                     <Label Text="Не удалось загрузить вакансии." Style="{StaticResource FieldErrorStyle}" HorizontalTextAlignment="Center" />
                                     <Button Text="Повторить" Style="{StaticResource BtnGhostStyle}" Command="{Binding SearchCommand}" HorizontalOptions="Center" />
+                                </VerticalStackLayout>
+
+                                <!-- CatalogGuestState.vue: гостю — кот и «Войти и посмотреть вакансии» -->
+                                <VerticalStackLayout IsVisible="{Binding IsGuestCatalog}" Padding="12,32,12,56" Spacing="16" HorizontalOptions="Center">
+                                    <Image Source="mascot_catalog_guest.png" WidthRequest="{OnIdiom Phone=300, Desktop=420}" Aspect="AspectFit" HorizontalOptions="Center" Margin="0,0,0,8" />
+                                    <Label Text="Твоя следующая работа уже близко" FontFamily="GolosTextMedium" FontSize="{OnIdiom Phone=24, Desktop=34}" LineHeight="1.2"
+                                           HorizontalTextAlignment="Center" MaximumWidthRequest="520" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                    <Label Text="Войди, чтобы открыть каталог вакансий, найти подходящее предложение и сохранить его в избранное"
+                                           FontSize="16" LineHeight="1.6" HorizontalTextAlignment="Center" MaximumWidthRequest="460" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                                    <Button Text="Войти и посмотреть вакансии" Style="{StaticResource BtnAccentStyle}"
+                                            Command="{Binding NavigateToAccountCommand}" HorizontalOptions="Center" Margin="0,8,0,0" />
                                 </VerticalStackLayout>
 
                                 <!-- CatalogEmptyState.vue -->
@@ -625,5 +638,7 @@
 
             </VerticalStackLayout>
         </ScrollView>
+        <!-- «Не удалось подключиться к серверу» (ConnectionErrorDialog.vue) -->
+        <controls:ConnectionDialog Grid.RowSpan="2" />
     </Grid>
 </ContentPage>
