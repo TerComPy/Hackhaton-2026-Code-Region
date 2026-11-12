@@ -1,0 +1,2 @@
+﻿import { defineConfig } from '@playwright/test';
+export default defineConfig({ testDir: './tests', testMatch: 'catalog-skeleton-mock.spec.ts', use: { channel: process.env.PLAYWRIGHT_CHANNEL || undefined, baseURL: 'http://127.0.0.1:5194' }, webServer: { command: 'npm run dev -- --port 5194 --strictPort', url: 'http://127.0.0.1:5194', env: { VITE_DATA_MODE: 'mock' } }, projects: [375,1440].map(width => ({ name: String(width), use: { viewport: { width, height:900 } } })) });
