@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger.js';
 import { parseModelJson, sourceFields, type AiSummary, type SourceVacancy } from './schema.js';
 
 export interface ProviderOptions {
@@ -9,6 +10,7 @@ export interface ProviderOptions {
 export class AiProviderError extends Error {
   constructor(readonly code: string, readonly retryable: boolean, readonly retryAfterSeconds = 0) {
     super(code);
+    logger.warn({ event: 'ai_provider_error', code, retryable }, 'AI provider request failed');
   }
 }
 
