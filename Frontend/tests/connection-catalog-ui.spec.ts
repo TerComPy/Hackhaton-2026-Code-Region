@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-test.skip(({ }, info) => !info.config.configFile?.endsWith('playwright.connection.config.ts'));
+test.beforeEach(() => { test.skip(!test.info().config.configFile?.endsWith('playwright.connection.config.ts')); });
 const api = process.env.UI_DATA_MODE !== 'mock';
 test.beforeEach(async ({ page }) => {
   await page.route('**/api/health', r => r.fulfill({ json: { status: 'ok' } }));
