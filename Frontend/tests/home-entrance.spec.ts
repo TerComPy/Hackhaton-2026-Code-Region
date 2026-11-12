@@ -17,6 +17,8 @@ for (const width of [375, 1280]) {
       'Работа России', 'hh.ru', 'SuperJob',
     ]);
     await expect(page.locator('#sources')).not.toContainText('Демо-каталог');
+    // A single hint is visible; the API disclaimer must not overlap instructions.
+    await expect(page.locator('.ring-hint')).toHaveCount(1);
 
     const motion = await page.evaluate((viewportWidth) => {
       const style = (selector: string) =>
@@ -64,4 +66,40 @@ test('reduced motion does not animate home elements', async ({ page }) => {
   ]) {
     await expect(page.locator(selector).first()).toHaveCSS('animation-name', 'none');
   }
+});
+
+test('cached home scene pauses while another route is active and resumes on return', async ({ page }) => {
+  await page.goto('/#/');
+  await expect(page.locator('#ring')).toBeVisible();
+
+  // Keep a reference to the cached DOM node while Vue moves it out of the document.
+  await page.evaluate(() => {
+    (window as Window & { __starterTestRing?: HTMLElement }).__starterTestRing =
+      document.querySelector<HTMLElement>('#ring')!;
+  });
+  await page.locator('.nav__link[href="#/match"]').click();
+  await expect(page.locator('[data-view="home"]')).toHaveCount(0);
+
+  const transform = () => page.evaluate(() =>
+    (window as Window & { __starterTestRing?: HTMLElement }).__starterTestRing!.style.transform,
+  );
+  const pausedTransform = await transform();
+  await page.waitForTimeout(350);
+  expect(await transform()).toBe(pausedTransform);
+
+  await page.locator('.nav__link[href="#/"]').click();
+  await expect(page.locator('[data-view="home"]')).toBeVisible();
+  await expect.poll(transform).not.toBe(pausedTransform);
+  await expect(page.locator('#hero-title .hero__line').first())
+    .toHaveCSS('animation-name', 'home-line-in');
+});
+
+test('footer uses the refreshed transparent mascot assets', async ({ page }) => {
+  await page.goto('/#/');
+  const mascot = page.locator('footer.footer--illustrated img.footer__cat');
+  await mascot.scrollIntoViewIfNeeded();
+  await expect(mascot).toHaveAttribute('src', /starter-footer-cat-ball-800\.webp\?v=20261112-2/);
+  await expect(mascot).toHaveAttribute('srcset', /starter-footer-cat-ball-1440\.webp\?v=20261112-2/);
+  await expect.poll(() => mascot.evaluate((el: HTMLImageElement) => el.naturalWidth))
+    .toBeGreaterThan(0);
 });
