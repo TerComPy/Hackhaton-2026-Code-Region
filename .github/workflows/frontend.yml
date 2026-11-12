@@ -22,6 +22,12 @@ jobs:
       - run: npm run typecheck
       - run: npm run build
       - run: npx playwright install --with-deps chromium
+      - name: Connection and catalog UI (API)
+        run: npx playwright test --config playwright.connection.config.ts
+      - name: Connection and catalog UI (mock)
+        run: npx playwright test --config playwright.connection.config.ts
+        env:
+          UI_DATA_MODE: mock
       - run: npm run test:match-ui
       - run: npm run test:ai-ui
       - run: npm run test:smoke
