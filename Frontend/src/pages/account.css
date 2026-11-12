@@ -54,3 +54,14 @@
   .auth-heading .page-title { font-size: 30px; }
   .auth-switch button { min-height: 48px; }
 }
+
+/* Keep profile quick links separate on desktop and narrow screens. */
+.member__quick-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s2) var(--s6);
+  margin-top: var(--s4);
+  margin-bottom: var(--s5);
+}
+.member__quick-links .link-arrow { min-height: 44px; }

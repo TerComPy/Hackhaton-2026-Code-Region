@@ -109,8 +109,10 @@ async function submit() {
       </form>
       <p v-if="dataMode === 'mock'">{{ store.saved.length }} сохранённых вакансий</p>
       <p>{{ store.about }}</p>
-      <a class="link-arrow" href="#/match">Обновить подбор</a
-      ><a class="link-arrow" href="#/saved">Избранное</a>
+      <nav class="member__quick-links" aria-label="Ссылки профиля">
+        <a class="link-arrow" href="#/match">Обновить подбор</a>
+        <a class="link-arrow" href="#/saved">Избранное</a>
+      </nav>
     </div>
   </section>
 </template>
