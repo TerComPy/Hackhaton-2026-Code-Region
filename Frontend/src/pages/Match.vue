@@ -124,50 +124,113 @@ async function submit() {
         </button>
       </form>
     </div>
-
-    <div class="match__result" aria-live="polite">
+    <div
+      class="match__result"
+      :class="{ 'match__result--empty': !ready && !busy }"
+      aria-live="polite"
+    >
+      <!-- Загрузка рекомендаций -->
       <div v-if="busy" class="loading" role="status">
-        <p class="loading__status">ИИ анализирует рассказ и ищет вакансии в базе…</p>
-        <p class="auth__note">Это может занять несколько секунд.</p>
+        <p class="loading__status">
+          ИИ анализирует рассказ и ищет вакансии в базе…
+        </p>
+        <p class="auth__note">
+          Это может занять несколько секунд.
+        </p>
       </div>
+
+      <!-- Результаты реального API -->
       <template v-else-if="apiMode && ready">
         <div class="insight">
           <p class="eyebrow">Ваши возможности</p>
           <h2>Три направления для старта</h2>
-          <p class="auth__note">Вакансии ниже — из реальной базы. Обратите внимание на требования работодателей.</p>
+          <p class="auth__note">
+            Вакансии ниже — из реальной базы.
+            Обратите внимание на требования работодателей.
+          </p>
         </div>
+
         <div class="directions">
-          <article v-for="(direction, index) in directions" :key="index" class="direction">
+          <article
+            v-for="(direction, index) in directions"
+            :key="index"
+            class="direction"
+          >
             <div class="direction__head">
-              <span class="direction__num">{{ String(index + 1).padStart(2, '0') }}</span>
-              <h2 class="direction__name">{{ direction.name }}</h2>
+              <span class="direction__num">
+                {{ String(index + 1).padStart(2, "0") }}
+              </span>
+              <h2 class="direction__name">
+                {{ direction.name }}
+              </h2>
             </div>
+
             <div class="direction__body">
               <p class="direction__what">{{ direction.what }}</p>
               <p class="direction__why">{{ direction.why }}</p>
-              <p class="auth__note">Основано на ваших словах:
-                <q v-for="(quote, i) in direction.evidence" :key="i">{{ quote }}</q>
+
+              <p class="auth__note">
+                Основано на ваших словах:
+                <q
+                  v-for="(quote, i) in direction.evidence"
+                  :key="i"
+                >{{ quote }}</q>
               </p>
-              <h3 class="match__vacancy-title">Вакансии по направлению</h3>
-              <ApiJobList v-if="direction.vacancies.length" :jobs="direction.vacancies" />
+
+              <h3 class="match__vacancy-title">
+                Вакансии по направлению
+              </h3>
+
+              <ApiJobList
+                v-if="direction.vacancies.length"
+                :jobs="direction.vacancies"
+              />
+
               <p v-else class="state match__no-jobs">
-                Сейчас в базе нет подходящих активных вакансий по этому направлению.
+                Сейчас в базе нет подходящих активных
+                вакансий по этому направлению.
               </p>
             </div>
           </article>
         </div>
       </template>
+
+      <!-- Демо-режим -->
       <template v-else-if="!apiMode && ready">
-        <article class="direction" v-for="d in store.directions" :key="d.key">
-          <h2>{{ d.name }}</h2><p>{{ d.what }}</p>
-          <p>{{ d.hits.length ? d.why : 'Прямых совпадений нет — направление для знакомства.' }}</p>
+        <article
+          v-for="d in store.directions"
+          :key="d.key"
+          class="direction"
+        >
+          <h2>{{ d.name }}</h2>
+          <p>{{ d.what }}</p>
+          <p>
+            {{
+              d.hits.length
+                ? d.why
+                : "Прямых совпадений нет — направление для знакомства."
+            }}
+          </p>
           <p>{{ d.start }}</p>
-          <JobList :jobs="store.jobs.filter(j => j.direction === d.key)" />
+
+          <JobList
+            :jobs="store.jobs.filter(j => j.direction === d.key)"
+          />
         </article>
       </template>
-      <div v-else class="match__empty">
-        <h2>Ваш следующий шаг начинается здесь</h2>
-        <p class="lead">Расскажите немного о себе — подберём направления, с которых можно начать.</p>
+
+      <!-- Пустое состояние с котом Стартером -->
+      <div v-else class="match__placeholder">
+        <img
+          class="match__placeholder-image"
+          src="/images/branding/starter-match-cat-peek-800.webp"
+          srcset="/images/branding/starter-match-cat-peek-420.webp 420w, /images/branding/starter-match-cat-peek-800.webp 800w, /images/branding/starter-match-cat-peek-1200.webp 1200w"
+          sizes="(max-width: 960px) min(280px, 100vw - 32px), min(400px, 50vw - 48px)"
+          alt=""
+        />
+        <h2>Давай найдём то, что по душе</h2>
+      </div>
+    </div>
       </div>
     </div>
   </section>
