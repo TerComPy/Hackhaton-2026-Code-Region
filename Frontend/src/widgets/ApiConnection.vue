@@ -1,33 +1,34 @@
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import { ApiError } from "../shared/api";
+import ConnectionErrorDialog from "../shared/ConnectionErrorDialog.vue";
 import { useSession } from "../entities/session";
 const session = useSession();
-const state = ref<"loading" | "ready" | "error">("loading");
-const message = ref("");
+const open = ref(false), busy = ref(false), code = ref("");
 let controller: AbortController | undefined;
 async function check() {
   controller?.abort();
   const current = controller = new AbortController();
-  state.value = "loading";
+  busy.value = true;
+  let endpoint = "/api/health";
   try {
     await session.api.health({ signal: current.signal });
+    endpoint = "/api/ready";
     const ready = await session.api.ready({ signal: current.signal });
-    if (ready.database !== "ok" || ready.status !== "ready") throw new Error("MySQL не подтвердил готовность");
-    if (!current.signal.aborted) state.value = "ready";
+    if (ready.database !== "ok" || ready.status !== "ready") throw new ApiError(0, "NOT_READY", "", "invalid-response");
+    if (!current.signal.aborted) open.value = false;
   } catch (e) {
-    if (current.signal.aborted) return;
-    state.value = "error";
-    message.value = e instanceof ApiError ? `${e.message}${e.status ? ` (HTTP ${e.status})` : ""}` : String(e);
-  }
+    if (current.signal.aborted || e instanceof ApiError && (e.status === 401 || e.kind === "aborted")) return;
+    const reason = e instanceof ApiError && e.status ? `HTTP ${e.status}`
+      : e instanceof ApiError && e.kind === "timeout" ? "Таймаут соединения"
+      : e instanceof ApiError && e.kind === "invalid-response" ? "Сервис не готов" : "Ошибка сети";
+    code.value = `${endpoint} · ${reason}`;
+    open.value = true;
+  } finally { if (controller === current) busy.value = false; }
 }
 onMounted(check);
 onBeforeUnmount(() => controller?.abort());
 </script>
 <template>
-  <section class="wrap" aria-label="Подключение к API" :aria-busy="state === 'loading'">
-    <p v-if="state === 'loading'" role="status">Проверяем подключение…</p>
-    <p v-else-if="state === 'error'" role="alert">{{ message }} <button class="btn btn--ghost" @click="check">Повторить</button></p>
-    <p v-else role="status">API и MySQL доступны. Каталог вакансий, избранное и профиль подключены к серверу.</p>
-  </section>
+  <ConnectionErrorDialog :open="open" :busy="busy" :code="code" @retry="check" @close="open = false" />
 </template>

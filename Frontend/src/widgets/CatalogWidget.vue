@@ -1,5 +1,6 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, ref, watch } from "vue";
+import CatalogGuestState from "./CatalogGuestState.vue";
 import CatalogEmptyState from "./CatalogEmptyState.vue";
 import { useCatalog } from "../entities/store";
 import { catalog } from "../entities/catalog";
@@ -123,7 +124,7 @@ watch(
           </div>
           <template v-if="isApi">
             <ApiJobList :jobs="remote.items" />
-            <p v-if="!remote.authenticated" class="state">Чтобы увидеть вакансии, <a href="#/account">войдите в аккаунт</a>.</p>
+            <CatalogGuestState v-if="!remote.loading && !remote.error && !remote.authenticated" />
             <template v-else>
               <p v-if="remote.loading" class="state" role="status">Загружаем вакансии…</p>
               <div v-else-if="remote.error" class="state" role="alert">{{ remote.error }} <button class="btn btn--ghost" @click="remote.load()">Повторить</button></div>
@@ -147,4 +148,3 @@ watch(
     </div>
   </section>
 </template>
-
