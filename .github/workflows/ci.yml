@@ -32,6 +32,7 @@ jobs:
       - run: npm run build
       - run: npm run test:import
       - run: npm run test:ai
+      - run: npm run test:match
 
   mysql-api:
     name: MySQL 8.4, importer and independent API tests

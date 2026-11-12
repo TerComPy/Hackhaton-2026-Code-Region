@@ -28,6 +28,6 @@ onBeforeUnmount(() => controller?.abort());
   <section class="wrap" aria-label="Подключение к API" :aria-busy="state === 'loading'">
     <p v-if="state === 'loading'" role="status">Проверяем подключение…</p>
     <p v-else-if="state === 'error'" role="alert">{{ message }} <button class="btn btn--ghost" @click="check">Повторить</button></p>
-    <p v-else role="status">Соединение установлено. MySQL доступен. Данные каталога и личного кабинета пока не подключены.</p>
+    <p v-else role="status">API и MySQL доступны. Каталог вакансий, избранное и профиль подключены к серверу.</p>
   </section>
 </template>

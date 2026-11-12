@@ -127,6 +127,30 @@ components:
         original_url: { type: string }
         company_name: { type: string, nullable: true }
         saved_at: { type: string }
+    MatchRequest:
+      type: object
+      additionalProperties: false
+      required: [about]
+      properties:
+        about: { type: string, minLength: 40, maxLength: 1500, description: 'Ephemeral personal story; not persisted by STARTER' }
+    MatchDirection:
+      type: object
+      required: [name, what, why, evidence, vacancies]
+      properties:
+        name: { type: string }
+        what: { type: string }
+        why: { type: string }
+        evidence: { type: array, items: { type: string }, description: 'Verbatim excerpts of submitted story' }
+        vacancies: { type: array, items: { $ref: '#/components/schemas/VacancySummary' } }
+    MatchResponse:
+      type: object
+      required: [directions]
+      properties:
+        directions:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items: { $ref: '#/components/schemas/MatchDirection' }
     AiSummary:
       type: object
       additionalProperties: false
@@ -146,6 +170,30 @@ components:
         summary: { nullable: true, allOf: [{ $ref: '#/components/schemas/AiSummary' }] }
         errorCode: { type: string, description: Safe backend error code only }
 paths:
+  /api/match:
+    post:
+      summary: AI-assisted matching to three career directions and real MySQL vacancies
+      description: |
+        Requires authenticated account. User story is sent to the configured OpenAI-compatible provider,
+        but not stored by STARTER. Vacancy suggestions come exclusively from active database entries.
+        No mock fallback. In-memory per-account cooldown applies.
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/MatchRequest' }
+      responses:
+        '200':
+          description: Three suggested directions, each with grounded evidence and 0-6 real vacancies
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MatchResponse' }
+        '400': { description: Invalid story }
+        '401': { description: Unauthenticated }
+        '429': { description: Matching rate limit }
+        '502': { description: AI output invalid }
+        '503': { description: Model unavailable or not configured }
   /api/health:
     get:
       summary: Liveness check

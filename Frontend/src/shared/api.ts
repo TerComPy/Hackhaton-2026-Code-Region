@@ -14,6 +14,15 @@ export interface AiSummaryResponse {
   errorCode?: string;
 }
 
+export interface MatchDirection {
+  name: string;
+  what: string;
+  why: string;
+  evidence: string[];
+  vacancies: Vacancy[];
+}
+export interface MatchResponse { directions: MatchDirection[] }
+
 export interface Account {
   id: string;
   profileId: string;
@@ -174,6 +183,8 @@ export function createApi(
       ),
     save: (v: string, config?: RequestOptions) => request<void>("/api/favorites/" + id(v), "PUT", undefined, config),
     remove: (v: string, config?: RequestOptions) => request<void>("/api/favorites/" + id(v), "DELETE", undefined, config),
+    match: (v: { about: string }, config?: RequestOptions) =>
+      request<MatchResponse>("/api/match", "POST", v, config),
     aiSummary: (v: string, config?: RequestOptions) =>
       request<AiSummaryResponse>("/api/vacancies/" + id(v) + "/summary", "GET", undefined, config),
     enqueueAiSummary: (v: string, config?: RequestOptions) =>
