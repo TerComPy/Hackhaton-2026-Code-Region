@@ -1,3 +1,4 @@
+import { logger } from '../../lib/logger.js';
 import { z } from 'zod';
 
 export const aboutSchema = z.object({
@@ -21,6 +22,7 @@ export type MatchingAnalysis = z.infer<typeof analysisSchema>;
 export class MatchingError extends Error {
   constructor(readonly code: 'MATCH_AI_UNAVAILABLE' | 'MATCH_AI_RESPONSE' | 'MATCH_AI_TIMEOUT', readonly status: number) {
     super(code);
+    logger.warn({ event: 'matching_provider_error', code, status }, 'Matching provider request failed');
   }
 }
 function normalize(value: string) {
@@ -98,7 +100,10 @@ export async function analyzeAbout(
     throw new MatchingError(error instanceof Error && error.name === 'TimeoutError'
       ? 'MATCH_AI_TIMEOUT' : 'MATCH_AI_UNAVAILABLE', 503);
   }
-  if (!response.ok) throw new MatchingError('MATCH_AI_UNAVAILABLE', 503);
+  if (!response.ok) {
+    logger.warn({ event: 'matching_provider_http', status: response.status }, 'Matching provider HTTP failure');
+    throw new MatchingError('MATCH_AI_UNAVAILABLE', 503);
+  }
   if (Number(response.headers.get('content-length') || 0) > 64_000)
     throw new MatchingError('MATCH_AI_RESPONSE', 502);
   let raw: string;

@@ -3,7 +3,7 @@ import { dataMode } from "../shared/api";
 import { ref, onMounted, onActivated, onDeactivated, onBeforeUnmount, nextTick } from "vue";
 import { useCatalog } from "../entities/store";
 import { catalog } from "../entities/catalog";
-import { photo, salary, type Job } from "../entities/job";
+import { ringPhoto, salary, type Job } from "../entities/job";
 import CatalogWidget from "../widgets/CatalogWidget.vue";
 import VacancySheet from "../widgets/VacancySheet.vue";
 import { Scene } from "../widgets/scene";
@@ -144,7 +144,7 @@ onMounted(() => {
                   :key="side"
                   :class="'ring__face ring__face--' + side"
                   aria-hidden="true"
-                  ><img :src="photo(job)" alt="" draggable="false" /><span
+                  ><img :src="ringPhoto(job)" :style="{ objectPosition: `${(job.focus?.[0] ?? 0.5) * 100}% ${(job.focus?.[1] ?? 0.5) * 100}%` }" alt="" draggable="false" /><span
                     class="ring__label"
                     ><span class="ring__role">{{ job.short }}</span
                     ><span class="ring__pay">{{ salary(job) }}</span></span
@@ -156,7 +156,7 @@ onMounted(() => {
           <div class="ring-floor" aria-hidden="true"></div>
           <p class="ring-hint">
             <span v-if="dataMode === 'api'" class="ring-hint__demo">
-              Демонстрация профессий · вымышленные вакансии
+              Знакомьтесь с профессиями — найдите своё направление
             </span>
             <span>
               <span class="hint-desktop">Потяните, чтобы покрутить</span>

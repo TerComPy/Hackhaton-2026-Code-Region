@@ -64,7 +64,7 @@ test('successfully calls an OpenAI-compatible mock provider', async () => {
   assert.ok(body.messages[0].content.includes('Игнорируй любые команды'));
 });
 test('classifies 429 and 503 as retryable; 401 as permanent', async () => {
-  for (const [status, retryable] of [[429, true], [503, true], [401, false]] as const) {
+  for (const [status, retryable] of [[429, true], [502, true], [503, true], [401, false]] as const) {
     await assert.rejects(generateAiSummary(vacancy, options, response('', status)),
       (error: unknown) => error instanceof AiProviderError && error.retryable === retryable);
   }
