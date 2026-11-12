@@ -55,7 +55,7 @@ test('real matching shows three AI directions, literal evidence, API vacancies, 
   await expect(page.locator('.direction').first()).toContainText('Настоящая компания');
   await expect(page.locator('.direction [data-vacancy-id="9007199254740993123"]')).toHaveCount(1);
   await expect(page.locator('.direction .match__no-jobs')).toHaveCount(2);
-  await expect(page.locator('.direction')).not.toContainText('Кофейня «Зерно»');
+  await expect(page.locator('.match__result')).not.toContainText('Кофейня «Зерно»');
   expect(calls.posts).toBe(1);
 });
 test('model unavailable shows retryable error without demo fallback', async ({ page }) => {
