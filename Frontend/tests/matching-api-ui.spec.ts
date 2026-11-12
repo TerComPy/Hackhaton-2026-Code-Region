@@ -90,7 +90,8 @@ test('changing account discards private story and AI recommendations', async ({ 
   await expect(page.locator('#about')).toHaveValue('');
   await expect(page.locator('.match__form button[type=submit]')).toBeDisabled();
 });
-test('backend connection banner reflects actual ready state', async ({ page }) => {
+test('successful backend connection renders no banner or error dialog', async ({ page }) => {
   await setup(page, route => route.fulfill({ json: { directions } }));
-  await expect(page.getByRole('region', { name: 'Подключение к API' })).toContainText('Каталог вакансий, избранное и профиль подключены');
+  await expect(page.getByRole('region', { name: 'Подключение к API' })).toHaveCount(0);
+  await expect(page.locator('dialog[open]')).toHaveCount(0);
 });
