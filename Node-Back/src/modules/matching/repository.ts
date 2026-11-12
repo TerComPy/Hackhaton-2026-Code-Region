@@ -1,3 +1,4 @@
+import { env } from '../../config/env.js';
 import type { RowDataPacket } from 'mysql2';
 import { db } from '../../config/db.js';
 import type { MatchDirection } from './model.js';
@@ -38,7 +39,8 @@ export async function findVacanciesForDirection(direction: MatchDirection): Prom
     'v.salary_min,v.salary_max,v.currency,v.salary_period,v.salary_gross,v.work_format,' +
     'v.original_url,v.published_at FROM vacancies v ' +
     'JOIN sources s ON s.id=v.source_id LEFT JOIN companies c ON c.id=v.company_id ' +
-    "WHERE v.status='active' AND (" + predicates.join(' OR ') + ') ' +
+    (env.NODE_ENV === 'production' ? "WHERE s.code <> 'demo' AND " : "WHERE ") +
+    "v.status='active' AND (" + predicates.join(' OR ') + ') ' +
     'ORDER BY v.published_at DESC,v.id DESC LIMIT 6',
     args
   );

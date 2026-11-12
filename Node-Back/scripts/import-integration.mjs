@@ -93,7 +93,7 @@ try {
   const catalog=await http('/vacancies?pageSize=100',200,a.accessToken);
   const imported=after.vacancies.filter(v=>v.source_id===sourceId);
   ok('all imported IDs visible in authorized catalog',imported.every(v=>catalog.items.some(item=>item.id===v.id)));
-  for(const row of imported){const card=await http('/vacancies/'+row.id,200,a.accessToken);assert.equal(card.vacancy.external_id,row.external_id);assert.equal(card.vacancy.status,'active');}
+  for(const row of imported){const card=await http('/vacancies/'+row.id,200,a.accessToken);assert.equal(card.vacancy.title,row.title);assert.equal(card.vacancy.description,row.description);assert.equal(card.vacancy.external_id,row.external_id);assert.equal(card.vacancy.status,'active');}
   ok('all imported cards open with Bearer');await http('/vacancies',401);
   await http('/favorites/'+imported[0].id,204,a.accessToken,'PUT');
   ok('imported favorite owner isolated',(await http('/favorites',200,b.accessToken)).items.length===0);
@@ -106,7 +106,7 @@ try {
   const { mapTrudvsemVacancy }=await import('../dist/modules/import/adapters/trudvsem.mapper.js');
   const store=new MysqlImportRepository(db,logger);
   const mapped=mapTrudvsemVacancy(fixture.results.vacancies[0].vacancy,0);assert.ok(mapped.ok);
-  const updated={...mapped.vacancy,title:'Updated integration title',sourceUpdatedAt:'2026-12-01 12:00:00.000000'};
+  const updated={...mapped.vacancy,title:'\u0418\u043d\u0436\u0435\u043d\u0435\u0440 \u0401\u0436 \u{1f6e0}',sourceUpdatedAt:'2026-12-01 12:00:00.000000'};
   assert.equal(await store.saveVacancy(sourceId,updated),'updated');
   assert.equal(await store.saveVacancy(sourceId,{...updated,title:'Stale must not win',sourceUpdatedAt:'2020-01-01 00:00:00.000000'}),'skipped_stale');
   ok('real update and stale skip',(await admin.query('SELECT title FROM vacancies WHERE source_id=? AND external_id=?',[sourceId,updated.externalId]))[0][0].title===updated.title);

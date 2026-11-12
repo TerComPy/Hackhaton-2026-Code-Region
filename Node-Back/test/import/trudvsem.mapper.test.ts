@@ -166,3 +166,12 @@ describe('contact scrubbing across public text columns', () => {
     for (const contact of [canary, phone, raw.contact_person]) assert.ok(!out.includes(contact));
   });
 });
+
+it('preserves Cyrillic from JSON normalization', () => {
+ const raw = rawVacancy();
+ raw['job-name'] = '\u0418\u043d\u0436\u0435\u043d\u0435\u0440 \u0401\u0436';
+ raw.duty = '\u0420\u0430\u0437\u0440\u0430\u0431\u043e\u0442\u043a\u0430';
+ const v = mapOk(JSON.parse(JSON.stringify(raw)));
+ assert.equal(v.title, raw['job-name']);
+ assert.ok(v.description.includes(raw.duty));
+});
