@@ -174,6 +174,8 @@ public partial class HomeViewModel : ObservableObject
         _matchService = matchService;
 
         _matchService.MatchUpdated += (s, e) => _ = ApplyFiltersAsync();
+        // Вход/выход: каталог переключается между демо и API
+        _vacancyService.DataChanged += (s, e) => MainThread.BeginInvokeOnMainThread(() => _ = ApplyFiltersAsync());
 
         _ = LoadInitialDataAsync();
     }
@@ -297,8 +299,10 @@ public partial class HomeViewModel : ObservableObject
 
             IsEmpty = list.Count == 0;
             HasActiveFilters = activeCount > 0;
-            // Как в CatalogWidget.vue (режим mock)
-            ResultCountText = $"{list.Count} вакансий · Демо (mock)";
+            // Как в CatalogWidget.vue: «Загружено: N · API» / «N вакансий · Демо (mock)»
+            ResultCountText = _vacancyService.IsLive
+                ? $"Загружено: {list.Count} · API"
+                : $"{list.Count} вакансий · Демо — войдите, чтобы увидеть реальные";
         }
         catch
         {

@@ -19,4 +19,16 @@ public interface IVacancyService
     Task<Vacancy?> GetVacancyByIdAsync(int id);
     Task<List<JobSource>> GetSourcesAsync();
     Task<List<Vacancy>> GetFeaturedRingJobsAsync();
+
+    /// <summary>true — данные с бэкенда (starterjob.ru), false — демо-каталог.</summary>
+    bool IsLive => false;
+
+    /// <summary>Источник данных сменился (вход/выход) — каталог надо перечитать.</summary>
+    event EventHandler? DataChanged { add { } remove { } }
+
+    /// <summary>Ссылка на вакансию у работодателя с учётом перехода (API); null — использовать Vacancy.Url.</summary>
+    Task<string?> GetOutboundUrlAsync(int id) => Task.FromResult<string?>(null);
+
+    /// <summary>ИИ-пересказ: enqueue=false — только прочитать статус, true — поставить в очередь. Демо — null.</summary>
+    Task<AiSummaryState?> GetAiSummaryAsync(int id, bool enqueue) => Task.FromResult<AiSummaryState?>(null);
 }

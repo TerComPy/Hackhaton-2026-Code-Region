@@ -9,4 +9,7 @@ public interface IMatchService
     MatchResult? CurrentResult { get; }
     HashSet<string> FitDirectionKeys { get; }
     Task<MatchResult> AnalyzeAsync(string aboutText);
+
+    /// <summary>Пояснение к результату (ИИ / демо). У демо-сервиса — пусто.</summary>
+    string Notice => string.Empty;
 }

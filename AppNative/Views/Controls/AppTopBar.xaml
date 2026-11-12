@@ -20,31 +20,17 @@
               ColumnDefinitions="Auto,*,Auto,Auto"
               ColumnSpacing="12">
 
-            <!-- Логотип: тёмная плашка «стартер» + акцентный квадратик -->
-            <Border Grid.Column="0"
-                    StrokeThickness="0"
-                    StrokeShape="RoundRectangle 4"
-                    Padding="10,4,8,6"
-                    VerticalOptions="Center"
-                    BackgroundColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}">
-                <Border.GestureRecognizers>
+            <!-- Логотип сайта: wordmark «стартер» с маской (BrandImage), свой для светлой и тёмной темы -->
+            <Image Grid.Column="0"
+                   Source="{AppThemeBinding Light=brand_wordmark_light.png, Dark=brand_wordmark_dark.png}"
+                   HeightRequest="{OnIdiom Phone=26, Desktop=34}"
+                   Aspect="AspectFit"
+                   VerticalOptions="Center"
+                   SemanticProperties.Description="Стартер — на главную">
+                <Image.GestureRecognizers>
                     <TapGestureRecognizer Command="{Binding NavigateToCommand}" CommandParameter="home" />
-                </Border.GestureRecognizers>
-                <HorizontalStackLayout Spacing="3">
-                    <Label Text="стартер"
-                           FontFamily="GolosTextSemiBold"
-                           FontSize="19"
-                           CharacterSpacing="-0.4"
-                           VerticalOptions="Center"
-                           TextColor="{AppThemeBinding Light={StaticResource BgLight}, Dark={StaticResource BgDark}}" />
-                    <BoxView WidthRequest="6"
-                             HeightRequest="6"
-                             CornerRadius="1"
-                             VerticalOptions="Start"
-                             Margin="0,4,0,0"
-                             Color="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" />
-                </HorizontalStackLayout>
-            </Border>
+                </Image.GestureRecognizers>
+            </Image>
 
             <!-- Меню (только Desktop; на телефоне — нижний TabBar) -->
             <HorizontalStackLayout Grid.Column="1"

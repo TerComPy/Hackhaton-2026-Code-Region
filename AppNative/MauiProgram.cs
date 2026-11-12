@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using AppNative.Services;
 using AppNative.Services.Mock;
+using AppNative.Services.Api;
 using AppNative.ViewModels;
 using AppNative.Views;
 
@@ -24,11 +25,13 @@ namespace AppNative
                     fonts.AddFont("JetBrainsMono-Medium.ttf", "JetBrainsMonoMedium");
                 });
 
-            // Services
-            builder.Services.AddSingleton<IVacancyService, MockVacancyService>();
-            builder.Services.AddSingleton<IFavoritesService, MockFavoritesService>();
-            builder.Services.AddSingleton<IAuthService, MockAuthService>();
-            builder.Services.AddSingleton<IMatchService, MockMatchService>();
+            // Services — бэкенд СТАРТЕР (адрес в Services/Api/ApiConfig.cs).
+            // Вернуть полностью офлайн-демо: заменить Api* на Mock* (MockVacancyService, MockFavoritesService, MockAuthService, MockMatchService).
+            builder.Services.AddSingleton<ApiClient>();
+            builder.Services.AddSingleton<IAuthService, ApiAuthService>();
+            builder.Services.AddSingleton<IVacancyService, ApiVacancyService>();
+            builder.Services.AddSingleton<IFavoritesService, ApiFavoritesService>();
+            builder.Services.AddSingleton<IMatchService, ApiMatchService>();
 
             // ViewModels
             builder.Services.AddSingleton<AppShellViewModel>();

@@ -44,15 +44,9 @@
                                                  HorizontalOptions="Center"
                                                  VerticalOptions="Start">
 
-                                <!-- .auth-brand -->
-                                <Border StrokeThickness="0" StrokeShape="RoundRectangle 4" Padding="10,4,8,6"
-                                        HorizontalOptions="Center" Margin="0,24"
-                                        BackgroundColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}">
-                                    <HorizontalStackLayout Spacing="3">
-                                        <Label Text="стартер" FontFamily="GolosTextSemiBold" FontSize="19" CharacterSpacing="-0.4" TextColor="{AppThemeBinding Light={StaticResource BgLight}, Dark={StaticResource BgDark}}" />
-                                        <BoxView WidthRequest="6" HeightRequest="6" CornerRadius="1" VerticalOptions="Start" Margin="0,4,0,0" Color="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" />
-                                    </HorizontalStackLayout>
-                                </Border>
+                                <!-- .auth-brand: контур кота с сайта -->
+                                <Image Source="{AppThemeBinding Light=brand_cat_outline_light.png, Dark=brand_cat_outline_dark.png}"
+                                       HeightRequest="40" Aspect="AspectFit" HorizontalOptions="Center" Margin="0,24" />
 
                                 <Label Text="Личное пространство" Style="{StaticResource EyebrowStyle}" Margin="0,0,0,8" />
                                 <Label Text="{Binding AuthTitle}" FontFamily="GolosTextMedium" FontSize="{OnIdiom Phone=30, Desktop=34}" LineHeight="1.2" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
@@ -77,7 +71,7 @@
                                     <VerticalStackLayout Spacing="8">
                                         <Grid ColumnDefinitions="*,Auto">
                                             <Label Text="Пароль" Style="{StaticResource FieldLabelStyle}" />
-                                            <Label Grid.Column="1" Text="от 10 символов" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" VerticalOptions="End" />
+                                            <Label Grid.Column="1" Text="от 8 символов" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" VerticalOptions="End" />
                                         </Grid>
                                         <Border Style="{StaticResource AuthInputStyle}" Padding="16,0,4,0">
                                             <Grid ColumnDefinitions="*,40">
@@ -130,7 +124,7 @@
                                     </Label>
                                 </HorizontalStackLayout>
 
-                                <Label Text="Демо-режим. Имя и email остаются на этом устройстве.&#10;Пароль не сохраняется и не проверяется сервером."
+                                <Label Text="Вход в аккаунт СТАРТЕР.&#10;Пароль не сохраняется на устройстве."
                                        FontSize="11" LineHeight="1.5" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}"
                                        HorizontalTextAlignment="Center" Margin="0,8,0,24" />
                             </VerticalStackLayout>
@@ -167,7 +161,7 @@
                                            TextColor="{AppThemeBinding Light={StaticResource OnAccentLight}, Dark={StaticResource OnAccentDark}}" HorizontalOptions="Center" VerticalOptions="Center" />
                                 </Border>
                                 <VerticalStackLayout Grid.Column="1" VerticalOptions="Center">
-                                    <Label Text="Демо-профиль" Style="{StaticResource EyebrowStyle}" Margin="0,0,0,8" />
+                                    <Label Text="Профиль" Style="{StaticResource EyebrowStyle}" Margin="0,0,0,8" />
                                     <Label Text="{Binding CurrentUser.Name}" Style="{StaticResource PageTitleStyle}" />
                                     <Label Text="{Binding CurrentUser.Email}" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" Margin="0,4,0,0" />
                                 </VerticalStackLayout>

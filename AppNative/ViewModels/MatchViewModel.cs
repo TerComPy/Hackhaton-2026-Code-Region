@@ -9,12 +9,27 @@ namespace AppNative.ViewModels;
 public record MatchExample(string Label, string Text);
 
 /// <summary>Направление в правой колонке (Match.vue .direction): название, суть, почему, с чего начать, вакансии.</summary>
-public record DirectionView(string Name, string What, string Why, string Start, List<VacancyItemViewModel> Jobs);
+public record DirectionView(string Num, string Name, string What, string Why, string Evidence, List<VacancyItemViewModel> Jobs)
+{
+    public bool HasEvidence => !string.IsNullOrWhiteSpace(Evidence);
+    public bool HasJobs => Jobs.Count > 0;
+    public bool NoJobs => Jobs.Count == 0;
+}
 
 public partial class MatchViewModel : ObservableObject
 {
     private readonly IMatchService _matchService;
     private readonly IFavoritesService _favoritesService;
+    private readonly IAuthService _authService;
+
+    /// <summary>Гость: подбор недоступен, показываем «Войти в аккаунт».</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSubmit))]
+    private bool _isGuest;
+
+    public bool CanSubmit => !IsAnalyzing && !IsGuest;
+    public string SubmitText => IsAnalyzing ? "Подбираем направления…" : "Подобрать профессии";
+    public bool ShowPlaceholder => !HasResult && !IsAnalyzing;
 
     public ObservableCollection<DirectionView> Directions { get; } = new();
 
@@ -28,6 +43,9 @@ public partial class MatchViewModel : ObservableObject
     private string _errorMessage = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(CanSubmit))]
+    [NotifyPropertyChangedFor(nameof(SubmitText))]
+    [NotifyPropertyChangedFor(nameof(ShowPlaceholder))]
     private bool _isAnalyzing;
 
     [ObservableProperty]
@@ -37,14 +55,26 @@ public partial class MatchViewModel : ObservableObject
     private MatchResult? _result;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(ShowPlaceholder))]
     private bool _hasResult;
 
     public ObservableCollection<MatchExample> Examples { get; } = new();
 
-    public MatchViewModel(IMatchService matchService, IFavoritesService favoritesService)
+    public MatchViewModel(IMatchService matchService, IFavoritesService favoritesService, IAuthService authService)
     {
         _matchService = matchService;
         _favoritesService = favoritesService;
+        _authService = authService;
+        IsGuest = !_authService.IsSignedIn;
+        // Смена пользователя — сбрасываем рассказ и результат (resetPrivate на сайте)
+        _authService.AuthStateChanged += (s, e) => MainThread.BeginInvokeOnMainThread(() =>
+        {
+            IsGuest = !_authService.IsSignedIn;
+            AboutText = string.Empty;
+            Result = null;
+            HasResult = false;
+            ErrorMessage = string.Empty;
+        });
 
         Examples.Add(new MatchExample("Школьник, люблю технику", "Учусь в 10 классе. Люблю разбирать технику и паять, дома сам чинил ноутбук и розетку. Физика нравится, сочинения — не очень. Хочу работать руками и видеть результат."));
         Examples.Add(new MatchExample("Экономист, хочу из дома", "Закончила экономический колледж, хорошо считаю и люблю порядок в таблицах — Excel знаю уверенно. Нравится разбираться, почему цифры получились именно такими. Хочется работать из дома."));
@@ -66,11 +96,12 @@ public partial class MatchViewModel : ObservableObject
     {
         Directions.Clear();
         if (Result == null) return;
+        var n = 0;
         foreach (var d in Result.Directions)
         {
             var why = d.Strength > 0 ? d.Why : "Прямых совпадений нет — направление для знакомства.";
-            var jobs = d.Jobs.Select(j => new VacancyItemViewModel(j, _favoritesService, true)).ToList();
-            Directions.Add(new DirectionView(d.Name, d.What, why, d.Start, jobs));
+            var jobs = d.Jobs.Select(j => new VacancyItemViewModel(j, _favoritesService, false)).ToList();
+            Directions.Add(new DirectionView((++n).ToString("00"), d.Name, d.What, why, d.Start, jobs));
         }
     }
 
@@ -102,18 +133,41 @@ public partial class MatchViewModel : ObservableObject
             return;
         }
 
-        // На сайте демо-подбор мгновенный (ключевые слова, без ИИ) — без искусственных пауз.
+        if (IsGuest)
+        {
+            ErrorMessage = "Для персонального подбора нужно войти в аккаунт.";
+            return;
+        }
+
         IsAnalyzing = true;
-        Result = await _matchService.AnalyzeAsync(text);
-        HasResult = Result != null;
-        IsAnalyzing = false;
-        StatusText = string.Empty;
+        ErrorMessage = string.Empty;
+        Result = null;
+        HasResult = false;
+        try
+        {
+            Result = await _matchService.AnalyzeAsync(text);
+            HasResult = Result != null;
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex is AppNative.Services.Api.MatchException ? ex.Message : "Не удалось подобрать направления. Повторите попытку.";
+        }
+        finally
+        {
+            IsAnalyzing = false;
+        }
     }
 
     [RelayCommand]
     public async Task OpenVacancyAsync(Vacancy vacancy)
     {
         await Shell.Current.GoToAsync($"vacancy?id={vacancy.Id}");
+    }
+
+    [RelayCommand]
+    public async Task NavigateToAccountAsync()
+    {
+        await Shell.Current.GoToAsync("//account");
     }
 
     [RelayCommand]

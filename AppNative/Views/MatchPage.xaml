@@ -37,9 +37,9 @@
                                 <!-- .match__meta -->
                                 <Grid ColumnDefinitions="*,Auto">
                                     <Label Text="{Binding CharCountText}" FontFamily="JetBrainsMonoRegular" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
-                                    <Label Grid.Column="1" Text="Хранится только на этом устройстве" FontFamily="JetBrainsMonoRegular" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                    <Label Grid.Column="1" Text="Не сохраняется в СТАРТЕР" FontFamily="JetBrainsMonoRegular" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
                                 </Grid>
-                                <Label Text="Демо-подбор по ключевым словам, без обращения к ИИ." FontSize="11" LineHeight="1.5" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}"
+                                <Label Text="Текст отправляется серверу и настроенному ИИ-провайдеру для подбора. СТАРТЕР не сохраняет его в базе. Результат — рекомендация, не гарантия трудоустройства." FontSize="11" LineHeight="1.5" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}"
                                        HorizontalTextAlignment="Center" Margin="0,8,0,0" />
 
                                 <!-- .examples: чипы -->
@@ -57,47 +57,98 @@
                                     </BindableLayout.ItemTemplate>
                                 </FlexLayout>
 
+                                <!-- гость: подбор только после входа -->
+                                <HorizontalStackLayout IsVisible="{Binding IsGuest}" Spacing="4" HorizontalOptions="Center">
+                                    <Label Text="Войти в аккаунт" FontSize="11" TextDecorations="Underline" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}">
+                                        <Label.GestureRecognizers><TapGestureRecognizer Command="{Binding NavigateToAccountCommand}" /></Label.GestureRecognizers>
+                                    </Label>
+                                    <Label Text=", чтобы запустить подбор." FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                </HorizontalStackLayout>
+
                                 <Label Text="{Binding ErrorMessage}" Style="{StaticResource FieldErrorStyle}" MinimumHeightRequest="20" />
 
-                                <Button Text="Подобрать профессии"
+                                <Button Text="{Binding SubmitText}"
                                         Style="{StaticResource BtnAccentStyle}"
                                         Command="{Binding SubmitMatchCommand}"
+                                        IsEnabled="{Binding CanSubmit}"
                                         HorizontalOptions="Start" />
                             </VerticalStackLayout>
                         </VerticalStackLayout>
 
                         <!-- .match__result -->
-                        <VerticalStackLayout Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
-                                             Grid.Column="{OnIdiom Phone='0', Desktop='2'}"
-                                             MinimumHeightRequest="420">
-                            <Label Text="Здесь появятся три направления и подходящие вакансии."
-                                   IsVisible="{Binding HasResult, Converter={StaticResource InverseBoolConverter}}"
-                                   FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                        <Grid Grid.Row="{OnIdiom Phone='1', Desktop='0'}"
+                              Grid.Column="{OnIdiom Phone='0', Desktop='2'}"
+                              MinimumHeightRequest="{OnIdiom Phone=0, Desktop=420}">
 
-                            <VerticalStackLayout BindableLayout.ItemsSource="{Binding Directions}" IsVisible="{Binding HasResult}">
-                                <BindableLayout.ItemTemplate>
-                                    <DataTemplate x:DataType="vm:DirectionView">
-                                        <!-- .direction: отступ 32, линия снизу -->
-                                        <Grid>
-                                            <VerticalStackLayout Padding="0,32" Spacing="8">
-                                                <Label Text="{Binding Name}" FontFamily="GolosTextMedium" FontSize="22" LineHeight="1.2" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
-                                                <Label Text="{Binding What}" FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
-                                                <Label Text="{Binding Why}" FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
-                                                <Label Text="{Binding Start}" FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
-                                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Jobs}" Margin="0,8,0,0">
-                                                    <BindableLayout.ItemTemplate>
-                                                        <DataTemplate x:DataType="vm:VacancyItemViewModel">
-                                                            <controls:VacancyRow />
-                                                        </DataTemplate>
-                                                    </BindableLayout.ItemTemplate>
-                                                </VerticalStackLayout>
-                                            </VerticalStackLayout>
-                                            <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
-                                        </Grid>
-                                    </DataTemplate>
-                                </BindableLayout.ItemTemplate>
+                            <!-- Пустое состояние с котом Стартером -->
+                            <VerticalStackLayout IsVisible="{Binding ShowPlaceholder}" Spacing="22" Padding="0,48"
+                                                 HorizontalOptions="Center" VerticalOptions="Center">
+                                <Image Source="mascot_map.png" WidthRequest="{OnIdiom Phone=260, Desktop=360}" Aspect="AspectFit" HorizontalOptions="Center" />
+                                <Label Text="Давай найдём то, что по душе" FontFamily="GolosTextMedium" FontSize="22"
+                                       HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
                             </VerticalStackLayout>
-                        </VerticalStackLayout>
+
+                            <!-- Загрузка рекомендаций -->
+                            <VerticalStackLayout IsVisible="{Binding IsAnalyzing}" Spacing="12" Padding="0,48"
+                                                 HorizontalOptions="Center" VerticalOptions="Center">
+                                <Image Source="mascot_laptop.png" WidthRequest="220" Aspect="AspectFit" HorizontalOptions="Center" />
+                                <ActivityIndicator IsRunning="{Binding IsAnalyzing}" WidthRequest="28" HeightRequest="28" />
+                                <Label Text="ИИ анализирует рассказ и ищет вакансии в базе…" FontSize="16"
+                                       HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                <Label Text="Это может занять несколько секунд." FontSize="11"
+                                       HorizontalTextAlignment="Center" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                            </VerticalStackLayout>
+
+                            <!-- Результаты API -->
+                            <VerticalStackLayout IsVisible="{Binding HasResult}">
+                                <!-- .insight -->
+                                <Label Text="Ваши возможности" Style="{StaticResource EyebrowStyle}" Margin="0,0,0,12" />
+                                <Label Text="Три направления для старта" FontFamily="GolosTextMedium" FontSize="22" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                <Label Text="Вакансии ниже — из реальной базы. Обратите внимание на требования работодателей."
+                                       FontSize="11" LineHeight="1.5" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" Margin="0,8,0,0" />
+
+                                <VerticalStackLayout BindableLayout.ItemsSource="{Binding Directions}">
+                                    <BindableLayout.ItemTemplate>
+                                        <DataTemplate x:DataType="vm:DirectionView">
+                                            <!-- .direction -->
+                                            <Grid>
+                                                <Grid ColumnDefinitions="{OnIdiom Phone='28,*', Desktop='48,*'}" RowDefinitions="Auto,Auto" Padding="0,32">
+                                                    <Label Text="{Binding Num}" FontFamily="JetBrainsMonoMedium" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" VerticalOptions="Center" />
+                                                    <Label Grid.Column="1" Text="{Binding Name}" FontFamily="GolosTextMedium" FontSize="22" LineHeight="1.2" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                                    <VerticalStackLayout Grid.Row="1" Grid.Column="{OnIdiom Phone=0, Desktop=1}" Grid.ColumnSpan="{OnIdiom Phone=2, Desktop=1}">
+                                                        <Label Text="{Binding What}" FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" Margin="0,8,0,0" />
+                                                        <!-- .direction__why: акцентная полоса слева -->
+                                                        <Grid ColumnDefinitions="2,*" ColumnSpacing="16" Margin="0,16,0,0">
+                                                            <BoxView Color="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" />
+                                                            <Label Grid.Column="1" Text="{Binding Why}" FontSize="16" LineHeight="1.55" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                                        </Grid>
+                                                        <Label IsVisible="{Binding HasEvidence}" FontSize="11" LineHeight="1.5" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" Margin="0,12,0,0">
+                                                            <Label.FormattedText>
+                                                                <FormattedString>
+                                                                    <Span Text="Основано на ваших словах: " />
+                                                                    <Span Text="{Binding Evidence}" />
+                                                                </FormattedString>
+                                                            </Label.FormattedText>
+                                                        </Label>
+                                                        <Label Text="Вакансии по направлению" FontFamily="GolosTextSemiBold" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" Margin="0,24,0,8" />
+                                                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Jobs}" IsVisible="{Binding HasJobs}">
+                                                            <BindableLayout.ItemTemplate>
+                                                                <DataTemplate x:DataType="vm:VacancyItemViewModel">
+                                                                    <controls:VacancyRow />
+                                                                </DataTemplate>
+                                                            </BindableLayout.ItemTemplate>
+                                                        </VerticalStackLayout>
+                                                        <Label IsVisible="{Binding NoJobs}" Padding="16" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}"
+                                                               Text="Сейчас в базе нет подходящих активных вакансий по этому направлению." />
+                                                    </VerticalStackLayout>
+                                                </Grid>
+                                                <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+                                            </Grid>
+                                        </DataTemplate>
+                                    </BindableLayout.ItemTemplate>
+                                </VerticalStackLayout>
+                            </VerticalStackLayout>
+                        </Grid>
                     </Grid>
                 </Grid>
 

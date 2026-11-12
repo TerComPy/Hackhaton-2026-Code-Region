@@ -149,6 +149,11 @@
                                 </HorizontalStackLayout>
                             </ScrollView>
                             <!-- .ring-hint -->
+                            <!-- .ring-hint__demo (режим API) -->
+                            <Label Text="Демонстрация профессий · вымышленные вакансии"
+                                   FontFamily="JetBrainsMonoRegular" FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}"
+                                   HorizontalTextAlignment="Center" Margin="0,0,0,-12" />
                             <Label Text="{OnIdiom Phone='Проведите, чтобы покрутить · нажмите на профессию, чтобы открыть вакансию', Desktop='Прокрутите, чтобы покрутить · нажмите на профессию, чтобы открыть вакансию'}"
                                    FontFamily="JetBrainsMonoRegular" FontSize="12"
                                    TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}"
@@ -544,11 +549,17 @@
                                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding Vacancies}"
                                                      BindableLayout.ItemTemplate="{StaticResource VacancyDataTemplate}" />
 
-                                <Label Text="Не удалось загрузить вакансии." IsVisible="{Binding HasError}"
-                                       Style="{StaticResource FieldErrorStyle}" Margin="0,16" />
+                                <!-- ошибка API: уставший маскот + «Повторить», как .state на сайте -->
+                                <VerticalStackLayout IsVisible="{Binding HasError}" Spacing="12" Padding="0,32" HorizontalOptions="Center">
+                                    <Image Source="mascot_tired.png" WidthRequest="200" Aspect="AspectFit" HorizontalOptions="Center" />
+                                    <Label Text="Не удалось загрузить вакансии." Style="{StaticResource FieldErrorStyle}" HorizontalTextAlignment="Center" />
+                                    <Button Text="Повторить" Style="{StaticResource BtnGhostStyle}" Command="{Binding SearchCommand}" HorizontalOptions="Center" />
+                                </VerticalStackLayout>
 
                                 <!-- CatalogEmptyState.vue -->
                                 <VerticalStackLayout IsVisible="{Binding IsEmpty}" Padding="16,48,16,64" Spacing="12" HorizontalOptions="Center">
+                                    <!-- кот-сыщик с сайта (starter-detective) -->
+                                    <Image Source="mascot_detective.png" WidthRequest="{OnIdiom Phone=240, Desktop=290}" Aspect="AspectFit" HorizontalOptions="Center" Margin="0,0,0,12" />
                                     <Label HorizontalTextAlignment="Center" FontFamily="GolosTextMedium" FontSize="22" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}">
                                         <Label.Triggers>
                                             <DataTrigger TargetType="Label" Binding="{Binding HasActiveFilters}" Value="False">
@@ -610,7 +621,7 @@
                     </Grid>
                 </Grid>
 
-                <controls:AppFooter />
+                <controls:AppFooter ShowCat="True" />
 
             </VerticalStackLayout>
         </ScrollView>
