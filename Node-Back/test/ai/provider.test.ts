@@ -88,3 +88,24 @@ test('network errors are classified safely', async () => {
       !error.message.includes('sensitive')
   );
 });
+
+
+test('equivalent decimal and grouped salary formats', () => {
+  for (const salary of ['50000.00', '50 000', '50\u00a0000', '50\u202f000', '50000,0']) {
+    assert.doesNotThrow(() => validateGrounding(result, { ...vacancy, description: '', salary_min: salary }));
+  }
+});
+test('decimals are not integers and independent numbers do not concatenate', () => {
+  for (const [source, claim] of [['1.5 years', '15 years'], ['1 2 years', '12 years'], ['50000 salary', '2/2 schedule'], ['50000 salary', '30 days']]) {
+    assert.throws(() => validateGrounding({ ...result, conditions: [claim] }, {
+      ...vacancy, description: source!, salary_min: null
+    }), (error: unknown) => error instanceof AiValidationError && error.code === 'UNSUPPORTED_NUMBER');
+  }
+});
+test('schema enforces field lengths, array limits, required fields and boolean type', () => {
+  for (const patch of [{ simpleTitle: 'x'.repeat(181) }, { conditions: ['x'.repeat(321)] },
+    { requirements: Array(9).fill('x') }, { beginnerFriendly: 'false' }, { whatYouDo: null }]) {
+    assert.throws(() => parseModelJson(JSON.stringify({ ...result, ...patch }), vacancy));
+  }
+  assert.doesNotThrow(() => parseModelJson(JSON.stringify({ ...result, conditions: [], requirements: [], whatYouDo: [], beginnerFriendly: false }), vacancy));
+});
