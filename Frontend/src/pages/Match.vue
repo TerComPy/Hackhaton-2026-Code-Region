@@ -53,7 +53,7 @@ function submit() {
         <button class="btn btn--accent">Подобрать профессии</button>
       </form>
     </div>
-    <div class="match__result" aria-live="polite">
+    <div class="match__result" :class="{ 'match__result--empty': !ready }" aria-live="polite">
       <template v-if="ready"
         ><article class="direction" v-for="d in store.directions" :key="d.key">
           <h2>{{ d.name }}</h2>
@@ -70,7 +70,16 @@ function submit() {
             :jobs="store.jobs.filter((j) => j.direction === d.key)"
           /></article
       ></template>
-      <p v-else>Здесь появятся три направления и подходящие вакансии.</p>
+      <div v-else class="match__placeholder">
+        <img
+          class="match__placeholder-image"
+          src="/images/branding/starter-match-cat-peek-800.webp"
+          srcset="/images/branding/starter-match-cat-peek-420.webp 420w, /images/branding/starter-match-cat-peek-800.webp 800w, /images/branding/starter-match-cat-peek-1200.webp 1200w"
+          sizes="(max-width: 960px) min(280px, 100vw - 32px), min(400px, 50vw - 48px)"
+          alt=""
+        />
+        <h2>Давай найдём то, что по душе</h2>
+      </div>
     </div>
   </section>
 </template>
