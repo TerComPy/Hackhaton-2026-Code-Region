@@ -1,3 +1,4 @@
+import { env } from '../config/env.js';
 import { Router } from 'express';
 import { z } from 'zod';
 import type { RowDataPacket, ResultSetHeader } from 'mysql2';
@@ -38,6 +39,7 @@ vacanciesRouter.get('/', async (req, res) => {
   const f = filterSchema.parse(req.query);
   const p = await getProfile(res.locals.authUserId);
   const filters: string[] = ["v.status = 'active'"];
+  if (env.NODE_ENV === 'production') filters.push("s.code <> 'demo'");
   const args: (string | number | null)[] = [p.id];
   function add(sql: string, ...values: (string | number | null)[]) { filters.push(sql); args.push(...values); }
   if (f.search.trim()) add('MATCH(v.title, v.description, v.requirements) AGAINST (? IN NATURAL LANGUAGE MODE) > 0', f.search.trim());
@@ -103,7 +105,7 @@ vacanciesRouter.get('/:id', async (req, res) => {
       c.name AS company_name, s.name AS source_name,
       EXISTS(SELECT 1 FROM favorites f WHERE f.user_id = ? AND f.vacancy_id = v.id) AS is_favorite
      FROM vacancies v JOIN sources s ON s.id = v.source_id
-     LEFT JOIN companies c ON c.id = v.company_id WHERE v.id = ?`, [p.id, id]);
+     LEFT JOIN companies c ON c.id = v.company_id WHERE v.id = ? ${env.NODE_ENV === 'production' ? "AND s.code <> 'demo'" : ''}`, [p.id, id]);
   if (!rows[0]) throw new HttpError(404, 'Vacancy not found', 'NOT_FOUND');
   const [skills] = await db.execute<RowDataPacket[]>(
     `SELECT sk.id, sk.name, vs.is_required FROM vacancy_skills vs
