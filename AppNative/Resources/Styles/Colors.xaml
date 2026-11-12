@@ -3,42 +3,70 @@
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
 
-    <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
+    <!-- Стартер — Палитра цветов (соответствие styles.css) -->
 
-    <Color x:Key="Primary">#512BD4</Color>
-    <Color x:Key="PrimaryDark">#ac99ea</Color>
-    <Color x:Key="PrimaryDarkText">#242424</Color>
-    <Color x:Key="Secondary">#DFD8F7</Color>
-    <Color x:Key="SecondaryDarkText">#9880e5</Color>
-    <Color x:Key="Tertiary">#2B0B98</Color>
+    <!-- Светлая тема -->
+    <Color x:Key="BgLight">#F1EFEA</Color>
+    <Color x:Key="BgRaiseLight">#E9E6DF</Color>
+    <Color x:Key="SurfaceLight">#FBFAF7</Color>
+    <Color x:Key="InkLight">#141413</Color>
+    <Color x:Key="Ink2Light">#4A4843</Color>
+    <Color x:Key="Ink3Light">#6B6862</Color>
+    <Color x:Key="LineLight">#DCD8CF</Color>
+    <Color x:Key="LineStrongLight">#C3BEB2</Color>
+    <Color x:Key="AccentLight">#D9431F</Color>
+    <Color x:Key="AccentInkLight">#B3361A</Color>
+    <Color x:Key="OnAccentLight">#FFFFFF</Color>
+    <Color x:Key="PaperLight">#FBFAF7</Color>
+    <Color x:Key="PaperInkLight">#141413</Color>
 
-    <Color x:Key="White">White</Color>
-    <Color x:Key="Black">Black</Color>
-    <Color x:Key="Magenta">#D600AA</Color>
-    <Color x:Key="MidnightBlue">#190649</Color>
-    <Color x:Key="OffBlack">#1f1f1f</Color>
+    <!-- Тёмная тема -->
+    <Color x:Key="BgDark">#121211</Color>
+    <Color x:Key="BgRaiseDark">#1A1A18</Color>
+    <Color x:Key="SurfaceDark">#1D1D1B</Color>
+    <Color x:Key="InkDark">#EDEBE5</Color>
+    <Color x:Key="Ink2Dark">#B5B2AA</Color>
+    <Color x:Key="Ink3Dark">#8F8C85</Color>
+    <Color x:Key="LineDark">#2C2B28</Color>
+    <Color x:Key="LineStrongDark">#43413C</Color>
+    <Color x:Key="AccentDark">#FF6A43</Color>
+    <Color x:Key="AccentInkDark">#FF8B6B</Color>
+    <Color x:Key="OnAccentDark">#141413</Color>
+    <Color x:Key="PaperDark">#FBFAF7</Color>
+    <Color x:Key="PaperInkDark">#141413</Color>
 
-    <Color x:Key="Gray100">#E1E1E1</Color>
-    <Color x:Key="Gray200">#C8C8C8</Color>
-    <Color x:Key="Gray300">#ACACAC</Color>
-    <Color x:Key="Gray400">#919191</Color>
-    <Color x:Key="Gray500">#6E6E6E</Color>
-    <Color x:Key="Gray600">#404040</Color>
-    <Color x:Key="Gray900">#212121</Color>
-    <Color x:Key="Gray950">#141414</Color>
+    <!-- Общие системные цвета -->
+    <Color x:Key="White">#FFFFFF</Color>
+    <Color x:Key="Black">#000000</Color>
+    <Color x:Key="Transparent">Transparent</Color>
 
-    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
-    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
-    <SolidColorBrush x:Key="TertiaryBrush" Color="{StaticResource Tertiary}"/>
-    <SolidColorBrush x:Key="WhiteBrush" Color="{StaticResource White}"/>
-    <SolidColorBrush x:Key="BlackBrush" Color="{StaticResource Black}"/>
+    <!-- Brushes для тем -->
+    <SolidColorBrush x:Key="BgLightBrush" Color="{StaticResource BgLight}" />
+    <SolidColorBrush x:Key="BgDarkBrush" Color="{StaticResource BgDark}" />
+    <SolidColorBrush x:Key="BgRaiseLightBrush" Color="{StaticResource BgRaiseLight}" />
+    <SolidColorBrush x:Key="BgRaiseDarkBrush" Color="{StaticResource BgRaiseDark}" />
+    <SolidColorBrush x:Key="SurfaceLightBrush" Color="{StaticResource SurfaceLight}" />
+    <SolidColorBrush x:Key="SurfaceDarkBrush" Color="{StaticResource SurfaceDark}" />
+    <SolidColorBrush x:Key="InkLightBrush" Color="{StaticResource InkLight}" />
+    <SolidColorBrush x:Key="InkDarkBrush" Color="{StaticResource InkDark}" />
+    <SolidColorBrush x:Key="Ink2LightBrush" Color="{StaticResource Ink2Light}" />
+    <SolidColorBrush x:Key="Ink2DarkBrush" Color="{StaticResource Ink2Dark}" />
+    <SolidColorBrush x:Key="Ink3LightBrush" Color="{StaticResource Ink3Light}" />
+    <SolidColorBrush x:Key="Ink3DarkBrush" Color="{StaticResource Ink3Dark}" />
+    <SolidColorBrush x:Key="LineLightBrush" Color="{StaticResource LineLight}" />
+    <SolidColorBrush x:Key="LineDarkBrush" Color="{StaticResource LineDark}" />
+    <SolidColorBrush x:Key="LineStrongLightBrush" Color="{StaticResource LineStrongLight}" />
+    <SolidColorBrush x:Key="LineStrongDarkBrush" Color="{StaticResource LineStrongDark}" />
+    <SolidColorBrush x:Key="AccentLightBrush" Color="{StaticResource AccentLight}" />
+    <SolidColorBrush x:Key="AccentDarkBrush" Color="{StaticResource AccentDark}" />
+    <SolidColorBrush x:Key="AccentInkLightBrush" Color="{StaticResource AccentInkLight}" />
+    <SolidColorBrush x:Key="AccentInkDarkBrush" Color="{StaticResource AccentInkDark}" />
+    <SolidColorBrush x:Key="OnAccentLightBrush" Color="{StaticResource OnAccentLight}" />
+    <SolidColorBrush x:Key="OnAccentDarkBrush" Color="{StaticResource OnAccentDark}" />
 
-    <SolidColorBrush x:Key="Gray100Brush" Color="{StaticResource Gray100}"/>
-    <SolidColorBrush x:Key="Gray200Brush" Color="{StaticResource Gray200}"/>
-    <SolidColorBrush x:Key="Gray300Brush" Color="{StaticResource Gray300}"/>
-    <SolidColorBrush x:Key="Gray400Brush" Color="{StaticResource Gray400}"/>
-    <SolidColorBrush x:Key="Gray500Brush" Color="{StaticResource Gray500}"/>
-    <SolidColorBrush x:Key="Gray600Brush" Color="{StaticResource Gray600}"/>
-    <SolidColorBrush x:Key="Gray900Brush" Color="{StaticResource Gray900}"/>
-    <SolidColorBrush x:Key="Gray950Brush" Color="{StaticResource Gray950}"/>
+    <!-- Алиасы для дефолтных стилей MAUI -->
+    <Color x:Key="Primary">#D9431F</Color>
+    <Color x:Key="PrimaryDark">#FF6A43</Color>
+    <Color x:Key="Secondary">#E9E6DF</Color>
+    <Color x:Key="Tertiary">#4A4843</Color>
 </ResourceDictionary>

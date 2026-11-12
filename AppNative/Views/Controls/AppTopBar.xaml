@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:AppNative.ViewModels"
+             x:Class="AppNative.Views.Controls.AppTopBar"
+             x:DataType="vm:AppShellViewModel">
+
+    <!-- Шапка как во фронтенде: логотип-плашка слева, меню с подчёркиванием активного пункта, «Войти» и тема справа.
+         BindingContext = AppShellViewModel (singleton) задаётся в code-behind, а не наследуется от страницы. -->
+    <Grid HeightRequest="{OnIdiom Phone='56', Desktop='64'}"
+          BackgroundColor="{AppThemeBinding Light={StaticResource BgLight}, Dark={StaticResource BgDark}}">
+
+        <BoxView VerticalOptions="End"
+                 HeightRequest="1"
+                 Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+
+        <Grid MaximumWidthRequest="1320"
+              HorizontalOptions="Fill"
+              Padding="{OnIdiom Phone='16,0', Desktop='32,0'}"
+              ColumnDefinitions="Auto,*,Auto,Auto"
+              ColumnSpacing="12">
+
+            <!-- Логотип: тёмная плашка «стартер» + акцентный квадратик -->
+            <Border Grid.Column="0"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 4"
+                    Padding="10,4,8,6"
+                    VerticalOptions="Center"
+                    BackgroundColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Command="{Binding NavigateToCommand}" CommandParameter="home" />
+                </Border.GestureRecognizers>
+                <HorizontalStackLayout Spacing="3">
+                    <Label Text="стартер"
+                           FontFamily="GolosTextSemiBold"
+                           FontSize="19"
+                           CharacterSpacing="-0.4"
+                           VerticalOptions="Center"
+                           TextColor="{AppThemeBinding Light={StaticResource BgLight}, Dark={StaticResource BgDark}}" />
+                    <BoxView WidthRequest="6"
+                             HeightRequest="6"
+                             CornerRadius="1"
+                             VerticalOptions="Start"
+                             Margin="0,4,0,0"
+                             Color="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" />
+                </HorizontalStackLayout>
+            </Border>
+
+            <!-- Меню (только Desktop; на телефоне — нижний TabBar) -->
+            <HorizontalStackLayout Grid.Column="1"
+                                   IsVisible="{OnIdiom Phone=False, Desktop=True}"
+                                   HorizontalOptions="End"
+                                   Spacing="4">
+
+                    <!-- Вакансии -->
+                    <Grid HeightRequest="40" Padding="12,0" ColumnSpacing="8" ColumnDefinitions="Auto,Auto" VerticalOptions="Center">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding NavigateToCommand}" CommandParameter="home" />
+                        </Grid.GestureRecognizers>
+                        <Label Text="Вакансии"
+                               FontFamily="GolosTextMedium"
+                               FontSize="14"
+                               VerticalOptions="Center">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsHomeActive}" Value="False">
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsHomeActive}" Value="True">
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <BoxView Grid.ColumnSpan="2"
+                                 IsVisible="{Binding IsHomeActive}"
+                                 HeightRequest="2"
+                                 VerticalOptions="End"
+                                 Margin="0,0,0,4"
+                                 Color="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" />
+                    </Grid>
+
+                    <!-- Подбор профессии -->
+                    <Grid HeightRequest="40" Padding="12,0" ColumnSpacing="8" ColumnDefinitions="Auto,Auto" VerticalOptions="Center">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding NavigateToCommand}" CommandParameter="match" />
+                        </Grid.GestureRecognizers>
+                        <Label Text="Подбор профессии"
+                               FontFamily="GolosTextMedium"
+                               FontSize="14"
+                               VerticalOptions="Center">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsMatchActive}" Value="False">
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsMatchActive}" Value="True">
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <BoxView Grid.ColumnSpan="2"
+                                 IsVisible="{Binding IsMatchActive}"
+                                 HeightRequest="2"
+                                 VerticalOptions="End"
+                                 Margin="0,0,0,4"
+                                 Color="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" />
+                    </Grid>
+
+                    <!-- Избранное -->
+                    <Grid HeightRequest="40" Padding="12,0" ColumnSpacing="8" ColumnDefinitions="Auto,Auto" VerticalOptions="Center">
+                        <Grid.GestureRecognizers>
+                            <TapGestureRecognizer Command="{Binding NavigateToCommand}" CommandParameter="saved" />
+                        </Grid.GestureRecognizers>
+                        <Label Text="Избранное"
+                               FontFamily="GolosTextMedium"
+                               FontSize="14"
+                               VerticalOptions="Center">
+                            <Label.Triggers>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsSavedActive}" Value="False">
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                                </DataTrigger>
+                                <DataTrigger TargetType="Label" Binding="{Binding IsSavedActive}" Value="True">
+                                    <Setter Property="TextColor" Value="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                </DataTrigger>
+                            </Label.Triggers>
+                        </Label>
+                        <Border Grid.Column="1"
+                                Stroke="{AppThemeBinding Light={StaticResource LineStrongLight}, Dark={StaticResource LineStrongDark}}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 4"
+                                Padding="5,0"
+                                HeightRequest="20"
+                                VerticalOptions="Center"
+                                InputTransparent="True">
+                            <Label Text="{Binding FavoritesCount}"
+                                   FontFamily="JetBrainsMonoMedium"
+                                   FontSize="11"
+                                   VerticalOptions="Center"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                        </Border>
+                        <BoxView Grid.ColumnSpan="2"
+                                 IsVisible="{Binding IsSavedActive}"
+                                 HeightRequest="2"
+                                 VerticalOptions="End"
+                                 Margin="0,0,0,4"
+                                 Color="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" />
+                    </Grid>
+
+            </HorizontalStackLayout>
+
+            <!-- CTA в меню (nav__link_cta): всегда акцентная — «Войти» у гостя, «Профиль» после входа -->
+            <Button Grid.Column="2"
+                    IsVisible="{OnIdiom Phone=False, Desktop=True}"
+                    Text="{Binding AccountTitle}"
+                    Command="{Binding NavigateToCommand}"
+                    CommandParameter="account"
+                    Style="{StaticResource BtnAccentStyle}"
+                    HeightRequest="40"
+                    MinimumHeightRequest="40"
+                    Padding="24,0"
+                    FontSize="14"
+                    VerticalOptions="Center" />
+
+            <!-- Переключатель темы -->
+            <Button Grid.Column="3"
+                    ImageSource="{Binding IsDarkTheme, Converter={StaticResource ThemeIconConverter}, FallbackValue='i_sun.png'}"
+                    Command="{Binding ToggleThemeCommand}"
+                    WidthRequest="40"
+                    HeightRequest="40"
+                    CornerRadius="8"
+                    BorderWidth="1"
+                    Padding="0"
+                    BackgroundColor="Transparent"
+                    BorderColor="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}"
+                    VerticalOptions="Center"
+                    HorizontalOptions="End"
+                    SemanticProperties.Description="Переключить тему оформления" />
+        </Grid>
+    </Grid>
+</ContentView>

@@ -16,6 +16,24 @@ namespace AppNative.WinUI
         /// </summary>
         public App()
         {
+            this.UnhandledException += (s, e) =>
+            {
+                try
+                {
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(System.AppContext.BaseDirectory, "crash.log"), 
+                        $"{e.Message}\n{e.Exception?.ToString()}");
+                }
+                catch { }
+            };
+            System.AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                try
+                {
+                    System.IO.File.WriteAllText(System.IO.Path.Combine(System.AppContext.BaseDirectory, "crash_domain.log"), 
+                        e.ExceptionObject?.ToString() ?? "Unknown domain error");
+                }
+                catch { }
+            };
             this.InitializeComponent();
         }
 

@@ -3,12 +3,33 @@
     x:Class="AppNative.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:AppNative"
-    Title="AppNative">
+    xmlns:views="clr-namespace:AppNative.Views"
+    xmlns:vm="clr-namespace:AppNative.ViewModels"
+    x:DataType="vm:AppShellViewModel"
+    Title="Стартер — вакансии простым языком"
+    Shell.NavBarIsVisible="False">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <Shell.TabBarIsVisible>
+        <OnPlatform x:TypeArguments="x:Boolean">
+            <On Platform="WinUI" Value="False" />
+            <On Platform="Android" Value="True" />
+        </OnPlatform>
+    </Shell.TabBarIsVisible>
+
+    <!-- Навигационные вкладки -->
+    <TabBar>
+        <Tab Title="Вакансии" Icon="i_grid.png" Route="home">
+            <ShellContent ContentTemplate="{DataTemplate views:HomePage}" />
+        </Tab>
+        <Tab Title="Подбор" Icon="i_spark.png" Route="match">
+            <ShellContent ContentTemplate="{DataTemplate views:MatchPage}" />
+        </Tab>
+        <Tab Title="Избранное" Icon="i_bookmark.png" Route="saved">
+            <ShellContent ContentTemplate="{DataTemplate views:SavedPage}" />
+        </Tab>
+        <Tab Title="Профиль" Icon="i_user.png" Route="account">
+            <ShellContent ContentTemplate="{DataTemplate views:AccountPage}" />
+        </Tab>
+    </TabBar>
 
 </Shell>
