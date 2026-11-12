@@ -40,9 +40,15 @@ public partial class SavedViewModel : ObservableObject
         IsLoading = true;
         try
         {
-            var favIds = _favoritesService.GetFavoriteIds();
-            var all = await _vacancyService.GetVacanciesAsync();
-            var saved = all.Where(j => favIds.Contains(j.Id)).ToList();
+            var favIds = _favoritesService.GetFavoriteIds().ToHashSet();
+            // API: список с сервера; демо: из каталога
+            var saved = await _favoritesService.GetSavedVacanciesAsync()
+                        ?? (await _vacancyService.GetVacanciesAsync()).Where(j => favIds.Contains(j.Id)).ToList();
+            // Отмеченные, которых нет в списке (демо-карточки при входе), догружаем по id
+            foreach (var id in favIds.Where(id => saved.All(v => v.Id != id)).ToList())
+            {
+                if (await _vacancyService.GetVacancyByIdAsync(id) is { } extra) saved.Add(extra);
+            }
 
             var fitKeys = _matchService.FitDirectionKeys;
 

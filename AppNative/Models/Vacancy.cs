@@ -35,6 +35,13 @@ public class Vacancy
     public string SourceFrom { get; set; } = string.Empty;
     public string SourceOn { get; set; } = string.Empty;
 
+    /// <summary>График (только вакансии из API).</summary>
+    public string Schedule { get; set; } = string.Empty;
+    public bool HasSchedule => !string.IsNullOrWhiteSpace(Schedule);
+
+    /// <summary>true — вакансия из базы СТАРТЕР (API), false — демо-карточка.</summary>
+    public bool IsLive { get; set; }
+
     public VacancyDuties Original { get; set; } = new();
     public VacancyPlain Plain { get; set; } = new();
 
@@ -46,7 +53,11 @@ public class Vacancy
         get
         {
             if (Salary == null || Salary.Length < 2) return "Зарплата не указана";
-            return $"{Salary[0]:N0} – {Salary[1]:N0} ₽".Replace(',', ' ');
+            // С бэкенда может прийти только «от» или только «до» (0 = не указано)
+            if (Salary[0] > 0 && Salary[1] > 0 && Salary[0] != Salary[1]) return $"{Salary[0]:N0} – {Salary[1]:N0} ₽".Replace(',', ' ');
+            if (Salary[0] > 0) return $"от {Salary[0]:N0} ₽".Replace(',', ' ');
+            if (Salary[1] > 0) return $"до {Salary[1]:N0} ₽".Replace(',', ' ');
+            return "Зарплата не указана";
         }
     }
 
@@ -55,6 +66,7 @@ public class Vacancy
         get
         {
             if (Salary == null || Salary.Length < 1) return "зарплата не указана";
+            if (Salary[0] <= 0) return Salary.Length > 1 && Salary[1] > 0 ? $"до {Salary[1]:N0} ₽".Replace(',', ' ') : "зарплата не указана";
             return $"от {Salary[0]:N0} ₽".Replace(',', ' ');
         }
     }

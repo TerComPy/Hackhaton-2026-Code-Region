@@ -10,4 +10,7 @@ public interface IAuthService
     Task<bool> LoginAsync(string email, string password);
     Task<bool> RegisterAsync(string name, string email, string password);
     void Logout();
+
+    /// <summary>Понятная причина последней неудачи входа/регистрации (API). У демо — пусто.</summary>
+    string LastError => string.Empty;
 }

@@ -26,7 +26,7 @@
         </Style>
     </ContentView.Resources>
 
-    <Grid Padding="{OnIdiom Phone='16,48,16,32', Desktop='32,48,32,32'}">
+    <Grid x:Name="FooterRoot" Padding="{OnIdiom Phone='16,48,16,32', Desktop='32,48,32,32'}">
         <BoxView HeightRequest="1" VerticalOptions="Start" Margin="{OnIdiom Phone='-16,-48,-16,0', Desktop='-32,-48,-32,0'}"
                  Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
 
@@ -37,18 +37,12 @@
                   ColumnSpacing="32" RowSpacing="32">
 
                 <VerticalStackLayout Grid.Column="0" Spacing="12">
-                    <Border StrokeThickness="0" StrokeShape="RoundRectangle 4" Padding="10,4,8,6" HorizontalOptions="Start"
-                            BackgroundColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}">
-                        <Border.GestureRecognizers>
+                    <Image Source="{AppThemeBinding Light=brand_wordmark_light.png, Dark=brand_wordmark_dark.png}" HeightRequest="32" Aspect="AspectFit" HorizontalOptions="Start"
+                           SemanticProperties.Description="Стартер — на главную">
+                        <Image.GestureRecognizers>
                             <TapGestureRecognizer Command="{Binding NavigateToCommand}" CommandParameter="home" />
-                        </Border.GestureRecognizers>
-                        <HorizontalStackLayout Spacing="3">
-                            <Label Text="стартер" FontFamily="GolosTextSemiBold" FontSize="19" CharacterSpacing="-0.4"
-                                   TextColor="{AppThemeBinding Light={StaticResource BgLight}, Dark={StaticResource BgDark}}" />
-                            <BoxView WidthRequest="6" HeightRequest="6" CornerRadius="1" VerticalOptions="Start" Margin="0,4,0,0"
-                                     Color="{AppThemeBinding Light={StaticResource AccentLight}, Dark={StaticResource AccentDark}}" />
-                        </HorizontalStackLayout>
-                    </Border>
+                        </Image.GestureRecognizers>
+                    </Image>
                     <Label Style="{StaticResource FooterTextStyle}" MaximumWidthRequest="340" HorizontalOptions="Start"
                            Text="Вакансии с нескольких площадок в одном каталоге. Пересказываем объявления простыми словами и подсказываем, какая профессия подойдёт." />
                 </VerticalStackLayout>
@@ -128,5 +122,9 @@
                        TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
             </FlexLayout>
         </VerticalStackLayout>
+        <!-- .footer__cat: кот с клубком, только на главной (ShowCat) -->
+        <Image x:Name="FooterCat" Source="mascot_footer_ball.png" IsVisible="False"
+               HeightRequest="{OnIdiom Phone=100, Desktop=150}" Aspect="AspectFit"
+               HorizontalOptions="End" VerticalOptions="End" InputTransparent="True" />
     </Grid>
 </ContentView>

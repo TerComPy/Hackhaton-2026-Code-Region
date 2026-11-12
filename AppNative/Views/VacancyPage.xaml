@@ -119,6 +119,13 @@
                                 </VerticalStackLayout>
                                 <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
                             </Grid>
+                            <Grid Grid.Row="1" Grid.Column="1" IsVisible="{Binding Vacancy.HasSchedule}">
+                                <VerticalStackLayout Padding="0,12" Spacing="2">
+                                    <Label Text="График" Style="{StaticResource FactLabelStyle}" />
+                                    <Label Text="{Binding Vacancy.Schedule}" FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
+                                </VerticalStackLayout>
+                                <BoxView HeightRequest="1" VerticalOptions="End" Color="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" />
+                            </Grid>
                         </Grid>
 
                         <!-- .seg -->
@@ -154,18 +161,38 @@
                             </HorizontalStackLayout>
                         </Border>
 
+                        <!-- .sheet__ai-note / .sheet__ai-feedback -->
+                        <HorizontalStackLayout IsVisible="{Binding AiNote, Converter={StaticResource StringNotEmptyConverter}}" Spacing="8" Margin="0,12,0,0">
+                            <ActivityIndicator IsRunning="True" WidthRequest="16" HeightRequest="16" VerticalOptions="Center" />
+                            <Label Text="{Binding AiNote}" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" VerticalOptions="Center" LineBreakMode="WordWrap" MaximumWidthRequest="500" />
+                        </HorizontalStackLayout>
+                        <VerticalStackLayout IsVisible="{Binding AiError, Converter={StaticResource StringNotEmptyConverter}}" Spacing="8" Margin="0,12,0,0">
+                            <Label Text="{Binding AiError}" FontSize="14" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" />
+                            <Button Text="Повторить" Style="{StaticResource BtnGhostStyle}" HeightRequest="36" MinimumHeightRequest="36"
+                                    HorizontalOptions="Start" Command="{Binding RetryAiCommand}" />
+                        </VerticalStackLayout>
+
                         <!-- .flip__plain -->
                         <Border Margin="0,24,0,0" Padding="24"
                                 IsVisible="{Binding IsPlainMode}"
                                 StrokeThickness="1" StrokeShape="RoundRectangle 8"
                                 Stroke="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
                             <VerticalStackLayout>
+                                <!-- .flip__label (API) -->
+                                <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding IsLive}" Margin="0,0,0,16">
+                                    <Label Text="{Binding PlainLabel}" FontFamily="JetBrainsMonoMedium" FontSize="11" CharacterSpacing="1" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" />
+                                    <Label Grid.Column="1" Text="ПРОВЕРЯЙТЕ ПО ОРИГИНАЛУ" FontFamily="JetBrainsMonoMedium" FontSize="11" CharacterSpacing="1" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
+                                </Grid>
+                                <Label Text="{Binding AiSimpleTitle}" IsVisible="{Binding AiSimpleTitle, Converter={StaticResource StringNotEmptyConverter}}"
+                                       FontFamily="GolosTextSemiBold" FontSize="18" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" Margin="0,0,0,16" />
                                 <Label Text="Что делать" Style="{StaticResource FlipHeadStyle}" Margin="0,0,0,0" />
                                 <Label Text="{Binding Vacancy.Plain.Duties}" Style="{StaticResource FlipTextStyle}" />
                                 <Label Text="Что нужно" Style="{StaticResource FlipHeadStyle}" Margin="0,16,0,0" />
                                 <Label Text="{Binding Vacancy.Plain.Requirements}" Style="{StaticResource FlipTextStyle}" />
                                 <Label Text="Условия" Style="{StaticResource FlipHeadStyle}" Margin="0,16,0,0" />
                                 <Label Text="{Binding Vacancy.Plain.Conditions}" Style="{StaticResource FlipTextStyle}" />
+                                <Label Text="В объявлении допускаются кандидаты без опыта" IsVisible="{Binding AiBeginner}"
+                                       FontFamily="GolosTextMedium" FontSize="16" TextColor="{AppThemeBinding Light={StaticResource AccentInkLight}, Dark={StaticResource AccentInkDark}}" Margin="0,24,0,0" />
                             </VerticalStackLayout>
                         </Border>
 
@@ -175,7 +202,9 @@
                                 StrokeThickness="1" StrokeShape="RoundRectangle 8"
                                 Stroke="{AppThemeBinding Light={StaticResource LineLight}, Dark={StaticResource LineDark}}" BackgroundColor="{AppThemeBinding Light={StaticResource SurfaceLight}, Dark={StaticResource SurfaceDark}}">
                             <VerticalStackLayout>
-                                <Label Text="Что делать" Style="{StaticResource FlipHeadStyle}" Margin="0,0,0,0" />
+                                <Label Text="{Binding OriginalLabel}" IsVisible="{Binding IsLive}" FontFamily="JetBrainsMonoMedium" FontSize="11"
+                                       CharacterSpacing="1" TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" Margin="0,0,0,16" />
+                                <Label Text="{Binding OriginalHead1}" Style="{StaticResource FlipHeadStyle}" Margin="0,0,0,0" />
                                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding Vacancy.Original.Duties}" Spacing="2">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
@@ -186,7 +215,7 @@
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>
                                 </VerticalStackLayout>
-                                <Label Text="Что нужно" Style="{StaticResource FlipHeadStyle}" Margin="0,16,0,0" />
+                                <Label Text="{Binding OriginalHead2}" Style="{StaticResource FlipHeadStyle}" Margin="0,16,0,0" />
                                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding Vacancy.Original.Requirements}" Spacing="2">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
@@ -197,7 +226,7 @@
                                         </DataTemplate>
                                     </BindableLayout.ItemTemplate>
                                 </VerticalStackLayout>
-                                <Label Text="Условия" Style="{StaticResource FlipHeadStyle}" Margin="0,16,0,0" />
+                                <Label Text="{Binding OriginalHead3}" Style="{StaticResource FlipHeadStyle}" Margin="0,16,0,0" />
                                 <VerticalStackLayout BindableLayout.ItemsSource="{Binding Vacancy.Original.Conditions}" Spacing="2">
                                     <BindableLayout.ItemTemplate>
                                         <DataTemplate x:DataType="x:String">
@@ -218,7 +247,7 @@
             <Grid Grid.Row="2" BackgroundColor="{AppThemeBinding Light={StaticResource BgLight}, Dark={StaticResource BgDark}}">
                 <Grid Padding="24,16" ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="12" RowSpacing="12">
                     <Button Grid.Column="0"
-                            Text="{Binding Vacancy.Source, StringFormat='Открыть на {0}'}"
+                            Text="{Binding OpenButtonText}"
                             Style="{StaticResource BtnAccentStyle}"
                             Command="{Binding OpenExternalCommand}" />
                     <Button Grid.Column="1"
@@ -240,7 +269,7 @@
                         </Button.Triggers>
                     </Button>
                     <Label Grid.Row="1" Grid.ColumnSpan="2"
-                           Text="Демо-вакансия: ссылка открывает поиск похожих объявлений."
+                           Text="{Binding FootNote}"
                            FontFamily="GolosTextRegular" FontSize="12"
                            TextColor="{AppThemeBinding Light={StaticResource Ink3Light}, Dark={StaticResource Ink3Dark}}" />
                 </Grid>

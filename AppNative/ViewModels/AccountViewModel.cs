@@ -23,13 +23,13 @@ public partial class AccountViewModel : ObservableObject
         OnPropertyChanged(nameof(SubmitButtonText));
     }
 
-    public string SubmitButtonText => IsRegisterMode ? "Создать профиль" : "Войти";
+    public string SubmitButtonText => IsBusy ? "Загрузка…" : IsRegisterMode ? "Создать профиль" : "Войти";
 
     // Тексты Account.vue (режим mock)
     public string AuthTitle => IsRegisterMode ? "Начните со своего." : "Продолжим поиск.";
     public string AuthSubtitle => IsRegisterMode
-        ? "Создайте демо-профиль, чтобы сохранять вакансии и собирать свою подборку."
-        : "Войдите в демо-профиль и вернитесь к сохранённым вакансиям.";
+        ? "Создайте аккаунт и начните свой поиск."
+        : "Войдите в свой аккаунт, чтобы продолжить.";
     public string SwitchQuestion => IsRegisterMode ? "Уже есть аккаунт?" : "Нет аккаунта?";
     public string SwitchAction => IsRegisterMode ? "Войти" : "Зарегистрироваться";
 
@@ -77,6 +77,11 @@ public partial class AccountViewModel : ObservableObject
 
     [ObservableProperty]
     private string _memberSinceText = "Профиль";
+
+    /// <summary>Идёт запрос входа/регистрации.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(SubmitButtonText))]
+    private bool _isBusy;
 
     public AccountViewModel(
         IAuthService authService,
@@ -158,20 +163,31 @@ public partial class AccountViewModel : ObservableObject
         // Account.vue (mock): одно общее сообщение и та же проверка
         var email = Email.Trim();
         bool emailOk = System.Text.RegularExpressions.Regex.IsMatch(email, @"^[^\s@]+@[^\s@]+\.[^\s@]+$");
-        if ((IsRegisterMode && string.IsNullOrWhiteSpace(Name)) || !emailOk || Password.Length < 10)
+        // Account.vue (режим API): та же проверка и то же сообщение
+        if ((IsRegisterMode && string.IsNullOrWhiteSpace(Name)) || !emailOk || Password.Length < 8 || Password.Length > 128)
         {
-            GeneralError = "Укажите имя, корректный email и пароль не короче 10 символов.";
+            GeneralError = "Проверьте email, имя и пароль (от 8 до 128 символов).";
             return;
         }
+        if (IsBusy) return;
 
-        // Как на сайте: имя — введённое или часть email до «@»; пароль нигде не хранится
-        var name = string.IsNullOrWhiteSpace(Name) ? email.Split('@')[0] : Name.Trim();
-        if (!await _authService.LoginAsync(email, Password))
+        IsBusy = true;
+        try
         {
-            await _authService.RegisterAsync(name.Length < 2 ? name + "_" : name, email, Password);
+            var ok = IsRegisterMode
+                ? await _authService.RegisterAsync(Name.Trim(), email, Password)
+                : await _authService.LoginAsync(email, Password);
+            if (!ok)
+                GeneralError = string.IsNullOrEmpty(_authService.LastError)
+                    ? (IsRegisterMode ? "Не удалось создать профиль." : "Неверный email или пароль.")
+                    : _authService.LastError;
         }
-        Password = string.Empty;
-        IsPasswordHidden = true;
+        finally
+        {
+            IsBusy = false;
+            Password = string.Empty; // пароль нигде не храним
+            IsPasswordHidden = true;
+        }
     }
 
     [RelayCommand]

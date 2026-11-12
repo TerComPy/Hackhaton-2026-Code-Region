@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="AppWebView.MainPage"
+             Shell.NavBarIsVisible="False"
+             NavigationPage.HasNavigationBar="False"
+             SafeAreaEdges="All"
+             BackgroundColor="White">
+
+    <Grid>
+        <!-- Сам сайт -->
+        <WebView x:Name="Web"
+                 Navigating="OnNavigating"
+                 Navigated="OnNavigated" />
+
+        <!-- Тонкая полоска загрузки при переходах между страницами -->
+        <Grid x:Name="ProgressTrack"
+              HeightRequest="3"
+              VerticalOptions="Start"
+              IsVisible="False"
+              InputTransparent="True">
+            <BoxView x:Name="ProgressBarLine"
+                     Color="{StaticResource Brand}"
+                     HorizontalOptions="Start"
+                     WidthRequest="120" />
+        </Grid>
+
+        <!-- Экран первой загрузки -->
+        <Grid x:Name="SplashOverlay"
+              BackgroundColor="White"
+              IsVisible="True">
+            <VerticalStackLayout VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 Spacing="16">
+                <Image x:Name="SplashMascot"
+                       Source="mascot_flying.png"
+                       WidthRequest="220"
+                       HeightRequest="220"
+                       Aspect="AspectFit"
+                       HorizontalOptions="Center" />
+                <Label Text="СТАРТЕР"
+                       FontSize="28"
+                       FontAttributes="Bold"
+                       CharacterSpacing="2"
+                       TextColor="{StaticResource Brand}"
+                       HorizontalTextAlignment="Center" />
+                <ActivityIndicator IsRunning="True"
+                                   Color="{StaticResource Brand}"
+                                   WidthRequest="36"
+                                   HeightRequest="36" />
+                <Label Text="Загружаем вакансии…"
+                       FontSize="14"
+                       TextColor="{StaticResource TextMuted}"
+                       HorizontalTextAlignment="Center" />
+            </VerticalStackLayout>
+        </Grid>
+
+        <!-- Экран ошибки / нет интернета -->
+        <Grid x:Name="ErrorOverlay"
+              BackgroundColor="White"
+              IsVisible="False"
+              Padding="32">
+            <VerticalStackLayout VerticalOptions="Center"
+                                 HorizontalOptions="Center"
+                                 MaximumWidthRequest="420"
+                                 Spacing="12">
+                <Image Source="mascot_tired.png"
+                       WidthRequest="180"
+                       HeightRequest="180"
+                       Aspect="AspectFit"
+                       HorizontalOptions="Center" />
+                <Label Text="Не удалось открыть сайт"
+                       FontSize="22"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource TextMain}"
+                       HorizontalTextAlignment="Center" />
+                <Label x:Name="ErrorDetails"
+                       Text="Проверьте подключение к интернету и попробуйте ещё раз."
+                       FontSize="15"
+                       TextColor="{StaticResource TextMuted}"
+                       HorizontalTextAlignment="Center" />
+                <Button Text="Повторить"
+                        Clicked="OnRetryClicked"
+                        BackgroundColor="{StaticResource Brand}"
+                        TextColor="White"
+                        CornerRadius="10"
+                        Padding="24,12"
+                        Margin="0,12,0,0"
+                        HorizontalOptions="Center" />
+            </VerticalStackLayout>
+        </Grid>
+    </Grid>
+
+</ContentPage>

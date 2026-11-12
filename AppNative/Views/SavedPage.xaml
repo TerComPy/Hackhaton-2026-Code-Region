@@ -27,6 +27,8 @@
 
                         <!-- .state -->
                         <VerticalStackLayout IsVisible="{Binding IsEmpty}" Padding="0,64" MaximumWidthRequest="460" HorizontalOptions="Start">
+                            <!-- маскот Стартера машет: пока пусто -->
+                            <Image Source="mascot_wave.png" WidthRequest="200" Aspect="AspectFit" HorizontalOptions="Start" Margin="0,0,0,16" />
                             <Label Text="Здесь будут сохранённые вакансии" FontFamily="GolosTextMedium" FontSize="22" TextColor="{AppThemeBinding Light={StaticResource InkLight}, Dark={StaticResource InkDark}}" />
                             <Label Text="Нажмите на закладку рядом с вакансией." FontSize="16" TextColor="{AppThemeBinding Light={StaticResource Ink2Light}, Dark={StaticResource Ink2Dark}}" Margin="0,8,0,0" />
                             <Button Text="Перейти в каталог"
