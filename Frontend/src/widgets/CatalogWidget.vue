@@ -123,7 +123,7 @@ watch(
             >
           </div>
           <template v-if="isApi">
-            <ApiJobList v-if="remote.authenticated && remote.items.length" :jobs="remote.items" />
+            <ApiJobList :jobs="remote.items" />
             <CatalogGuestState v-if="!remote.loading && !remote.error && !remote.authenticated" />
             <template v-else>
               <p v-if="remote.loading" class="state" role="status">Загружаем вакансии…</p>
